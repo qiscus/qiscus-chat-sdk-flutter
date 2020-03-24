@@ -12,7 +12,6 @@ abstract class SyncApi {
   @GET('sync')
   Future<SynchronizeResponse> synchronize(
     @Query('last_received_comment_id') int lastCommentId,
-    @Query('limit') int limit,
   );
 
   @GET('sync_event')
@@ -21,11 +20,20 @@ abstract class SyncApi {
   );
 }
 
+class SynchronizeResponseSingle {
+  final int lastMessageId;
+  final Message message;
+
+  const SynchronizeResponseSingle(this.lastMessageId, this.message);
+}
+
 @immutable
 class SynchronizeResponse {
   final int lastMessageId;
   final List<Message> messages;
+
   const SynchronizeResponse._(this.lastMessageId, this.messages);
+
   factory SynchronizeResponse.fromJson(Map<String, dynamic> json) {
     var lastMessageId =
         json['results']['meta']['last_received_comment_id'] as String;

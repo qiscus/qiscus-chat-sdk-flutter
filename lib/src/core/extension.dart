@@ -79,7 +79,7 @@ extension TaskE<L, R> on Task<Either<L, R>> {
   }
 
   Task<Either<L, R>> tap(Function1<R, void> op) {
-    return this.map((either) => either.tap(op));
+    return map((either) => either.tap(op));
   }
 }
 

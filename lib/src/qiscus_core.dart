@@ -5,52 +5,18 @@ import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
-import 'package:logger/logger.dart';
 import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
-import 'package:qiscus_chat_sdk/src/core/extension.dart';
-import 'package:qiscus_chat_sdk/src/core/storage.dart';
-import 'package:qiscus_chat_sdk/src/core/usecases.dart';
-import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/message/repository.dart';
-import 'package:qiscus_chat_sdk/src/features/message/repository_impl.dart';
-import 'package:qiscus_chat_sdk/src/features/message/usecase/get_message_list.dart';
-import 'package:qiscus_chat_sdk/src/features/message/usecase/on_deleted.dart';
-import 'package:qiscus_chat_sdk/src/features/message/usecase/on_message_received.dart';
-import 'package:qiscus_chat_sdk/src/features/message/usecase/send_message.dart';
-import 'package:qiscus_chat_sdk/src/features/message/usecase/update_status.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/interval.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/mqtt_service_impl.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/service_impl.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/sync_service_impl.dart';
-import 'package:qiscus_chat_sdk/src/features/room/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
-import 'package:qiscus_chat_sdk/src/features/room/repository_impl.dart';
-import 'package:qiscus_chat_sdk/src/features/room/usecase/get_room_by_user_id.dart';
-import 'package:qiscus_chat_sdk/src/features/room/usecase/get_room_with_messages.dart';
-import 'package:qiscus_chat_sdk/src/features/sync/api.dart';
-import 'package:qiscus_chat_sdk/src/features/user/entity/account.dart';
-import 'package:qiscus_chat_sdk/src/features/user/entity/participant.dart';
-import 'package:qiscus_chat_sdk/src/features/user/entity/user.dart';
-import 'package:qiscus_chat_sdk/src/features/user/repository.dart';
-import 'package:qiscus_chat_sdk/src/features/user/repository_impl.dart';
-import 'package:qiscus_chat_sdk/src/features/user/usecases/authenticate.dart';
-import 'package:qiscus_chat_sdk/src/features/user/usecases/authenticate_with_token.dart';
-import 'package:qiscus_chat_sdk/src/features/user/usecases/block_user.dart';
-import 'package:qiscus_chat_sdk/src/features/user/usecases/get_blocked_user.dart';
-import 'package:qiscus_chat_sdk/src/features/user/usecases/get_nonce.dart';
-import 'package:qiscus_chat_sdk/src/features/user/usecases/get_user_data.dart';
-import 'package:qiscus_chat_sdk/src/features/user/usecases/get_users.dart';
-import 'package:qiscus_chat_sdk/src/features/user/usecases/on_user_typing.dart';
-import 'package:qiscus_chat_sdk/src/features/user/usecases/register_device_token.dart';
-import 'package:qiscus_chat_sdk/src/features/user/usecases/update_user.dart';
-import 'package:qiscus_chat_sdk/src/features/user/user_api.dart';
 
+import 'core/core.dart';
 import 'features/message/api.dart';
+import 'features/message/message.dart';
+import 'features/realtime/realtime.dart';
 import 'features/room/api.dart';
+import 'features/room/room.dart';
 import 'features/user/usecases/unblock_user.dart';
+import 'features/user/user.dart';
 
 typedef Subscription = void Function();
 
@@ -61,7 +27,7 @@ class QiscusSDK {
   static final instance = QiscusSDK();
   static final _storage = Storage();
 
-  static final _logger = Logger(printer: LogfmtPrinter());
+  static final _logger = Logger();
 
   static Dio get _dio {
     final interceptor = InterceptorsWrapper(
@@ -79,7 +45,6 @@ class QiscusSDK {
     return Dio(BaseOptions())
       ..interceptors.addAll([
         interceptor,
-//        PrettyDioLogger(responseBody: false, request: false),
       ]);
   }
 

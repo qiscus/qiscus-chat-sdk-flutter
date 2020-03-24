@@ -43,7 +43,7 @@ extension CQiscusSDK on QiscusSDK {
     @required String userId,
   }) {
     var completer = Completer<QChatRoom>();
-    this.chatUser(
+    chatUser(
       userId: userId,
       callback: (room, error) {
         if (error != null) {

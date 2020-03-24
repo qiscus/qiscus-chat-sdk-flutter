@@ -5,9 +5,10 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/core/storage.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/interval.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
-import 'package:qiscus_chat_sdk/src/features/sync/api.dart';
+
+import 'api.dart';
+import 'interval.dart';
+import 'service.dart';
 
 class SyncServiceImpl implements RealtimeService {
   SyncServiceImpl(

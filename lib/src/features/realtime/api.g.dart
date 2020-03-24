@@ -16,13 +16,11 @@ class _SyncApi implements SyncApi {
   String baseUrl;
 
   @override
-  synchronize(lastCommentId, limit) async {
+  synchronize(lastCommentId) async {
     ArgumentError.checkNotNull(lastCommentId, 'lastCommentId');
-    ArgumentError.checkNotNull(limit, 'limit');
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
-      'last_received_comment_id': lastCommentId,
-      'limit': limit
+      'last_received_comment_id': lastCommentId
     };
     final _data = <String, dynamic>{};
     final Response<Map<String, dynamic>> _result = await _dio.request('sync',

@@ -39,6 +39,8 @@ class UpdateStatusRequest {
   final int lastReadId;
   @JsonKey(name: 'last_comment_received_id', defaultValue: 0)
   final int lastDeliveredId;
+
+  Map<String, dynamic> toJson() => _$UpdateStatusRequestToJson(this);
 }
 
 @JsonSerializable()
