@@ -61,9 +61,7 @@ class QMessage {
     Map<String, dynamic> extras,
     Map<String, dynamic> payload,
   }) {
-    var filename = file.path
-        .split('/')
-        .last;
+    var filename = file.path.split('/').last;
     var size = file.length();
 
     return QMessage.create(
@@ -111,9 +109,9 @@ class QMessage {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is QMessage &&
-              runtimeType == other.runtimeType &&
-              uniqueId == other.uniqueId;
+      other is QMessage &&
+          runtimeType == other.runtimeType &&
+          uniqueId == other.uniqueId;
 
   @override
   int get hashCode => uniqueId.hashCode;
@@ -238,16 +236,16 @@ class Message {
   }
 
   QMessage toModel() => QMessage(
-    id: id,
-    sender: sender.map((it) => it.toModel()).toNullable(),
-    uniqueId: uniqueId.toNullable(),
-    previousMessageId: previousMessageId.toNullable(),
-    chatRoomId: chatRoomId.toNullable(),
-    extras: extras.map((it) => it.toMap()).toNullable(),
-    type: type.map((it) => it).toNullable(),
-    timestamp: timestamp.toNullable(),
-    text: text.toNullable(),
-    status: status.toNullable(),
-    payload: payload.map((it) => it.toMap()).toNullable(),
-  );
+        id: id,
+        sender: sender.map((it) => it.toModel()).toNullable(),
+        uniqueId: uniqueId.toNullable(),
+        previousMessageId: previousMessageId.toNullable(),
+        chatRoomId: chatRoomId.toNullable(),
+        extras: extras.map((it) => it.toMap()).toNullable(),
+        type: type.map((it) => it).toNullable(),
+        timestamp: timestamp.toNullable(),
+        text: text.toNullable(),
+        status: status.toNullable(),
+        payload: payload.map((it) => it.toMap()).toNullable(),
+      );
 }

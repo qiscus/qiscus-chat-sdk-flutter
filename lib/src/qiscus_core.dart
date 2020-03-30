@@ -292,8 +292,8 @@ class QiscusSDK {
   }) {
     _authenticated
         .andThen(GetMessageList(_messageRepo)(
-      GetMessageListParams(roomId, messageId, after: true, limit: limit),
-    ))
+          GetMessageListParams(roomId, messageId, after: true, limit: limit),
+        ))
         .rightMap((it) => it.map((it) => it.toModel()).toList())
         .toCallback(callback)
         .run();
@@ -315,8 +315,8 @@ class QiscusSDK {
   }) {
     _authenticated
         .andThen(GetMessageList(_messageRepo)(
-      GetMessageListParams(roomId, messageId, after: false, limit: limit),
-    ))
+          GetMessageListParams(roomId, messageId, after: false, limit: limit),
+        ))
         .rightMap((it) => it.map((m) => m.toModel()).toList())
         .toCallback(callback)
         .run();
@@ -390,8 +390,8 @@ class QiscusSDK {
         .andThen(UpdateStatus(_messageRepo).call(UpdateStatusParams(
           roomId,
           messageId,
-      QMessageStatus.read,
-    )))
+          QMessageStatus.read,
+        )))
         .toCallback((_, e) => callback(e))
         .run();
   }
@@ -419,7 +419,7 @@ class QiscusSDK {
   Subscription onMessageDeleted(Function1<QMessage, void> callback) {
     var subs = _authenticated
         .andThen(OnMessageDeleted(_realtimeService)
-        .listen((m) => callback(m.toModel())))
+            .listen((m) => callback(m.toModel())))
         .run();
     return () => subs.then((s) => s.cancel());
   }
@@ -427,7 +427,7 @@ class QiscusSDK {
   Subscription onMessageDelivered(void Function(QMessage) callback) {
     final subs = _authenticated
         .andThen(OnMessageDelivered(_realtimeService)
-        .listen((m) => callback(m.toModel())))
+            .listen((m) => callback(m.toModel())))
         .run();
     return () => subs.then((s) => s.cancel());
   }
@@ -435,7 +435,7 @@ class QiscusSDK {
   Subscription onMessageRead(void Function(QMessage) callback) {
     final subs = _authenticated
         .andThen(OnMessageRead(_realtimeService)
-        .listen((m) => callback(m.toModel())))
+            .listen((m) => callback(m.toModel())))
         .run();
     return () => subs.then((s) => s.cancel());
   }
@@ -443,7 +443,7 @@ class QiscusSDK {
   Subscription onMessageReceived(void Function(QMessage) callback) {
     var subs = _authenticated
         .andThen(OnMessageReceived(_realtimeService)
-        .listen((m) => callback(m.toModel())))
+            .listen((m) => callback(m.toModel())))
         .run();
     return () => subs.then((s) => s.cancel());
   }
@@ -457,11 +457,12 @@ class QiscusSDK {
   }
 
   Subscription onUserOnlinePresence(
-      void Function(String, bool, DateTime) handler,) {
+    void Function(String, bool, DateTime) handler,
+  ) {
     final subs = _authenticated //
         .andThen(PresenceUseCase(_realtimeService).listen((data) {
-      handler(data.userId, data.isOnline, data.lastSeen);
-    }))
+          handler(data.userId, data.isOnline, data.lastSeen);
+        }))
         .run();
     return () => subs.then((s) => s.cancel());
   }
@@ -469,8 +470,8 @@ class QiscusSDK {
   Subscription onUserTyping(void Function(String, int, bool) handler) {
     var subs = _authenticated
         .andThen(TypingUseCase(_realtimeService).listen((data) {
-      handler(data.userId, data.roomId, data.isTyping);
-    }))
+          handler(data.userId, data.roomId, data.isTyping);
+        }))
         .run();
     return () => subs.then((s) => s.cancel());
   }
@@ -487,10 +488,10 @@ class QiscusSDK {
   }) {
     _authenticated
         .andThen(PresenceUseCase(_realtimeService).call(Presence(
-      userId: _storage.userId,
-      isOnline: isOnline,
-      lastSeen: DateTime.now(),
-    )))
+          userId: _storage.userId,
+          isOnline: isOnline,
+          lastSeen: DateTime.now(),
+        )))
         .leftMap((error) => callback(error))
         .run();
   }
@@ -501,10 +502,10 @@ class QiscusSDK {
   }) {
     _authenticated
         .andThen(TypingUseCase(_realtimeService).call(Typing(
-      userId: _storage.userId,
-      roomId: roomId,
-      isTyping: isTyping,
-    )))
+          userId: _storage.userId,
+          roomId: roomId,
+          isTyping: isTyping,
+        )))
         .run();
   }
 
@@ -615,21 +616,18 @@ class QiscusSDK {
     Map<String, dynamic> extras,
     @required void Function(QAccount, Exception) callback,
   }) {
-    var subscribes = (token) =>
-        OnMessageReceived(_realtimeService)
-            .subscribe(TokenParams(token))
-            .andThen(
-            _realtimeService.subscribe(TopicBuilder.notification(token)));
+    var subscribes = (token) => OnMessageReceived(_realtimeService)
+        .subscribe(TokenParams(token))
+        .andThen(_realtimeService.subscribe(TopicBuilder.notification(token)));
     Authenticate(_userRepo, _storage)
         .call(AuthenticateParams(
-      userId: userId,
-      userKey: userKey,
-      name: username,
-      avatarUrl: avatarUrl,
-      extras: extras,
-    ))
-        .bind((either) =>
-        either.fold(
+          userId: userId,
+          userKey: userKey,
+          name: username,
+          avatarUrl: avatarUrl,
+          extras: extras,
+        ))
+        .bind((either) => either.fold(
               (e) =>
                   Task.delay(() => left<Exception, Tuple2<String, Account>>(e)),
               (tuple) => subscribes(tuple.value1).andThen(Task.delay(
@@ -681,7 +679,7 @@ class QiscusSDK {
   void subscribeUserOnlinePresence(String userId) {
     _authenticated
         .andThen(PresenceUseCase(_realtimeService)
-        .subscribe(Presence(userId: userId)))
+            .subscribe(Presence(userId: userId)))
         .run();
   }
 
@@ -707,7 +705,7 @@ class QiscusSDK {
   void unsubscribeUserOnlinePresence(String userId) {
     _authenticated
         .andThen(PresenceUseCase(_realtimeService)
-        .unsubscribe(Presence(userId: userId)))
+            .unsubscribe(Presence(userId: userId)))
         .run();
   }
 
@@ -740,9 +738,7 @@ class QiscusSDK {
     @required File file,
     @required void Function(Exception, double, String) callback,
   }) async {
-    var filename = file.path
-        .split('/')
-        .last;
+    var filename = file.path.split('/').last;
     var formData = FormData.fromMap({
       'file': await MultipartFile.fromFile(file.path, filename: filename),
     });
