@@ -26,6 +26,7 @@ class SyncServiceImpl implements RealtimeService {
   final Interval _interval;
 
   int get _messageId => _s.lastMessageId ?? 0;
+
   int get _eventId => _s.lastEventId ?? 0;
 
   @override
@@ -37,6 +38,7 @@ class SyncServiceImpl implements RealtimeService {
   Stream<SynchronizeEventResponse> get _syncEvent$ => _interval$
       .map((_) => _api.synchronizeEvent(_eventId).asStream())
       .flatten();
+
   Stream<SynchronizeResponseSingle> get _sync$ => _interval$
       .map((_) => _api.synchronize(_messageId).asStream())
       .flatten()
@@ -52,8 +54,10 @@ class SyncServiceImpl implements RealtimeService {
 
   StreamController<SynchronizeResponseSingle> get _syncController =>
       StreamController.broadcast();
+
   StreamController<SynchronizeEventResponse> get _syncEventController =>
       StreamController.broadcast();
+
   // endregion
 
   @override
@@ -146,5 +150,14 @@ class SyncServiceImpl implements RealtimeService {
   Either<Exception, void> end() {
     return left(Exception('Not available for this service'));
   }
+
+  @override
+  Stream<void> onConnected() => Stream.empty();
+
+  @override
+  Stream<void> onDisconnected() => Stream.empty();
+
+  @override
+  Stream<void> onReconnecting() => Stream.empty();
 // endregion
 }

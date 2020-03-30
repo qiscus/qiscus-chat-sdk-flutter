@@ -11,7 +11,6 @@ export 'usecases/get_blocked_user.dart';
 export 'usecases/get_nonce.dart';
 export 'usecases/get_user_data.dart';
 export 'usecases/get_users.dart';
-export 'usecases/on_user_typing.dart';
 export 'usecases/realtime.dart';
 export 'usecases/register_device_token.dart';
 export 'usecases/unblock_user.dart';

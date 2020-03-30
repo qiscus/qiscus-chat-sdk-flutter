@@ -5,7 +5,6 @@ import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/features/room/api.dart';
 import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
-import 'package:qiscus_chat_sdk/src/features/room/usecase/get_room.dart';
 
 class RoomRepositoryImpl implements RoomRepository {
   final RoomApi _api;
@@ -24,15 +23,26 @@ class RoomRepositoryImpl implements RoomRepository {
   }
 
   @override
-  Task<Either<Exception, GetRoomResponse>> getRoomWithId(int roomId) {
+  Task<Either<Exception, GetRoomWithMessagesResponse>> getRoomWithId(
+      int roomId) {
     return Task(() => _api.getRoomById(roomId))
         .attempt()
         .leftMapToException()
         .rightMap((str) {
       var json = jsonDecode(str);
-      return GetRoomResponse(json['results']['room']);
+      var room = json['results']['room'];
+      var comments = (json['results']['comments']).cast<Map<String, dynamic>>();
+      return GetRoomWithMessagesResponse(room, comments);
     });
   }
+}
+
+@immutable
+class GetRoomWithMessagesResponse {
+  const GetRoomWithMessagesResponse(this.room, this.messages);
+
+  final List<Map<String, dynamic>> messages;
+  final Map<String, dynamic> room;
 }
 
 @immutable

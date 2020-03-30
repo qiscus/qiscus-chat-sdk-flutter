@@ -1,3 +1,6 @@
+import 'dart:io'
+    if (dart.library.html) 'dart:html'
+    if (dart.library.io) 'dart:io';
 import 'dart:math';
 
 import 'package:dartz/dartz.dart';
@@ -48,6 +51,38 @@ class QMessage {
     this.timestamp,
   });
 
+  factory QMessage.createAttachment({
+    @required String text,
+    @required int chatRoomId,
+    @required QUser sender,
+    @required File file,
+    String uniqueId,
+    QMessageStatus status = QMessageStatus.sending,
+    Map<String, dynamic> extras,
+    Map<String, dynamic> payload,
+  }) {
+    var filename = file.path
+        .split('/')
+        .last;
+    var size = file.length();
+
+    return QMessage.create(
+      text: text,
+      chatRoomId: chatRoomId,
+      sender: sender,
+      uniqueId: uniqueId,
+      type: QMessageType.attachment,
+      status: status,
+      extras: extras,
+      payload: {
+        'url': '',
+        'file_name': filename,
+        'size': size,
+        'caption': text,
+      },
+    );
+  }
+
   factory QMessage.create({
     @required String text,
     @required int chatRoomId,
@@ -66,6 +101,8 @@ class QMessage {
         uniqueId: uniqueId ?? 'uniqueId--${Random.secure().nextDouble()}',
         type: type,
         status: status,
+        extras: extras,
+        payload: payload,
       );
 
   @override
@@ -74,9 +111,9 @@ class QMessage {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is QMessage &&
-          runtimeType == other.runtimeType &&
-          uniqueId == other.uniqueId;
+          other is QMessage &&
+              runtimeType == other.runtimeType &&
+              uniqueId == other.uniqueId;
 
   @override
   int get hashCode => uniqueId.hashCode;
@@ -201,16 +238,16 @@ class Message {
   }
 
   QMessage toModel() => QMessage(
-        id: id,
-        sender: sender.map((it) => it.toModel()).toNullable(),
-        uniqueId: uniqueId.toNullable(),
-        previousMessageId: previousMessageId.toNullable(),
-        chatRoomId: chatRoomId.toNullable(),
-        extras: extras.map((it) => it.toMap()).toNullable(),
-        type: type.map((it) => it).toNullable(),
-        timestamp: timestamp.toNullable(),
-        text: text.toNullable(),
-        status: status.toNullable(),
-        payload: payload.map((it) => it.toMap()).toNullable(),
-      );
+    id: id,
+    sender: sender.map((it) => it.toModel()).toNullable(),
+    uniqueId: uniqueId.toNullable(),
+    previousMessageId: previousMessageId.toNullable(),
+    chatRoomId: chatRoomId.toNullable(),
+    extras: extras.map((it) => it.toMap()).toNullable(),
+    type: type.map((it) => it).toNullable(),
+    timestamp: timestamp.toNullable(),
+    text: text.toNullable(),
+    status: status.toNullable(),
+    payload: payload.map((it) => it.toMap()).toNullable(),
+  );
 }

@@ -31,6 +31,7 @@ class SendMessage extends UseCase<MessageRepository, Message, MessageParams> {
           type: params.message.type.string,
           uniqueId: params.message.uniqueId,
           extras: params.message.extras,
+          payload: params.message.payload,
         )
         .leftMapToException()
         .rightMap((res) => Message.fromJson(res.comment));

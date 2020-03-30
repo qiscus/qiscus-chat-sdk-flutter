@@ -18,6 +18,13 @@ Future<QAccount> setUser() async {
 
 Future<QChatRoom> getRoom() async {
   var completer = Completer<QChatRoom>();
+  qiscus.getChatRoomWithMessages(
+      roomId: 3143607,
+      callback: (room, messages, error) {
+        print('room: $room');
+        print('messages: $messages');
+        print('error: $error');
+      });
   qiscus.chatUser(
       userId: 'guest-1001',
       callback: (room, error) {

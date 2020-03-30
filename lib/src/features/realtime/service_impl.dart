@@ -111,4 +111,13 @@ class RealtimeServiceImpl implements RealtimeService {
   @override
   MqttClientConnectionStatus get connectionState =>
       _mqttService.connectionState;
+
+  @override
+  Stream<void> onConnected() => _mqttService.onConnected();
+
+  @override
+  Stream<void> onDisconnected() => _mqttService.onDisconnected();
+
+  @override
+  Stream<void> onReconnecting() => _mqttService.onReconnecting();
 }

@@ -36,14 +36,15 @@ class SynchronizeResponse {
 
   factory SynchronizeResponse.fromJson(Map<String, dynamic> json) {
     var lastMessageId =
-        json['results']['meta']['last_received_comment_id'] as String;
-    var messages = json['results']['comments'] as List<Map<String, dynamic>>;
+        json['results']['meta']['last_received_comment_id'] as int;
+    var messages =
+        (json['results']['comments'] as List).cast<Map<String, dynamic>>();
     var messages_ = messages
         .map(
           (it) => Message.fromJson(it),
         )
         .toList(growable: false);
-    return SynchronizeResponse._(int.parse(lastMessageId), messages_);
+    return SynchronizeResponse._(lastMessageId, messages_);
   }
 }
 

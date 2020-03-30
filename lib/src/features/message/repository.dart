@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
 
 abstract class MessageRepository {
   Task<Either<Exception, SendMessageResponse>> sendMessage(
@@ -8,6 +7,7 @@ abstract class MessageRepository {
     String type = 'text',
     String uniqueId,
     Map<String, dynamic> extras,
+    Map<String, dynamic> payload,
   });
 
   Task<Either<Exception, GetMessageListResponse>> getMessages(

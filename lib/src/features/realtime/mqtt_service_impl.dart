@@ -28,6 +28,14 @@ class MqttServiceImpl implements RealtimeService {
     }).catchError((error) {
       print('cannot connect to mqtt: $error');
     });
+//    _mqtt.updates.listen((msgs) {
+//      for (var value in msgs) {
+//        var message = value.payload as MqttPublishMessage;
+//        var payload =
+//            MqttPublishPayload.bytesToStringAsString(message.payload.message);
+//        print('payload: $payload');
+//      }
+//    });
   }
 
   final MqttClient Function() _getClient;
@@ -43,6 +51,7 @@ class MqttServiceImpl implements RealtimeService {
   Task<Either<Exception, void>> _connected() =>
       Task(() => _isConnected).attempt().leftMapToException();
 
+  @override
   Task<Either<Exception, void>> subscribe(String topic) {
     return _connected().andThen(Task(() async {
       return catching<void>(() {
@@ -206,7 +215,7 @@ class MqttServiceImpl implements RealtimeService {
     var decode = (str) => jsonDecode(str) as Map<String, dynamic>;
     return _mqtt
         .forTopic(TopicBuilder.messageNew(_s.token))
-        .asyncMap((it) => decode(it.payload.toString()))
+        .asyncMap((CMqttMessage it) => decode(it.payload.toString()))
         .asyncMap((json) => Message.fromJson(json));
   }
 
@@ -265,12 +274,36 @@ class MqttServiceImpl implements RealtimeService {
   Either<Exception, void> end() {
     return catching<void>(() => _mqtt.disconnect()).leftMapToException();
   }
+
+  @override
+  Stream<void> onConnected() =>
+      Stream.periodic(const Duration(milliseconds: 300))
+          .asyncMap((_) =>
+              _mqtt.connectionStatus.state == MqttConnectionState.connected)
+          .distinct()
+          .where((it) => it == true);
+
+  @override
+  Stream<void> onDisconnected() =>
+      Stream.periodic(const Duration(milliseconds: 300))
+          .asyncMap((_) =>
+              _mqtt.connectionStatus.state == MqttConnectionState.disconnected)
+          .distinct()
+          .where((it) => it == true);
+
+  @override
+  Stream<void> onReconnecting() =>
+      Stream.periodic(const Duration(milliseconds: 300))
+          .asyncMap((_) =>
+              _mqtt.connectionStatus.state == MqttConnectionState.disconnecting)
+          .distinct()
+          .where((it) => it == true);
 }
 
 abstract class TopicBuilder {
   static String typing(String roomId, String userId) => 'r/$roomId/+/$userId/t';
 
-  static String presence(String userId) => 'u/$userId/p';
+  static String presence(String userId) => 'u/$userId/s';
 
   static String messageDelivered(String roomId) => 'r/$roomId/+/+/d';
 

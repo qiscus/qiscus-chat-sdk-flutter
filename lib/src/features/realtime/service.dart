@@ -8,18 +8,33 @@ part 'service.g.dart';
 
 abstract class RealtimeService {
   MqttClientConnectionStatus get connectionState;
+
   bool get isConnected;
+
   Either<Exception, void> end();
+
   Task<Either<Exception, void>> subscribe(String topic);
+
+  Stream<void> onConnected();
+
+  Stream<void> onReconnecting();
+
+  Stream<void> onDisconnected();
+
   Stream<Message> subscribeMessageReceived();
+
   Stream<MessageDeliveryResponse> subscribeMessageDelivered({
     @required int roomId,
   });
+
   Stream<MessageDeliveryResponse> subscribeMessageRead({
     @required int roomId,
   });
+
   Stream<MessageDeletedResponse> subscribeMessageDeleted();
+
   Stream<RoomClearedResponse> subscribeRoomCleared();
+
   Stream<MessageReceivedResponse> subscribeChannelMessage({
     @required String uniqueId,
   });
@@ -27,6 +42,7 @@ abstract class RealtimeService {
   Stream<UserTypingResponse> subscribeUserTyping({
     @required int roomId,
   });
+
   Stream<UserPresenceResponse> subscribeUserPresence({
     @required String userId,
   });
@@ -36,6 +52,7 @@ abstract class RealtimeService {
     @required String userId,
     @required int roomId,
   });
+
   Either<Exception, void> publishPresence({
     bool isOnline,
     DateTime lastSeen,
@@ -59,6 +76,7 @@ class MessageReceivedResponse {
       unique_temp_id,
       chat_type;
   final bool disable_link_preview;
+
   MessageReceivedResponse({
     this.id,
     this.comment_before_id,
@@ -86,6 +104,7 @@ class MessageDeliveryResponse {
   final String commentId;
   final String commentUniqueId;
   final int roomId;
+
   const MessageDeliveryResponse({
     @required this.commentId,
     @required this.commentUniqueId,
@@ -96,6 +115,7 @@ class MessageDeliveryResponse {
 class MessageDeletedResponse {
   final String actorId, actorEmail, actorName, messageUniqueId;
   final int messageRoomId;
+
   MessageDeletedResponse({
     this.actorName,
     this.actorEmail,
@@ -107,6 +127,7 @@ class MessageDeletedResponse {
 
 class RoomClearedResponse {
   int room_id;
+
   RoomClearedResponse({this.room_id});
 }
 
@@ -115,6 +136,7 @@ class UserTypingResponse {
   final String userId;
   final int roomId;
   final bool isTyping;
+
   const UserTypingResponse({
     @required this.userId,
     @required this.roomId,
@@ -127,6 +149,7 @@ class UserPresenceResponse {
   final String userId;
   final DateTime lastSeen;
   final bool isOnline;
+
   const UserPresenceResponse({
     this.userId,
     this.lastSeen,
