@@ -17,6 +17,18 @@ class RoomIdParams extends Equatable {
   bool get stringify => true;
 }
 
+class RoomUniqueIdsParams extends Equatable {
+  const RoomUniqueIdsParams(this.uniqueId);
+
+  final String uniqueId;
+
+  @override
+  List<Object> get props => [uniqueId];
+
+  @override
+  bool get stringify => true;
+}
+
 class OnMessageDeleted with Subscription<RealtimeService, NoParams, Message> {
   OnMessageDeleted._(this._service);
 

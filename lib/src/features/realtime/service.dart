@@ -27,6 +27,10 @@ abstract class RealtimeService {
     @required int roomId,
   });
 
+  Stream<CustomEventResponse> subscribeCustomEvent({
+    @required int roomId,
+  });
+
   Stream<MessageDeliveryResponse> subscribeMessageRead({
     @required int roomId,
   });
@@ -58,6 +62,18 @@ abstract class RealtimeService {
     DateTime lastSeen,
     String userId,
   });
+
+  Either<Exception, void> publishCustomEvent({
+    @required int roomId,
+    @required Map<String, dynamic> payload,
+  });
+}
+
+class CustomEventResponse {
+  const CustomEventResponse(this.roomId, this.payload);
+
+  final int roomId;
+  final Map<String, dynamic> payload;
 }
 
 @JsonSerializable()

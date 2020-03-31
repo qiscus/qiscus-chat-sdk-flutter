@@ -120,4 +120,16 @@ class RealtimeServiceImpl implements RealtimeService {
 
   @override
   Stream<void> onReconnecting() => _mqttService.onReconnecting();
+
+  @override
+  Stream<CustomEventResponse> subscribeCustomEvent({int roomId}) =>
+      _mqttService.subscribeCustomEvent(roomId: roomId);
+
+  @override
+  Either<Exception, void> publishCustomEvent({
+    int roomId,
+    Map<String, dynamic> payload,
+  }) {
+    return _mqttService.publishCustomEvent(roomId: roomId, payload: payload);
+  }
 }

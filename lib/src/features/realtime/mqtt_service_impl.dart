@@ -271,6 +271,16 @@ class MqttServiceImpl implements RealtimeService {
   }
 
   @override
+  Stream<CustomEventResponse> subscribeCustomEvent({int roomId}) {
+    // r/{roomId}/{roomId}/c
+    return _mqtt.forTopic(TopicBuilder.customEvent(roomId)).asyncMap((msg) {
+      var _payload = msg.payload.toString();
+      var payload = jsonDecode(_payload) as Map<String, dynamic>;
+      return CustomEventResponse(roomId, payload);
+    });
+  }
+
+  @override
   Either<Exception, void> end() {
     return catching<void>(() => _mqtt.disconnect()).leftMapToException();
   }
@@ -298,6 +308,14 @@ class MqttServiceImpl implements RealtimeService {
               _mqtt.connectionStatus.state == MqttConnectionState.disconnecting)
           .distinct()
           .where((it) => it == true);
+
+  @override
+  Either<Exception, void> publishCustomEvent({
+    int roomId,
+    Map<String, dynamic> payload,
+  }) {
+    return _mqtt.publish(TopicBuilder.customEvent(roomId), jsonEncode(payload));
+  }
 }
 
 abstract class TopicBuilder {
@@ -315,6 +333,8 @@ abstract class TopicBuilder {
 
   static String channelMessageNew(String appId, String channelId) =>
       '$appId/$channelId/c';
+
+  static String customEvent(int roomId) => 'r/$roomId/$roomId/e';
 }
 
 // region Json payload for notification

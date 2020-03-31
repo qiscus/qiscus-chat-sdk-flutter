@@ -8,7 +8,9 @@ import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:qiscus_chat_sdk/src/features/custom_event/usecase/realtime.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/usecase/realtime.dart';
+import 'package:qiscus_chat_sdk/src/features/room/usecase/participant.dart';
 
 import 'core/core.dart';
 import 'features/message/api.dart';
@@ -164,7 +166,14 @@ class QiscusSDK {
     @required int roomId,
     @required List<String> userIds,
     @required void Function(List<QParticipant>, Exception) callback,
-  }) {}
+  }) {
+    _authenticated
+        .andThen(AddParticipantUseCase(_roomRepo)(
+            ParticipantParams(roomId, userIds)))
+        .rightMap((r) => r.map((m) => m.toModel()).toList())
+        .toCallback(callback)
+        .run();
+  }
 
   void blockUser({
     @required String userId,
@@ -305,7 +314,14 @@ class QiscusSDK {
     int limit,
     String sorting,
     @required void Function(List<QParticipant>, Exception) callback,
-  }) {}
+  }) {
+    _authenticated
+        .andThen(GetParticipantsUseCase(_roomRepo)(
+        RoomUniqueIdsParams(roomUniqueId)))
+        .rightMap((r) => r.map((p) => p.toModel()).toList())
+        .toCallback(callback)
+        .run();
+  }
 
   void getPreviousMessagesById({
     @required int roomId,
@@ -479,8 +495,15 @@ class QiscusSDK {
   void publishCustomEvent({
     @required int roomId,
     @required Map<String, dynamic> payload,
-    @required void Function(Error) callback,
-  }) {}
+    @required void Function(Exception) callback,
+  }) {
+    _authenticated
+        .andThen(
+      CustomEventUseCase(_realtimeService)(CustomEvent(roomId, payload)),
+    )
+        .map((either) => either.fold((e) => callback(e), (_) {}))
+        .run();
+  }
 
   void publishOnlinePresence({
     @required bool isOnline,
@@ -540,8 +563,14 @@ class QiscusSDK {
   void removeParticipants({
     @required int roomId,
     @required List<String> userIds,
-    @required void Function(List<QParticipant>, Exception) callback,
-  }) {}
+    @required void Function(List<String>, Exception) callback,
+  }) {
+    _authenticated
+        .andThen(RemoveParticipantUseCase(_roomRepo)(
+        ParticipantParams(roomId, userIds)))
+        .toCallback(callback)
+        .run();
+  }
 
   void sendFileMessage({
     @required QMessage message,
@@ -674,7 +703,14 @@ class QiscusSDK {
   void subscribeCustomEvent({
     @required int roomId,
     @required void Function(Map<String, dynamic>) callback,
-  }) {}
+  }) {
+    _authenticated
+        .andThen(CustomEventUseCase(_realtimeService)
+        .subscribe(RoomIdParams(roomId)))
+        .bind((stream) =>
+        Task.delay(() => stream.listen((data) => callback(data.payload))))
+        .run();
+  }
 
   void subscribeUserOnlinePresence(String userId) {
     _authenticated
@@ -698,14 +734,17 @@ class QiscusSDK {
         .run();
   }
 
-  void unsubscribeCustomEvent({
-    @required int roomId,
-  }) {}
+  void unsubscribeCustomEvent({@required int roomId}) {
+    _authenticated
+        .andThen(CustomEventUseCase(_realtimeService)
+        .unsubscribe(RoomIdParams(roomId)))
+        .run();
+  }
 
   void unsubscribeUserOnlinePresence(String userId) {
     _authenticated
         .andThen(PresenceUseCase(_realtimeService)
-            .unsubscribe(Presence(userId: userId)))
+        .unsubscribe(Presence(userId: userId)))
         .run();
   }
 

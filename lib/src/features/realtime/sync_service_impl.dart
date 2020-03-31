@@ -159,5 +159,17 @@ class SyncServiceImpl implements RealtimeService {
 
   @override
   Stream<void> onReconnecting() => Stream.empty();
+
+  @override
+  Stream<CustomEventResponse> subscribeCustomEvent({int roomId}) =>
+      Stream.empty();
+
+  @override
+  Either<Exception, void> publishCustomEvent({
+    int roomId,
+    Map<String, dynamic> payload,
+  }) {
+    return left<Exception, void>(Exception('Not implemented'));
+  }
 // endregion
 }

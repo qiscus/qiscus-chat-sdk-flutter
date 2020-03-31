@@ -118,7 +118,8 @@ class _MessageApi implements MessageApi {
     ArgumentError.checkNotNull(request, 'request');
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _data = request;
+    final _data = <String, dynamic>{};
+    _data.addAll(request?.toJson() ?? <String, dynamic>{});
     final Response<String> _result = await _dio.request('update_comment_status',
         queryParameters: queryParameters,
         options: RequestOptions(
