@@ -14,6 +14,7 @@ class ChatRoom {
   final Option<ISet<Participant>> participants;
   final Option<Message> lastMessage;
   final Option<User> sender;
+
   ChatRoom._({
     @required this.uniqueId,
     @required this.type,
@@ -27,6 +28,7 @@ class ChatRoom {
     this.lastMessage,
     this.sender,
   });
+
   factory ChatRoom({
     @required String uniqueId,
     @required QRoomType type,
@@ -56,17 +58,14 @@ class ChatRoom {
       );
 
   factory ChatRoom.fromJson(Map<String, dynamic> json) {
-    var _participants = json['participants'] as List<dynamic>;
-    var __participants = _participants.map(
-      (it) => Participant.fromJson(it as Map<String, dynamic>),
-    );
-    var participants = isetWithOrder(
-      Participant.participantOrder,
-      __participants,
-    );
+    var participants = optionOf((json['participants'] as List))
+        .map((it) => it.cast<Map<String, dynamic>>())
+        .map((it) => it.map((json) => Participant.fromJson(json)))
+        .map((it) => isetWithOrder(Participant.participantOrder, it));
+
     QRoomType _type;
-    String jsonType = json['room_type'] as String;
-    bool isChannel = json['is_public_channel'] as bool;
+    var jsonType = json['room_type'] as String;
+    var isChannel = json['is_public_channel'] as bool;
     if (isChannel) {
       _type = QRoomType.channel;
     } else if (jsonType == 'single') {
@@ -84,7 +83,7 @@ class ChatRoom {
       avatarUrl: optionOf(json['avatar_url'] as String),
       totalParticipants: optionOf(json['room_total_participants'] as int),
       extras: optionOf(json['extras'] as Map<String, dynamic>).map(imap),
-      participants: optionOf(participants),
+      participants: participants,
       type: _type,
       sender: none<User>(),
       lastMessage: catching<Message>(
@@ -122,6 +121,7 @@ class QChatRoom {
   final QMessage lastMessage;
   final QRoomType type;
   final List<QParticipant> participants;
+
   QChatRoom({
     @required this.id,
     this.name,

@@ -8,16 +8,17 @@ import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
-import 'package:qiscus_chat_sdk/src/features/custom_event/usecase/realtime.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/usecase/realtime.dart';
-import 'package:qiscus_chat_sdk/src/features/room/usecase/participant.dart';
 
 import 'core/core.dart';
+import 'features/custom_event/usecase/realtime.dart';
 import 'features/message/api.dart';
 import 'features/message/message.dart';
 import 'features/realtime/realtime.dart';
+import 'features/realtime/usecase/realtime.dart';
 import 'features/room/api.dart';
 import 'features/room/room.dart';
+import 'features/room/usecase/get_rooms.dart';
+import 'features/room/usecase/participant.dart';
 import 'features/user/usecases/unblock_user.dart';
 import 'features/user/user.dart';
 
@@ -87,8 +88,9 @@ class QiscusSDK {
   }
 
   static final RealtimeService _mqttService = MqttServiceImpl(
-    () => _mqttClient,
+        () => _mqttClient,
     _storage,
+    _logger,
   );
 
   static final _interval = Interval(_storage, _mqttService);
@@ -96,6 +98,7 @@ class QiscusSDK {
     _storage,
     _syncApi,
     _interval,
+    _logger,
   );
   static final RealtimeService _realtimeService = RealtimeServiceImpl(
     _mqttService as MqttServiceImpl,
@@ -228,14 +231,30 @@ class QiscusSDK {
     @required void Function(List<QMessage>, Exception) callback,
   }) {}
 
-  void enableDebugMode({bool enable = false}) {}
+  void enableDebugMode({bool enable = false}) {
+    _logger.enabled = enable;
+  }
 
   void getAllChatRooms({
     bool showParticipant,
     bool showRemoved,
     bool showEmpty,
+    int limit,
+    int page,
     @required void Function(List<QChatRoom>, Exception) callback,
-  }) {}
+  }) {
+    _authenticated
+        .andThen(GetAllRoomsUseCase(_roomRepo)(GetAllRoomsParams(
+          withParticipants: showParticipant,
+          withRemovedRoom: showRemoved,
+          withEmptyRoom: showEmpty,
+          limit: limit,
+          page: page,
+        )))
+        .rightMap((r) => r.map((c) => c.toModel()).toList())
+        .toCallback(callback)
+        .run();
+  }
 
   void getBlockedUsers({
     int page,
@@ -683,7 +702,10 @@ class QiscusSDK {
 
     final read = OnMessageRead(_realtimeService).unsubscribe(params);
     final delivered = OnMessageDelivered(_realtimeService).unsubscribe(params);
-    final typing = OnMessageDelivered(_realtimeService).unsubscribe(params);
+    final typing = TypingUseCase(_realtimeService).unsubscribe(Typing(
+      roomId: room.id,
+      userId: '+',
+    ));
 
     _authenticated.andThen(read).andThen(delivered).andThen(typing).run();
   }

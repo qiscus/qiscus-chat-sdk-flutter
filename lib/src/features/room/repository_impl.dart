@@ -7,6 +7,8 @@ import 'package:qiscus_chat_sdk/src/features/room/api.dart';
 import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/participant.dart';
 
+import 'entity.dart';
+
 class RoomRepositoryImpl implements RoomRepository {
   final RoomApi _api;
 
@@ -84,6 +86,29 @@ class RoomRepositoryImpl implements RoomRepository {
       var participants = participants_ //
           .map((json) => Participant.fromJson(json));
       return GetParticipantsResponse(uniqueId, participants);
+    });
+  }
+
+  @override
+  Task<Either<Exception, GetAllRoomsResponse>> getAllRooms({
+    bool withParticipants,
+    bool withEmptyRoom,
+    bool withRemovedRoom,
+    int limit,
+    int page,
+  }) {
+    return Task(() => _api.getAllRooms(GetAllRoomsRequest(
+          withEmptyRoom: withEmptyRoom,
+          withParticipants: withParticipants,
+          withRemovedRoom: withParticipants,
+          limit: limit,
+          page: page,
+        ))).attempt().leftMapToException().rightMap((str) {
+      var json = jsonDecode(str) as Map<String, dynamic>;
+      var rooms_ = (json['results']['rooms_info'] as List) //
+          .cast<Map<String, dynamic>>();
+      var rooms = rooms_.map((json) => ChatRoom.fromJson(json)).toList();
+      return GetAllRoomsResponse(rooms);
     });
   }
 }

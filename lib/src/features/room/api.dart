@@ -4,6 +4,8 @@ import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/participant.dart';
 import 'package:retrofit/retrofit.dart';
 
+import 'entity.dart';
+
 part 'api.g.dart';
 
 @RestApi(autoCastResponse: false)
@@ -24,13 +26,20 @@ abstract class RoomApi {
 
   @GET('room_participants')
   Future<String> getParticipants(@Body() GetParticipantsRequest request);
+
+  @GET('user_rooms')
+  Future<String> getAllRooms(@Body() GetAllRoomsRequest request);
 }
 
 @immutable
 @JsonSerializable()
 class GetParticipantsRequest {
-  const GetParticipantsRequest(this.roomUniqueId,
-      [this.page, this.limit, this.sorting]);
+  const GetParticipantsRequest(
+    this.roomUniqueId, [
+    this.page,
+    this.limit,
+    this.sorting,
+  ]);
 
   @JsonKey(name: 'unique_id')
   final String roomUniqueId;
@@ -78,6 +87,37 @@ class GetParticipantsResponse {
 
   final String uniqueId;
   final List<Participant> participants;
+}
+
+class GetAllRoomsResponse {
+  const GetAllRoomsResponse(this.rooms);
+
+  final List<ChatRoom> rooms;
+}
+
+@immutable
+@JsonSerializable()
+class GetAllRoomsRequest {
+  const GetAllRoomsRequest({
+    this.withParticipants,
+    this.withEmptyRoom,
+    this.withRemovedRoom,
+    this.limit,
+    this.page,
+  });
+
+  @JsonKey(name: 'show_participants', nullable: true)
+  final bool withParticipants;
+  @JsonKey(name: 'show_empty', nullable: true)
+  final bool withEmptyRoom;
+  @JsonKey(name: 'show_removed', nullable: true)
+  final bool withRemovedRoom;
+  @JsonKey(nullable: true)
+  final int limit;
+  @JsonKey(nullable: true)
+  final int page;
+
+  Map<String, dynamic> toJson() => _$GetAllRoomsRequestToJson(this);
 }
 
 @sealed

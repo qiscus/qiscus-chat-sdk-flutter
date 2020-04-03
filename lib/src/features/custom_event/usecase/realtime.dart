@@ -31,12 +31,10 @@ class CustomEventUseCase extends UseCase<RealtimeService, void, CustomEvent>
   }
 
   @override
-  Task<Stream<CustomEvent>> subscribe(params) => repository
-      .subscribe(TopicBuilder.customEvent(params.roomId))
-      .andThen(super.subscribe(params));
-
-  @override
   Stream<CustomEvent> mapStream(p) => repository
       .subscribeCustomEvent(roomId: p.roomId)
       .asyncMap((response) => CustomEvent(response.roomId, response.payload));
+
+  @override
+  Option<String> topic(p) => some(TopicBuilder.customEvent(p.roomId));
 }

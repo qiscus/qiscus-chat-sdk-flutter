@@ -15,6 +15,8 @@ abstract class RealtimeService {
 
   Task<Either<Exception, void>> subscribe(String topic);
 
+  Task<Either<Exception, void>> unsubscribe(String topic);
+
   Stream<void> onConnected();
 
   Stream<void> onReconnecting();

@@ -20,6 +20,10 @@ class RealtimeServiceImpl implements RealtimeService {
       _mqttService.subscribe(topic);
 
   @override
+  Task<Either<Exception, void>> unsubscribe(String topic) =>
+      _mqttService.unsubscribe(topic);
+
+  @override
   Either<Exception, void> publishPresence({
     bool isOnline,
     DateTime lastSeen,

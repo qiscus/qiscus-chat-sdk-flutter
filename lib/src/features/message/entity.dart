@@ -38,17 +38,17 @@ class QMessage {
   DateTime timestamp;
 
   QMessage({
-    this.id,
-    this.chatRoomId,
-    this.previousMessageId,
-    this.uniqueId,
-    this.text,
-    this.status,
-    this.type,
-    this.extras,
-    this.payload,
-    this.sender,
-    this.timestamp,
+    @required this.id,
+    @required this.chatRoomId,
+    @required this.previousMessageId,
+    @required this.uniqueId,
+    @required this.text,
+    @required this.status,
+    @required this.type,
+    @required this.extras,
+    @required this.payload,
+    @required this.sender,
+    @required this.timestamp,
   });
 
   factory QMessage.createAttachment({
@@ -58,6 +58,7 @@ class QMessage {
     @required File file,
     String uniqueId,
     QMessageStatus status = QMessageStatus.sending,
+    DateTime timestamp,
     Map<String, dynamic> extras,
     Map<String, dynamic> payload,
   }) {
@@ -72,6 +73,7 @@ class QMessage {
       type: QMessageType.attachment,
       status: status,
       extras: extras,
+      timestamp: timestamp,
       payload: {
         'url': '',
         'file_name': filename,
@@ -88,6 +90,7 @@ class QMessage {
     QMessageType type = QMessageType.text,
     QMessageStatus status = QMessageStatus.sending,
     String uniqueId,
+    DateTime timestamp,
     Map<String, dynamic> extras,
     Map<String, dynamic> payload,
   }) =>
@@ -101,6 +104,8 @@ class QMessage {
         status: status,
         extras: extras,
         payload: payload,
+        timestamp: timestamp ?? DateTime.now(),
+        previousMessageId: -1,
       );
 
   @override
@@ -226,7 +231,7 @@ class Message {
       extras: optionOf(json['extras'] as Map<String, dynamic>).map(imap),
       payload: optionOf(json['payload'] as Map<String, dynamic>).map(imap),
       timestamp: optionOf(json['unix_nano_timestamp'] as int)
-          .map((it) => DateTime.fromMicrosecondsSinceEpoch(it)),
+          .map((it) => DateTime.fromMillisecondsSinceEpoch((it / 1e6).ceil())),
       sender: optionOf(User(
         id: json['email'] as String,
         name: optionOf(json['username'] as String),

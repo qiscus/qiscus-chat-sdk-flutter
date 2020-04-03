@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/core/storage.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
@@ -12,31 +13,27 @@ import 'package:sealed_unions/implementations/union_2_impl.dart';
 import 'package:sealed_unions/union_2.dart';
 
 class MqttServiceImpl implements RealtimeService {
-  MqttServiceImpl(this._getClient, this._s) {
-    _mqtt.onConnected = () {
-      print('on mqtt connected');
-    };
-    _mqtt.onDisconnected = () {
-      print('on mqtt disconnected');
-    };
-    _mqtt.onSubscribed = (topic) {
-      print('on mqtt subscribed: $topic');
-    };
+  MqttServiceImpl(this._getClient, this._s, this._logger) {
+    _mqtt.onConnected = () => log('on mqtt connected');
+    _mqtt.onDisconnected = () => log('on mqtt disconnected');
+    _mqtt.onSubscribed = (topic) => log('on mqtt subscribed: $topic');
+    _mqtt.onUnsubscribed = (topic) => log('on mqtt unsubscribed: $topic');
 
-    _mqtt.connect().then((status) {
-      print('connected to mqtt: $status');
-    }).catchError((error) {
-      print('cannot connect to mqtt: $error');
+    _mqtt
+        .connect()
+        .then((status) => log('connected to mqtt: $status'))
+        .catchError((error) => log('cannot connect to mqtt: $error'));
+    _mqtt.updates.expand((it) => it).listen((event) {
+      var p = event.payload as MqttPublishMessage;
+      var payload = MqttPublishPayload.bytesToStringAsString(p.payload.message);
+      var topic = event.topic;
+      log('on-message: $topic -> $payload');
     });
-//    _mqtt.updates.listen((msgs) {
-//      for (var value in msgs) {
-//        var message = value.payload as MqttPublishMessage;
-//        var payload =
-//            MqttPublishPayload.bytesToStringAsString(message.payload.message);
-//        print('payload: $payload');
-//      }
-//    });
   }
+
+  void log(String str) => _logger.log('MqttServiceImpl::- $str');
+
+  final Logger _logger;
 
   final MqttClient Function() _getClient;
   MqttClient __mqtt;
@@ -48,17 +45,20 @@ class MqttServiceImpl implements RealtimeService {
       .map((_) => _mqtt.connectionStatus.state == MqttConnectionState.connected)
       .distinct()
       .firstWhere((it) => it == true);
+
   Task<Either<Exception, void>> _connected() =>
       Task(() => _isConnected).attempt().leftMapToException();
 
   @override
-  Task<Either<Exception, void>> subscribe(String topic) {
-    return _connected().andThen(Task(() async {
-      return catching<void>(() {
-        _mqtt.subscribe(topic, MqttQos.atLeastOnce);
-      }).leftMapToException();
-    }));
-  }
+  Task<Either<Exception, void>> subscribe(String topic) => _connected()
+      .andThen(Task.delay(
+          () => catching(() => _mqtt.subscribe(topic, MqttQos.atLeastOnce))))
+      .leftMapToException();
+
+  @override
+  Task<Either<Exception, void>> unsubscribe(String topic) => _connected()
+      .andThen(Task.delay(() => catching(() => _mqtt.unsubscribe(topic))))
+      .leftMapToException();
 
   @override
   bool get isConnected =>

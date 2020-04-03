@@ -1,3 +1,4 @@
+import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 
@@ -14,6 +15,9 @@ class OnConnected with Subscription<RealtimeService, NoParams, void> {
 
   @override
   RealtimeService get repository => _repo;
+
+  @override
+  Option<String> topic(NoParams p) => none();
 }
 
 class OnDisconnected with Subscription<RealtimeService, NoParams, void> {
@@ -30,6 +34,9 @@ class OnDisconnected with Subscription<RealtimeService, NoParams, void> {
 
   @override
   Stream<void> mapStream(_) => repository.onDisconnected();
+
+  @override
+  Option<String> topic(NoParams p) => none();
 }
 
 class OnReconnecting with Subscription<RealtimeService, NoParams, void> {
@@ -46,4 +53,7 @@ class OnReconnecting with Subscription<RealtimeService, NoParams, void> {
 
   @override
   Stream<void> mapStream(_) => repository.onReconnecting();
+
+  @override
+  Option<String> topic(NoParams p) => none();
 }

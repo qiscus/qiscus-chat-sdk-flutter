@@ -71,6 +71,15 @@ class TypingUseCase extends UseCase<RealtimeService, void, Typing>
             roomId: res.roomId,
             userId: res.userId,
           ));
+
+  @override
+  Task<void> unsubscribe(Typing params) {
+    return super.unsubscribe(params);
+  }
+
+  @override
+  Option<String> topic(Typing p) =>
+      some(TopicBuilder.typing(p.roomId.toString(), p.userId));
 }
 
 @immutable
@@ -93,14 +102,19 @@ class PresenceUseCase extends UseCase<RealtimeService, void, Presence>
             isOnline: params.isOnline,
             lastSeen: params.lastSeen,
             userId: params.userId,
-          ));
+      ));
 
   @override
-  Stream<Presence> mapStream(Presence params) => repository
-      .subscribeUserPresence(userId: params.userId)
-      .asyncMap((res) => Presence(
+  Stream<Presence> mapStream(Presence params) =>
+      repository
+          .subscribeUserPresence(userId: params.userId)
+          .asyncMap((res) =>
+          Presence(
             userId: res.userId,
             lastSeen: res.lastSeen,
             isOnline: res.isOnline,
           ));
+
+  @override
+  Option<String> topic(Presence p) => some(TopicBuilder.presence(p.userId));
 }

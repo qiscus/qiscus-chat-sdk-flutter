@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
+import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 
 class NoParams extends Equatable {
   const NoParams();
@@ -38,24 +39,26 @@ abstract class SubscriptionUseCase<Repository, ReturnType, Params> {
 /// A helper mixin for handling subscription based
 /// usecase, please ensure [params] implement
 /// both == equality method and hashCode method.
-mixin Subscription<Repository, Params, Response> {
+mixin Subscription<Repository extends RealtimeService, Params, Response> {
   final _controller = StreamController<Response>.broadcast();
   final _subscriptions = HashMap<Params, StreamSubscription<Response>>();
 
   Stream<Response> get stream => _controller.stream;
 
-  Task<Stream<Response>> subscribe(Params params) => Task.delay(() {
-        _subscriptions.putIfAbsent(
-          params,
-          () => mapStream(params).listen((res) => _controller.add(res)),
-        );
-
-        return _controller.stream;
-      });
+  Task<Stream<Response>> subscribe(Params params) => //
+      Task.delay(() => topic(params))
+          .bind((topic) => topic.fold(
+              () => Task.delay(() {}), (topic) => repository.subscribe(topic)))
+          .andThen(Task.delay(() => _subscriptions.putIfAbsent(params,
+              () => mapStream(params).listen((res) => _controller.add(res)))))
+          .andThen(Task.delay(() => _controller.stream));
 
   Task<void> unsubscribe(Params params) {
     if (!_subscriptions.containsKey(params)) return Task.delay(() {});
-    return Task.delay(() => _subscriptions.remove(params).cancel());
+    return Task.delay(() => topic(params))
+        .bind((topic) => topic.fold(
+            () => Task.delay(() {}), (topic) => repository.unsubscribe(topic)))
+        .andThen(Task.delay(() => _subscriptions.remove(params)?.cancel()));
   }
 
   Task<StreamSubscription<Response>> listen(
@@ -79,4 +82,6 @@ mixin Subscription<Repository, Params, Response> {
 
   /// Stream mapper
   Stream<Response> mapStream(Params p);
+
+  Option<String> topic(Params p);
 }

@@ -38,6 +38,25 @@ Map<String, dynamic> _$ChatTargetRequestToJson(ChatTargetRequest instance) =>
       'extras': instance.extras,
     };
 
+GetAllRoomsRequest _$GetAllRoomsRequestFromJson(Map<String, dynamic> json) {
+  return GetAllRoomsRequest(
+    withParticipants: json['show_participants'] as bool,
+    withEmptyRoom: json['show_empty'] as bool,
+    withRemovedRoom: json['show_removed'] as bool,
+    limit: json['limit'] as int,
+    page: json['page'] as int,
+  );
+}
+
+Map<String, dynamic> _$GetAllRoomsRequestToJson(GetAllRoomsRequest instance) =>
+    <String, dynamic>{
+      'show_participants': instance.withParticipants,
+      'show_empty': instance.withEmptyRoom,
+      'show_removed': instance.withRemovedRoom,
+      'limit': instance.limit,
+      'page': instance.page,
+    };
+
 ParticipantRequest _$ParticipantRequestFromJson(Map<String, dynamic> json) {
   return ParticipantRequest(
     json['roomId'] as int,
@@ -149,6 +168,25 @@ class _RoomApi implements RoomApi {
     final _data = <String, dynamic>{};
     _data.addAll(request?.toJson() ?? <String, dynamic>{});
     final Response<String> _result = await _dio.request('room_participants',
+        queryParameters: queryParameters,
+        options: RequestOptions(
+            method: 'GET',
+            headers: <String, dynamic>{},
+            extra: _extra,
+            baseUrl: baseUrl),
+        data: _data);
+    final value = _result.data;
+    return Future.value(value);
+  }
+
+  @override
+  getAllRooms(request) async {
+    ArgumentError.checkNotNull(request, 'request');
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(request?.toJson() ?? <String, dynamic>{});
+    final Response<String> _result = await _dio.request('user_rooms',
         queryParameters: queryParameters,
         options: RequestOptions(
             method: 'GET',

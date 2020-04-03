@@ -1,15 +1,13 @@
-import 'package:logger/logger.dart' as L;
-
 class Logger {
   var enabled = false;
 
-  final _logger = L.Logger();
+//  final _logger = l.Logger();
 
   void log(String str) {
-    if (enabled) _logger.i(str);
+    if (enabled) print(str);
   }
 
   void debug(dynamic data) {
-    if (enabled) _logger.d(data);
+    if (enabled) print(data);
   }
 }

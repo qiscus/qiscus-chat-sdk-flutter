@@ -29,7 +29,8 @@ class RoomUniqueIdsParams extends Equatable {
   bool get stringify => true;
 }
 
-class OnMessageDeleted with Subscription<RealtimeService, NoParams, Message> {
+class OnMessageDeleted
+    with Subscription<RealtimeService, TokenParams, Message> {
   OnMessageDeleted._(this._service);
 
   final RealtimeService _service;
@@ -49,42 +50,36 @@ class OnMessageDeleted with Subscription<RealtimeService, NoParams, Message> {
 
   @override
   RealtimeService get repository => _service;
+
+  @override
+  Option<String> topic(p) => some(TopicBuilder.notification(p.token));
 }
 
-abstract class _MessageSubscription<Params>
-    with Subscription<RealtimeService, Params, Message> {
-  _MessageSubscription(this._service);
+class OnMessageRead with Subscription<RealtimeService, RoomIdParams, Message> {
+  OnMessageRead._(this._service);
 
   final RealtimeService _service;
-
-  @override
-  RealtimeService get repository => _service;
-
-  @override
-  Task<Stream<Message>> subscribe(params) => repository //
-      .subscribe(topicFor(params))
-      .andThen(super.subscribe(params));
-
-  String topicFor(Params p);
-}
-
-class OnMessageRead extends _MessageSubscription<RoomIdParams> {
-  OnMessageRead._(RealtimeService s) : super(s);
 
   factory OnMessageRead(RealtimeService s) => _instance ??= OnMessageRead._(s);
   static OnMessageRead _instance;
 
   @override
-  Stream<Message> mapStream(p) => repository
-      .subscribeMessageRead(roomId: p.roomId)
-      .asyncMap((res) => Message(
+  Stream<Message> mapStream(p) =>
+      repository
+          .subscribeMessageRead(roomId: p.roomId)
+          .asyncMap((res) =>
+          Message(
             id: int.parse(res.commentId),
             chatRoomId: optionOf(res.roomId),
             uniqueId: optionOf(res.commentUniqueId),
           ));
 
   @override
-  String topicFor(p) => TopicBuilder.messageRead(p.roomId.toString());
+  Option<String> topic(p) =>
+      some(TopicBuilder.messageRead(p.roomId.toString()));
+
+  @override
+  RealtimeService get repository => _service;
 }
 
 class TokenParams extends Equatable {
@@ -99,25 +94,6 @@ class TokenParams extends Equatable {
   bool get stringify => true;
 }
 
-class OnNotification
-    with Subscription<RealtimeService, TokenParams, Notification> {
-  OnNotification._(this._service);
-
-  final RealtimeService _service;
-
-  factory OnNotification(RealtimeService s) =>
-      _instance ??= OnNotification._(s);
-  static OnNotification _instance;
-
-  @override
-  Stream<Notification> mapStream(TokenParams p) {
-    return null;
-  }
-
-  @override
-  RealtimeService get repository => _service;
-}
-
 class OnMessageReceived
     with Subscription<RealtimeService, TokenParams, Message> {
   OnMessageReceived._(this._service);
@@ -129,28 +105,42 @@ class OnMessageReceived
   static OnMessageReceived _instance;
 
   @override
-  Task<Stream<Message>> subscribe(p) => repository
-      .subscribe(TopicBuilder.messageNew(p.token))
-      .andThen(super.subscribe(p));
+  Task<Stream<Message>> subscribe(p) =>
+      repository
+          .subscribe(TopicBuilder.messageNew(p.token))
+          .andThen(super.subscribe(p));
+
+  @override
+  Task<void> unsubscribe(TokenParams params) {
+    return super.unsubscribe(params);
+  }
 
   @override
   Stream<Message> mapStream(p) => repository.subscribeMessageReceived();
 
   @override
   RealtimeService get repository => _service;
+
+  @override
+  Option<String> topic(TokenParams p) => some(TopicBuilder.messageNew(p.token));
 }
 
-class OnMessageDelivered extends _MessageSubscription<RoomIdParams> {
-  OnMessageDelivered._(RealtimeService s) : super(s);
+class OnMessageDelivered
+    with Subscription<RealtimeService, RoomIdParams, Message> {
+  OnMessageDelivered._(this._service);
+
+  final RealtimeService _service;
 
   factory OnMessageDelivered(RealtimeService s) =>
       _instance ??= OnMessageDelivered._(s);
   static OnMessageDelivered _instance;
 
   @override
-  Stream<Message> mapStream(RoomIdParams p) => repository
-      .subscribeMessageDelivered(roomId: p.roomId)
-      .asyncMap((res) => Message(
+  Stream<Message> mapStream(RoomIdParams p) =>
+      repository
+          .subscribeMessageDelivered(roomId: p.roomId)
+          .asyncMap((res) =>
+          Message(
             id: int.parse(res.commentId),
             chatRoomId: optionOf(res.roomId),
             uniqueId: optionOf(res.commentUniqueId),
@@ -160,5 +150,6 @@ class OnMessageDelivered extends _MessageSubscription<RoomIdParams> {
   RealtimeService get repository => _service;
 
   @override
-  String topicFor(p) => TopicBuilder.messageDelivered(p.roomId.toString());
+  Option<String> topic(p) =>
+      some(TopicBuilder.messageDelivered(p.roomId.toString()));
 }
