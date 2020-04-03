@@ -93,10 +93,9 @@ class SyncServiceImpl implements RealtimeService {
     var lastMessageId = getMessageId();
     return _api
         .synchronize(lastMessageId) //
-        .then((res) =>
-        res.messages.map(
+        .then((res) => res.messages.map(
               (m) => SynchronizeResponseSingle(lastMessageId, m),
-        ));
+            ));
   }
 
   Future<SynchronizeEventResponse> synchronizeEvent([int eventId = 0]) async {

@@ -518,8 +518,8 @@ class QiscusSDK {
   }) {
     _authenticated
         .andThen(
-      CustomEventUseCase(_realtimeService)(CustomEvent(roomId, payload)),
-    )
+          CustomEventUseCase(_realtimeService)(CustomEvent(roomId, payload)),
+        )
         .map((either) => either.fold((e) => callback(e), (_) {}))
         .run();
   }
@@ -586,7 +586,7 @@ class QiscusSDK {
   }) {
     _authenticated
         .andThen(RemoveParticipantUseCase(_roomRepo)(
-        ParticipantParams(roomId, userIds)))
+            ParticipantParams(roomId, userIds)))
         .toCallback(callback)
         .run();
   }
@@ -728,9 +728,9 @@ class QiscusSDK {
   }) {
     _authenticated
         .andThen(CustomEventUseCase(_realtimeService)
-        .subscribe(RoomIdParams(roomId)))
+            .subscribe(RoomIdParams(roomId)))
         .bind((stream) =>
-        Task.delay(() => stream.listen((data) => callback(data.payload))))
+            Task.delay(() => stream.listen((data) => callback(data.payload))))
         .run();
   }
 
@@ -759,14 +759,14 @@ class QiscusSDK {
   void unsubscribeCustomEvent({@required int roomId}) {
     _authenticated
         .andThen(CustomEventUseCase(_realtimeService)
-        .unsubscribe(RoomIdParams(roomId)))
+            .unsubscribe(RoomIdParams(roomId)))
         .run();
   }
 
   void unsubscribeUserOnlinePresence(String userId) {
     _authenticated
         .andThen(PresenceUseCase(_realtimeService)
-        .unsubscribe(Presence(userId: userId)))
+            .unsubscribe(Presence(userId: userId)))
         .run();
   }
 

@@ -15,11 +15,13 @@ abstract class RoomRepository {
   );
 
   Task<Either<Exception, RemoveParticipantResponse>> removeParticipant(
-      int roomId,
-      List<String> participantIds,);
+    int roomId,
+    List<String> participantIds,
+  );
 
   Task<Either<Exception, GetParticipantsResponse>> getParticipants(
-      String uniqueId,);
+    String uniqueId,
+  );
 
   Task<Either<Exception, GetAllRoomsResponse>> getAllRooms({
     bool withParticipants,

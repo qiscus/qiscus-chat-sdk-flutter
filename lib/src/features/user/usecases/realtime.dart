@@ -105,11 +105,9 @@ class PresenceUseCase extends UseCase<RealtimeService, void, Presence>
           ));
 
   @override
-  Stream<Presence> mapStream(Presence params) =>
-      repository
-          .subscribeUserPresence(userId: params.userId)
-          .asyncMap((res) =>
-          Presence(
+  Stream<Presence> mapStream(Presence params) => repository
+      .subscribeUserPresence(userId: params.userId)
+      .asyncMap((res) => Presence(
             userId: res.userId,
             lastSeen: res.lastSeen,
             isOnline: res.isOnline,

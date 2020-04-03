@@ -103,10 +103,9 @@ class OnMessageReceived
   static OnMessageReceived _instance;
 
   @override
-  Task<Stream<Message>> subscribe(p) =>
-      repository
-          .subscribe(TopicBuilder.messageNew(p.token))
-          .andThen(super.subscribe(p));
+  Task<Stream<Message>> subscribe(p) => repository
+      .subscribe(TopicBuilder.messageNew(p.token))
+      .andThen(super.subscribe(p));
 
   @override
   Task<void> unsubscribe(TokenParams params) {
@@ -134,11 +133,9 @@ class OnMessageDelivered
   static OnMessageDelivered _instance;
 
   @override
-  Stream<Message> mapStream(RoomIdParams p) =>
-      repository
-          .subscribeMessageDelivered(roomId: p.roomId)
-          .asyncMap((res) =>
-          Message(
+  Stream<Message> mapStream(RoomIdParams p) => repository
+      .subscribeMessageDelivered(roomId: p.roomId)
+      .asyncMap((res) => Message(
             id: int.parse(res.commentId),
             chatRoomId: optionOf(res.roomId),
             uniqueId: optionOf(res.commentUniqueId),
