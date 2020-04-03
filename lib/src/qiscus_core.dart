@@ -88,7 +88,7 @@ class QiscusSDK {
   }
 
   static final RealtimeService _mqttService = MqttServiceImpl(
-        () => _mqttClient,
+    () => _mqttClient,
     _storage,
     _logger,
   );
@@ -336,7 +336,7 @@ class QiscusSDK {
   }) {
     _authenticated
         .andThen(GetParticipantsUseCase(_roomRepo)(
-        RoomUniqueIdsParams(roomUniqueId)))
+            RoomUniqueIdsParams(roomUniqueId)))
         .rightMap((r) => r.map((p) => p.toModel()).toList())
         .toCallback(callback)
         .run();

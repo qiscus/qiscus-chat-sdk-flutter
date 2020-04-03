@@ -34,25 +34,22 @@ class SyncServiceImpl implements RealtimeService {
   void log(String str) => _logger.log('SyncServiceImpl::- $str');
 
   // region Producer
-  Stream<SynchronizeEventResponse> get _syncEvent$ =>
-      _interval$
-          .map((_) => _api.synchronizeEvent(_eventId).asStream())
-          .flatten()
-          .tap((_) => log('QiscusSyncAdapter: synchronize-event'));
+  Stream<SynchronizeEventResponse> get _syncEvent$ => _interval$
+      .map((_) => _api.synchronizeEvent(_eventId).asStream())
+      .flatten()
+      .tap((_) => log('QiscusSyncAdapter: synchronize-event'));
 
-  Stream<SynchronizeResponseSingle> get _sync$ =>
-      _interval$
-          .map((_) => _api.synchronize(_messageId).asStream())
-          .flatten()
-          .tap((res) {
+  Stream<SynchronizeResponseSingle> get _sync$ => _interval$
+      .map((_) => _api.synchronize(_messageId).asStream())
+      .flatten()
+      .tap((res) {
         if (res.lastMessageId > _s.lastMessageId) {
           _s.lastMessageId = res.lastMessageId;
         }
       })
-          .asyncMap((res) =>
-          Stream.fromIterable(res.messages
-              .map((msg) => SynchronizeResponseSingle(res.lastMessageId, msg))))
-          .tap((_) => log('QiscusSyncAdapter: synchronize'))
+      .asyncMap((res) => Stream.fromIterable(res.messages
+          .map((msg) => SynchronizeResponseSingle(res.lastMessageId, msg))))
+      .tap((_) => log('QiscusSyncAdapter: synchronize'))
       .asyncExpand((it) => it)
       .asBroadcastStream();
 

@@ -64,11 +64,9 @@ class OnMessageRead with Subscription<RealtimeService, RoomIdParams, Message> {
   static OnMessageRead _instance;
 
   @override
-  Stream<Message> mapStream(p) =>
-      repository
-          .subscribeMessageRead(roomId: p.roomId)
-          .asyncMap((res) =>
-          Message(
+  Stream<Message> mapStream(p) => repository
+      .subscribeMessageRead(roomId: p.roomId)
+      .asyncMap((res) => Message(
             id: int.parse(res.commentId),
             chatRoomId: optionOf(res.roomId),
             uniqueId: optionOf(res.commentUniqueId),

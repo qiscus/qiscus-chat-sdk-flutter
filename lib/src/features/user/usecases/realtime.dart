@@ -102,7 +102,7 @@ class PresenceUseCase extends UseCase<RealtimeService, void, Presence>
             isOnline: params.isOnline,
             lastSeen: params.lastSeen,
             userId: params.userId,
-      ));
+          ));
 
   @override
   Stream<Presence> mapStream(Presence params) =>
