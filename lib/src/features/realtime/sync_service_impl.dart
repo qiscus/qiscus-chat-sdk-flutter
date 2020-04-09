@@ -87,19 +87,20 @@ class SyncServiceImpl implements RealtimeService {
         .asyncMap((event) => RoomClearedResponse(room_id: event.roomId));
   }
 
-  Future<Iterable<SynchronizeResponseSingle>> synchronize([
-    int Function() getMessageId,
-  ]) async {
-    var lastMessageId = getMessageId();
-    return _api
-        .synchronize(lastMessageId) //
-        .then((res) => res.messages.map(
-              (m) => SynchronizeResponseSingle(lastMessageId, m),
-            ));
+  @override
+  Task<Either<Exception, Unit>> synchronize([int lastMessageId]) {
+    return Task(() => _api.synchronize(lastMessageId))
+        .attempt()
+        .leftMapToException()
+        .rightMap((_) => unit);
   }
 
-  Future<SynchronizeEventResponse> synchronizeEvent([int eventId = 0]) async {
-    return _api.synchronizeEvent(eventId);
+  @override
+  Task<Either<Exception, Unit>> synchronizeEvent([String eventId]) {
+    return Task(() => _api.synchronizeEvent(int.parse(eventId)))
+        .attempt()
+        .leftMapToException()
+        .rightMap((_) => unit);
   }
 
   Stream<SynchronizeResponseSingle> _synchronize([

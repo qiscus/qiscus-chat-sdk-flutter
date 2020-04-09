@@ -8,8 +8,17 @@ import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:qiscus_chat_sdk/src/features/channel/usecase/create.dart';
+import 'package:qiscus_chat_sdk/src/features/core/usecase/app_config.dart';
+import 'package:qiscus_chat_sdk/src/features/message/usecase/delete_message.dart';
+import 'package:qiscus_chat_sdk/src/features/room/usecase/clear_room_messages.dart';
+import 'package:qiscus_chat_sdk/src/features/room/usecase/create_group.dart';
+import 'package:qiscus_chat_sdk/src/features/room/usecase/get_room_info.dart';
+import 'package:qiscus_chat_sdk/src/features/room/usecase/get_total_unread_count.dart';
+import 'package:qiscus_chat_sdk/src/features/room/usecase/update_room.dart';
 
 import 'core/core.dart';
+import 'features/core/core.dart';
 import 'features/custom_event/usecase/realtime.dart';
 import 'features/message/api.dart';
 import 'features/message/message.dart';
@@ -33,6 +42,12 @@ class QiscusSDK {
 
   static final _logger = Logger();
 
+  void addHttpInterceptors(RequestOptions Function(RequestOptions) onRequest) {
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: onRequest,
+    ));
+  }
+
   static Dio get _dio {
     final interceptor = InterceptorsWrapper(
       onRequest: (request) {
@@ -49,13 +64,10 @@ class QiscusSDK {
     return Dio(BaseOptions())
       ..interceptors.addAll([
         interceptor,
-//        PrettyDioLogger(
-//          requestBody: true,
-//          requestHeader: true,
-//        ),
       ]);
   }
 
+  static final _coreApi = CoreApi(_dio);
   static final _userApi = UserApi(_dio);
   static final _syncApi = SyncApi(_dio);
   static final _roomApi = RoomApi(_dio);
@@ -66,12 +78,10 @@ class QiscusSDK {
 
   static MqttClient get _mqttClient {
     final _connectionMessage = MqttConnectMessage() //
-            // .keepAliveFor(10)
             .withClientIdentifier(_clientId)
             .withWillTopic('u/${_storage.currentUser.id}/s')
             .withWillMessage('0')
             .withWillRetain()
-        // .startClean()
         //
         ;
 
@@ -87,6 +97,7 @@ class QiscusSDK {
     return client;
   }
 
+  static final CoreRepository _coreRepo = CoreRepositoryImpl(_coreApi);
   static final RealtimeService _mqttService = MqttServiceImpl(
     () => _mqttClient,
     _storage,
@@ -203,12 +214,29 @@ class QiscusSDK {
 
   void clearMessagesByChatRoomId({
     @required List<String> roomUniqueIds,
-    @required void Function(Error) callback,
-  }) {}
+    @required void Function(Exception) callback,
+  }) {
+    _authenticated
+        .andThen(ClearRoomMessagesUseCase(_roomRepo)(
+            ClearRoomMessagesParams(roomUniqueIds)))
+        .toCallback((_, e) => callback(e))
+        .run();
+  }
 
   void clearUser({
     @required void Function(Exception) callback,
-  }) {}
+  }) {
+    _authenticated
+        .andThen(Task.delay(() {
+          _storage.clear();
+          _mqttService.end();
+          _syncService.end();
+        }))
+        .run()
+        .catchError((error) {
+          callback(error);
+        });
+  }
 
   void createChannel({
     @required String uniqueId,
@@ -216,7 +244,18 @@ class QiscusSDK {
     String avatarUrl,
     Map<String, dynamic> extras,
     @required void Function(QChatRoom, Exception) callback,
-  }) {}
+  }) {
+    _authenticated
+        .andThen(GetOrCreateChannelUseCase(_roomRepo)(GetOrCreateChannelParams(
+          uniqueId,
+          name: name,
+          avatarUrl: avatarUrl,
+          options: extras,
+        )))
+        .rightMap((room) => room.toModel())
+        .toCallback(callback)
+        .run();
+  }
 
   void createGroupChat({
     @required String name,
@@ -224,12 +263,30 @@ class QiscusSDK {
     String avatarUrl,
     Map<String, dynamic> extras,
     @required void Function(QChatRoom, Exception) callback,
-  }) {}
+  }) {
+    _authenticated
+        .andThen(CreateGroupChatUseCase(_roomRepo)(CreateGroupChatParams(
+          name: name,
+          userIds: userIds,
+          avatarUrl: avatarUrl,
+          extras: extras,
+        )))
+        .rightMap((r) => r.toModel())
+        .toCallback(callback)
+        .run();
+  }
 
   void deleteMessages({
     @required List<String> messageUniqueIds,
     @required void Function(List<QMessage>, Exception) callback,
-  }) {}
+  }) {
+    _authenticated
+        .andThen(DeleteMessageUseCase(_messageRepo)(
+            DeleteMessageParams(messageUniqueIds)))
+        .rightMap((it) => it.map((i) => i.toModel()).toList())
+        .toCallback(callback)
+        .run();
+  }
 
   void enableDebugMode({bool enable = false}) {
     _logger.enabled = enable;
@@ -276,7 +333,16 @@ class QiscusSDK {
   void getChannel({
     @required String uniqueId,
     @required void Function(QChatRoom, Exception) callback,
-  }) {}
+  }) {
+    //
+    _authenticated
+        .andThen(GetOrCreateChannelUseCase(_roomRepo)(GetOrCreateChannelParams(
+          uniqueId,
+        )))
+        .rightMap((room) => room.toModel())
+        .toCallback(callback)
+        .run();
+  }
 
   void getChatRooms({
     List<int> roomIds, // ignore: always_require_non_null_named_parameters
@@ -286,9 +352,22 @@ class QiscusSDK {
     bool showParticipants,
     @required void Function(List<QChatRoom>, Exception) callback,
   }) {
+    const errorMessage = 'Please specify either `roomIds` or `uniqueIds`';
     // Throw error if both roomIds and uniqueIds are null
-    assert(roomIds == null && uniqueIds == null);
-    assert(roomIds != null && uniqueIds != null);
+    assert(roomIds == null && uniqueIds == null, errorMessage);
+    assert(roomIds != null && uniqueIds != null, errorMessage);
+
+    _authenticated
+        .andThen(GetRoomInfoUseCase(_roomRepo)(GetRoomInfoParams(
+          roomIds: roomIds,
+          uniqueIds: uniqueIds,
+          withRemoved: showRemoved,
+          withParticipants: showParticipants,
+          page: page,
+        )))
+        .rightMap((r) => r.map((it) => it.toModel()).toList())
+        .toCallback(callback)
+        .run();
   }
 
   void getChatRoomWithMessages({
@@ -309,7 +388,7 @@ class QiscusSDK {
   void getJWTNonce({
     void Function(String, Exception) callback,
   }) {
-    GetNonce(_userRepo).call(NoParams()).toCallback(callback).run();
+    GetNonce(_userRepo)(NoParams()).toCallback(callback).run();
   }
 
   void getNextMessagesById({
@@ -361,7 +440,12 @@ class QiscusSDK {
 
   void getTotalUnreadCount({
     @required void Function(int, Exception) callback,
-  }) {}
+  }) {
+    _authenticated
+        .andThen(GetTotalUnreadCountUseCase(_roomRepo)(noParams))
+        .toCallback(callback)
+        .run();
+  }
 
   void getUserData({
     void Function(QAccount, Exception) callback,
@@ -431,8 +515,12 @@ class QiscusSDK {
         .run();
   }
 
-  Subscription onChatRoomCleared(void Function(int) callback) {
-    return () => null;
+  Subscription onChatRoomCleared(void Function(int) handler) {
+    var ret = _authenticated
+        .andThen(OnRoomMessagesCleared(_realtimeService).subscribe(noParams))
+        .bind((s) => Task.delay(() => s.listen((it) => handler(it))))
+        .run();
+    return () => ret.then((s) => s.cancel());
   }
 
   Subscription onConnected(void Function() handler) {
@@ -631,7 +719,9 @@ class QiscusSDK {
     _storage.customHeaders = headers;
   }
 
-  void setSyncInterval(double interval) {}
+  void setSyncInterval(double interval) {
+    _storage.syncInterval = interval.ceil();
+  }
 
   void setup(String appId, {@required Function1<Exception, void> callback}) {
     setupWithCustomServer(appId, callback: callback);
@@ -646,14 +736,17 @@ class QiscusSDK {
     int syncIntervalWhenConnected = Storage.defaultSyncIntervalWhenConnected,
     @required Function1<Exception, void> callback,
   }) {
-    _storage.appId = appId;
-    _storage.baseUrl = baseUrl;
-    _storage.brokerUrl = brokerUrl;
-    _storage.brokerLbUrl = brokerLbUrl;
-    _storage.syncInterval = syncInterval;
-    _storage.syncIntervalWhenConnected = syncIntervalWhenConnected;
-    // TODO: call callback from success init config
-    callback(null);
+    AppConfigUseCase(_coreRepo, _storage)(noParams)
+        .andThen(Task.delay(() {
+          _storage.appId = appId;
+          _storage.baseUrl = baseUrl;
+          _storage.brokerUrl = brokerUrl;
+          _storage.brokerLbUrl = brokerLbUrl;
+          _storage.syncInterval = syncInterval;
+          _storage.syncIntervalWhenConnected = syncIntervalWhenConnected;
+        }))
+        .leftMap((exc) => callback(exc))
+        .run();
   }
 
   void setUser({
@@ -741,9 +834,19 @@ class QiscusSDK {
         .run();
   }
 
-  void synchronize({String lastMessageId}) {}
+  void synchronize({String lastMessageId}) {
+    _authenticated
+        .andThen(_realtimeService.synchronize(int.parse(lastMessageId)))
+        .run()
+        .catchError((_) {});
+  }
 
-  void synchronizeEvent({String lastEventId}) {}
+  void synchronizeEvent({String lastEventId}) {
+    _authenticated
+        .andThen(_realtimeService.synchronizeEvent(lastEventId))
+        .run()
+        .catchError((_) {});
+  }
 
   void unblockUser({
     @required String userId,
@@ -776,7 +879,18 @@ class QiscusSDK {
     String avatarUrl,
     Map<String, dynamic> extras,
     @required void Function(QChatRoom, Exception) callback,
-  }) {}
+  }) {
+    _authenticated
+        .andThen(UpdateRoomUseCase(_roomRepo)(UpdateRoomParams(
+          roomId: roomId,
+          name: name,
+          avatarUrl: avatarUrl,
+          extras: extras,
+        )))
+        .rightMap((r) => r.toModel())
+        .toCallback(callback)
+        .run();
+  }
 
   void updateUser({
     String name,

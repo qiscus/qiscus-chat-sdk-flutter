@@ -1,4 +1,6 @@
 import 'package:dartz/dartz.dart';
+import 'package:meta/meta.dart';
+import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
 
 abstract class MessageRepository {
   Task<Either<Exception, SendMessageResponse>> sendMessage(
@@ -21,6 +23,12 @@ abstract class MessageRepository {
     int roomId,
     int readId,
     int deliveredId,
+  });
+
+  Task<Either<Exception, List<Message>>> deleteMessages({
+    @required List<String> uniqueIds,
+    bool isForEveryone = true,
+    bool isHard = true,
   });
 }
 

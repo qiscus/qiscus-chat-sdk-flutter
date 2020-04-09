@@ -14,9 +14,8 @@ class CustomEvent {
 
 class CustomEventUseCase extends UseCase<RealtimeService, void, CustomEvent>
     with Subscription<RealtimeService, RoomIdParams, CustomEvent> {
-  CustomEventUseCase._(this._service) : super(_service);
+  CustomEventUseCase._(RealtimeService s) : super(s);
 
-  final RealtimeService _service;
   static CustomEventUseCase _instance;
 
   factory CustomEventUseCase(RealtimeService s) =>

@@ -29,6 +29,109 @@ abstract class RoomApi {
 
   @GET('user_rooms')
   Future<String> getAllRooms(@Body() GetAllRoomsRequest request);
+
+  @POST('get_or_create_room_with_unique_id')
+  Future<String> getOrCreateChannel(@Body() GetOrCreateChannelRequest request);
+
+  @POST('create_room')
+  Future<String> createGroup(@Body() CreateGroupRequest request);
+
+  @DELETE('clear_room_messages')
+  Future<String> clearMessages(@Query('room_channel_ids') uniqueIds);
+
+  @GET('rooms_info')
+  Future<String> getRoomInfo(@Body() GetRoomInfoRequest request);
+
+  @GET('total_unread_count')
+  Future<String> getTotalUnreadCount();
+
+  @POST('update_room')
+  Future<String> updateRoom(@Body() UpdateRoomRequest request);
+}
+
+@sealed
+@immutable
+@JsonSerializable()
+class UpdateRoomRequest {
+  const UpdateRoomRequest({
+    @required this.roomId,
+    this.name,
+    this.avatarUrl,
+    this.extras,
+  });
+
+  @JsonKey(name: 'id')
+  final String roomId;
+  @JsonKey(nullable: true)
+  final String name;
+  @JsonKey(name: 'avatar_url', nullable: true)
+  final String avatarUrl;
+  @JsonKey(nullable: true)
+  final Map<String, dynamic> extras;
+
+  Map<String, dynamic> toJson() => _$UpdateRoomRequestToJson(this);
+}
+
+@immutable
+@JsonSerializable()
+class GetRoomInfoRequest {
+  const GetRoomInfoRequest({
+    this.roomIds,
+    this.uniqueIds,
+    this.withParticipants,
+    this.withRemoved,
+    this.page,
+  });
+  @JsonKey(name: 'room_id', nullable: true)
+  final List<int> roomIds;
+  @JsonKey(name: 'room_unique_id', nullable: null)
+  final List<String> uniqueIds;
+  @JsonKey(name: 'show_participants', nullable: true)
+  final bool withParticipants;
+  @JsonKey(name: 'show_removed', nullable: true)
+  final bool withRemoved;
+  final int page;
+
+  Map<String, dynamic> toJson() => _$GetRoomInfoRequestToJson(this);
+}
+
+@immutable
+@JsonSerializable()
+class CreateGroupRequest {
+  const CreateGroupRequest({
+    @required this.name,
+    @required this.userIds,
+    this.avatarUrl,
+    this.extras,
+  });
+  final String name;
+  @JsonKey(name: 'participants')
+  final List<String> userIds;
+  @JsonKey(name: 'avatar_url')
+  final String avatarUrl;
+  final Map<String, dynamic> extras;
+
+  Map<String, dynamic> toJson() => _$CreateGroupRequestToJson(this);
+}
+
+@immutable
+@JsonSerializable()
+class GetOrCreateChannelRequest {
+  const GetOrCreateChannelRequest({
+    @required this.uniqueId,
+    this.name,
+    this.avatarUrl,
+    this.options,
+  });
+
+  @JsonKey(name: 'unique_id')
+  final String uniqueId;
+  final String name;
+  @JsonKey(name: 'avatar_url')
+  final String avatarUrl;
+  final Map<String, dynamic> options;
+
+  Map<String, dynamic> toJson() => _$GetOrCreateChannelRequestToJson(this);
 }
 
 @immutable

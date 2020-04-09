@@ -10,6 +10,12 @@ class CMqttMessage {
   final String payload;
 }
 
+extension OptionDo<T> on Option<T> {
+  void do_(void Function(T data) onData) {
+    fold(() {}, (it) => onData(it));
+  }
+}
+
 extension CMqttClient on MqttClient {
   Either<Exception, void> publish(String topic, String message) {
     return catching<void>(() {

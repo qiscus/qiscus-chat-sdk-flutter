@@ -111,6 +111,105 @@ class RoomRepositoryImpl implements RoomRepository {
       return GetAllRoomsResponse(rooms);
     });
   }
+
+  @override
+  Task<Either<Exception, ChatRoom>> getOrCreateChannel({
+    String uniqueId,
+    String name,
+    String avatarUrl,
+    Map<String, dynamic> options,
+  }) {
+    return Task(() => _api.getOrCreateChannel(GetOrCreateChannelRequest(
+          uniqueId: uniqueId,
+          name: name,
+          avatarUrl: avatarUrl,
+          options: options,
+        ))).attempt().leftMapToException().rightMap((res) {
+      var json = jsonDecode(res);
+      return ChatRoom.fromJson(json['results']['room']);
+    });
+  }
+
+  @override
+  Task<Either<Exception, ChatRoom>> createGroup({
+    String name,
+    List<String> userIds,
+    String avatarUrl,
+    Map<String, dynamic> extras,
+  }) {
+    return Task(() => _api.createGroup(CreateGroupRequest(
+          name: name,
+          userIds: userIds,
+          avatarUrl: avatarUrl,
+          extras: extras,
+        ))).attempt().leftMapToException().rightMap((resp) {
+      var json = jsonDecode(resp);
+      return ChatRoom.fromJson(json['results']['room']);
+    });
+  }
+
+  @override
+  Task<Either<Exception, Unit>> clearMessages({
+    @required List<String> uniqueIds,
+  }) {
+    return Task(() => _api.clearMessages(uniqueIds))
+        .attempt()
+        .leftMapToException()
+        .rightMap((_) => unit);
+  }
+
+  @override
+  Task<Either<Exception, List<ChatRoom>>> getRoomInfo({
+    List<int> roomIds,
+    List<String> uniqueIds,
+    bool withParticipants,
+    bool withRemoved,
+    int page,
+  }) {
+    return Task(() => _api.getRoomInfo(GetRoomInfoRequest(
+          roomIds: roomIds,
+          uniqueIds: uniqueIds,
+          withParticipants: withParticipants,
+          withRemoved: withRemoved,
+          page: page,
+        ))).attempt().leftMapToException().rightMap((str) {
+      var json = jsonDecode(str);
+      var roomsInfo = json['results']['rooms_info'] as List;
+      return roomsInfo
+          .cast<Map<String, dynamic>>()
+          .map((json) => ChatRoom.fromJson(json))
+          .toList();
+    });
+  }
+
+  @override
+  Task<Either<Exception, int>> getTotalUnreadCount() {
+    return Task(() => _api.getTotalUnreadCount())
+        .attempt()
+        .leftMapToException()
+        .rightMap((str) {
+      var json = jsonDecode(str);
+      return json['results']['total_unread_count'] as int;
+    });
+  }
+
+  @override
+  Task<Either<Exception, ChatRoom>> updateRoom({
+    @required int roomId,
+    String name,
+    String avatarUrl,
+    Map<String, dynamic> extras,
+  }) {
+    return Task(() => _api.updateRoom(UpdateRoomRequest(
+          roomId: roomId.toString(),
+          name: name,
+          avatarUrl: avatarUrl,
+          extras: extras,
+        ))).attempt().leftMapToException().rightMap((str) {
+      var json = jsonDecode(str);
+      return ChatRoom.fromJson(json['results']['room']);
+    });
+  }
 }
 
 @immutable

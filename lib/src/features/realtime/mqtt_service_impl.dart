@@ -16,7 +16,10 @@ class MqttServiceImpl implements RealtimeService {
   MqttServiceImpl(this._getClient, this._s, this._logger) {
     _mqtt.onConnected = () => log('on mqtt connected');
     _mqtt.onDisconnected = () => log('on mqtt disconnected');
-    _mqtt.onSubscribed = (topic) => log('on mqtt subscribed: $topic');
+    _mqtt.onSubscribed = (topic) {
+      _subscribedTopics.add(topic);
+      log('on mqtt subscribed: $topic');
+    };
     _mqtt.onUnsubscribed = (topic) => log('on mqtt unsubscribed: $topic');
 
     _mqtt
@@ -38,6 +41,7 @@ class MqttServiceImpl implements RealtimeService {
   final MqttClient Function() _getClient;
   MqttClient __mqtt;
   final Storage _s;
+  final _subscribedTopics = <String>[];
 
   MqttClient get _mqtt => __mqtt ??= _getClient();
 
@@ -282,7 +286,16 @@ class MqttServiceImpl implements RealtimeService {
 
   @override
   Either<Exception, void> end() {
-    return catching<void>(() => _mqtt.disconnect()).leftMapToException();
+    return catching<void>(() {
+      _subscribedTopics.forEach((topic) {
+        var status = _mqtt.getSubscriptionsStatus(topic);
+        if (status == MqttSubscriptionStatus.active) {
+          _mqtt.unsubscribe(topic);
+        }
+      });
+      _subscribedTopics.clear();
+      _mqtt.disconnect();
+    }).leftMapToException();
   }
 
   @override
@@ -316,10 +329,21 @@ class MqttServiceImpl implements RealtimeService {
   }) {
     return _mqtt.publish(TopicBuilder.customEvent(roomId), jsonEncode(payload));
   }
+
+  @override
+  Task<Either<Exception, Unit>> synchronize([int lastMessageId]) {
+    return Task.delay(() => left(Exception('Not implemented')));
+  }
+
+  @override
+  Task<Either<Exception, Unit>> synchronizeEvent([String lastEventId]) {
+    return Task.delay(() => left(Exception('Not implemented')));
+  }
 }
 
 abstract class TopicBuilder {
-  static String typing(String roomId, String userId) => 'r/$roomId/+/$userId/t';
+  static String typing(String roomId, String userId) =>
+      'r/$roomId/$roomId/$userId/t';
 
   static String presence(String userId) => 'u/$userId/s';
 

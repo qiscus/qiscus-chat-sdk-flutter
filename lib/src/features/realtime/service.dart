@@ -69,6 +69,9 @@ abstract class RealtimeService {
     @required int roomId,
     @required Map<String, dynamic> payload,
   });
+
+  Task<Either<Exception, Unit>> synchronize([int lastMessageId]);
+  Task<Either<Exception, Unit>> synchronizeEvent([String lastEventId]);
 }
 
 class CustomEventResponse {

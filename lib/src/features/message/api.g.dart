@@ -131,4 +131,27 @@ class _MessageApi implements MessageApi {
     final value = _result.data;
     return Future.value(value);
   }
+
+  @override
+  deleteMessages(uniqueIds, [isHardDelete = true, isForEveryOne = true]) async {
+    ArgumentError.checkNotNull(uniqueIds, 'uniqueIds');
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      'unique_ids': uniqueIds,
+      'is_hard_delete': isHardDelete,
+      'is_delete_for_everyone': isForEveryOne
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _data = <String, dynamic>{};
+    final Response<String> _result = await _dio.request('delete_messages',
+        queryParameters: queryParameters,
+        options: RequestOptions(
+            method: 'DELETE',
+            headers: <String, dynamic>{},
+            extra: _extra,
+            baseUrl: baseUrl),
+        data: _data);
+    final value = _result.data;
+    return Future.value(value);
+  }
 }

@@ -6,6 +6,79 @@ part of 'api.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+UpdateRoomRequest _$UpdateRoomRequestFromJson(Map<String, dynamic> json) {
+  return UpdateRoomRequest(
+    roomId: json['id'] as String,
+    name: json['name'] as String,
+    avatarUrl: json['avatar_url'] as String,
+    extras: json['extras'] as Map<String, dynamic>,
+  );
+}
+
+Map<String, dynamic> _$UpdateRoomRequestToJson(UpdateRoomRequest instance) =>
+    <String, dynamic>{
+      'id': instance.roomId,
+      'name': instance.name,
+      'avatar_url': instance.avatarUrl,
+      'extras': instance.extras,
+    };
+
+GetRoomInfoRequest _$GetRoomInfoRequestFromJson(Map<String, dynamic> json) {
+  return GetRoomInfoRequest(
+    roomIds: (json['room_id'] as List)?.map((e) => e as int)?.toList(),
+    uniqueIds:
+        (json['room_unique_id'] as List)?.map((e) => e as String)?.toList(),
+    withParticipants: json['show_participants'] as bool,
+    withRemoved: json['show_removed'] as bool,
+    page: json['page'] as int,
+  );
+}
+
+Map<String, dynamic> _$GetRoomInfoRequestToJson(GetRoomInfoRequest instance) =>
+    <String, dynamic>{
+      'room_id': instance.roomIds,
+      'room_unique_id': instance.uniqueIds,
+      'show_participants': instance.withParticipants,
+      'show_removed': instance.withRemoved,
+      'page': instance.page,
+    };
+
+CreateGroupRequest _$CreateGroupRequestFromJson(Map<String, dynamic> json) {
+  return CreateGroupRequest(
+    name: json['name'] as String,
+    userIds: (json['participants'] as List)?.map((e) => e as String)?.toList(),
+    avatarUrl: json['avatar_url'] as String,
+    extras: json['extras'] as Map<String, dynamic>,
+  );
+}
+
+Map<String, dynamic> _$CreateGroupRequestToJson(CreateGroupRequest instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'participants': instance.userIds,
+      'avatar_url': instance.avatarUrl,
+      'extras': instance.extras,
+    };
+
+GetOrCreateChannelRequest _$GetOrCreateChannelRequestFromJson(
+    Map<String, dynamic> json) {
+  return GetOrCreateChannelRequest(
+    uniqueId: json['unique_id'] as String,
+    name: json['name'] as String,
+    avatarUrl: json['avatar_url'] as String,
+    options: json['options'] as Map<String, dynamic>,
+  );
+}
+
+Map<String, dynamic> _$GetOrCreateChannelRequestToJson(
+        GetOrCreateChannelRequest instance) =>
+    <String, dynamic>{
+      'unique_id': instance.uniqueId,
+      'name': instance.name,
+      'avatar_url': instance.avatarUrl,
+      'options': instance.options,
+    };
+
 GetParticipantsRequest _$GetParticipantsRequestFromJson(
     Map<String, dynamic> json) {
   return GetParticipantsRequest(
@@ -190,6 +263,118 @@ class _RoomApi implements RoomApi {
         queryParameters: queryParameters,
         options: RequestOptions(
             method: 'GET',
+            headers: <String, dynamic>{},
+            extra: _extra,
+            baseUrl: baseUrl),
+        data: _data);
+    final value = _result.data;
+    return Future.value(value);
+  }
+
+  @override
+  getOrCreateChannel(request) async {
+    ArgumentError.checkNotNull(request, 'request');
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(request?.toJson() ?? <String, dynamic>{});
+    final Response<String> _result = await _dio.request(
+        'get_or_create_room_with_unique_id',
+        queryParameters: queryParameters,
+        options: RequestOptions(
+            method: 'POST',
+            headers: <String, dynamic>{},
+            extra: _extra,
+            baseUrl: baseUrl),
+        data: _data);
+    final value = _result.data;
+    return Future.value(value);
+  }
+
+  @override
+  createGroup(request) async {
+    ArgumentError.checkNotNull(request, 'request');
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(request?.toJson() ?? <String, dynamic>{});
+    final Response<String> _result = await _dio.request('create_room',
+        queryParameters: queryParameters,
+        options: RequestOptions(
+            method: 'POST',
+            headers: <String, dynamic>{},
+            extra: _extra,
+            baseUrl: baseUrl),
+        data: _data);
+    final value = _result.data;
+    return Future.value(value);
+  }
+
+  @override
+  clearMessages(uniqueIds) async {
+    ArgumentError.checkNotNull(uniqueIds, 'uniqueIds');
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{'room_channel_ids': uniqueIds};
+    final _data = <String, dynamic>{};
+    final Response<String> _result = await _dio.request('clear_room_messages',
+        queryParameters: queryParameters,
+        options: RequestOptions(
+            method: 'DELETE',
+            headers: <String, dynamic>{},
+            extra: _extra,
+            baseUrl: baseUrl),
+        data: _data);
+    final value = _result.data;
+    return Future.value(value);
+  }
+
+  @override
+  getRoomInfo(request) async {
+    ArgumentError.checkNotNull(request, 'request');
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(request?.toJson() ?? <String, dynamic>{});
+    final Response<String> _result = await _dio.request('rooms_info',
+        queryParameters: queryParameters,
+        options: RequestOptions(
+            method: 'GET',
+            headers: <String, dynamic>{},
+            extra: _extra,
+            baseUrl: baseUrl),
+        data: _data);
+    final value = _result.data;
+    return Future.value(value);
+  }
+
+  @override
+  getTotalUnreadCount() async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    final Response<String> _result = await _dio.request('total_unread_count',
+        queryParameters: queryParameters,
+        options: RequestOptions(
+            method: 'GET',
+            headers: <String, dynamic>{},
+            extra: _extra,
+            baseUrl: baseUrl),
+        data: _data);
+    final value = _result.data;
+    return Future.value(value);
+  }
+
+  @override
+  updateRoom(request) async {
+    ArgumentError.checkNotNull(request, 'request');
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(request?.toJson() ?? <String, dynamic>{});
+    final Response<String> _result = await _dio.request('update_room',
+        queryParameters: queryParameters,
+        options: RequestOptions(
+            method: 'POST',
             headers: <String, dynamic>{},
             extra: _extra,
             baseUrl: baseUrl),

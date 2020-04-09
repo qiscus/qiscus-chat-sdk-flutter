@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
+import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/features/message/repository.dart';
 
 import 'api.dart';
+import 'entity.dart';
 
 class MessageRepositoryImpl implements MessageRepository {
   MessageRepositoryImpl(this._api);
@@ -69,6 +71,25 @@ class MessageRepositoryImpl implements MessageRepository {
           roomId: roomId,
           lastDeliveredId: deliveredId,
           lastReadId: readId,
-        ))).attempt().rightMap((_) => unit);
+        ))).attempt().leftMapToException().rightMap((_) => unit);
+  }
+
+  @override
+  Task<Either<Exception, List<Message>>> deleteMessages({
+    @required List<String> uniqueIds,
+    bool isForEveryone = true,
+    bool isHard = true,
+  }) {
+    return Task(() => _api.deleteMessages(uniqueIds, isForEveryone, isHard))
+        .attempt()
+        .leftMapToException()
+        .rightMap((res) {
+      var json = jsonDecode(res);
+      var messages = (json['results']['comments'] as List)
+          .cast<Map<String, dynamic>>()
+          .map((m) => Message.fromJson(m))
+          .toList();
+      return messages;
+    });
   }
 }

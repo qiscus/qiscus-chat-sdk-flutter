@@ -11,9 +11,7 @@ class Storage {
 
   static const defaultBaseUrl = 'https://api.qiscus.com';
   static const defaultUploadUrl = '$defaultBaseUrl/api/v2/sdk/upload';
-//  static const defaultBrokerUrl = 'mqtt.qiscus.com';
   static const defaultBrokerPort = 1335;
-//  static const defaultBrokerUrl = 'ssl://mqtt.qiscus.com:1885';
   static const defaultBrokerUrl = 'wss://mqtt.qiscus.com:1886/mqtt';
   static const defaultBrokerLbUrl = 'https://realtime.qiscus.com';
   static const defaultAccInterval = 1000;
@@ -70,4 +68,39 @@ class Storage {
   set lastMessageId(int id) => _makeSetter(_storage, 'last-message-id', id);
   int get lastEventId => _makeGetter(_storage, 'last-event-id', 0);
   set lastEventId(int id) => _makeSetter(_storage, 'last-event-id', id);
+
+  bool get enableEventReport => _makeGetter(
+        _storage,
+        'Config::enable-event-report',
+        false,
+      );
+  set enableEventReport(bool enable) => _makeSetter(
+        _storage,
+        'Config::enable-event-report',
+        enable,
+      );
+
+  bool get isRealtimeEnabled =>
+      _makeGetter(_storage, 'Config::enable-realtime', true);
+  set isRealtimeEnabled(bool enable) => _makeSetter(
+        _storage,
+        'Config::enable-realtime',
+        enable,
+      );
+
+  bool get isRealtimeCheckEnabled =>
+      _makeGetter(_storage, 'Config::realtime-check-enabled', true);
+  set isRealtimeCheckEnabled(bool enable) =>
+      _makeSetter(_storage, 'Config::realtime-check-enabled', enable);
+
+  Map<String, dynamic> get configExtras =>
+      _makeGetter(_storage, 'Config::extras', {});
+  set configExtras(Map<String, dynamic> extras) =>
+      _makeSetter(_storage, 'Config::extras', extras);
+
+  void clear() {
+    appId = null;
+    currentUser = null;
+    token = null;
+  }
 }

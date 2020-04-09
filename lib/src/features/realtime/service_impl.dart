@@ -109,7 +109,7 @@ class RealtimeServiceImpl implements RealtimeService {
 
   @override
   Either<Exception, void> end() {
-    return null;
+    return right(null);
   }
 
   @override
@@ -135,5 +135,15 @@ class RealtimeServiceImpl implements RealtimeService {
     Map<String, dynamic> payload,
   }) {
     return _mqttService.publishCustomEvent(roomId: roomId, payload: payload);
+  }
+
+  @override
+  Task<Either<Exception, Unit>> synchronize([int lastMessageId]) {
+    return _syncService.synchronize(lastMessageId);
+  }
+
+  @override
+  Task<Either<Exception, Unit>> synchronizeEvent([String lastEventId]) {
+    return _syncService.synchronizeEvent(lastEventId);
   }
 }

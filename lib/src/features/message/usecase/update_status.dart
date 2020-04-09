@@ -25,5 +25,7 @@ class UpdateStatus
         deliveredId: p.messageId,
       );
     }
+    return Task.delay(() => left(Exception(
+        'Can not update status for message with status: ${p.status}')));
   }
 }

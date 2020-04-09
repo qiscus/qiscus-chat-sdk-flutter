@@ -22,6 +22,13 @@ abstract class MessageApi {
 
   @POST('update_comment_status')
   Future<String> updateStatus(@Body() UpdateStatusRequest request);
+
+  @DELETE('delete_messages')
+  Future<String> deleteMessages(
+    @Query('unique_ids') List<String> uniqueIds, [
+    @Query('is_hard_delete') bool isHardDelete = true,
+    @Query('is_delete_for_everyone') bool isForEveryOne = true,
+  ]);
 }
 
 @JsonSerializable()
