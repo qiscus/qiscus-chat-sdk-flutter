@@ -21,8 +21,8 @@ class CoreRepositoryImpl implements CoreRepository {
         .attempt()
         .leftMapToException()
         .rightMap((str) {
-      var json = jsonDecode(str)['results'];
-      var config = AppConfig.fromJson(json);
+      var json = jsonDecode(str) as Map<String, dynamic>;
+      var config = AppConfig.fromJson(json['results']);
       return config;
     });
   }

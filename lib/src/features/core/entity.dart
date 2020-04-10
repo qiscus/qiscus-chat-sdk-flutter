@@ -1,65 +1,26 @@
+import 'dart:convert';
+
 import 'package:dartz/dartz.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
 
-part 'entity.g.dart';
-
-Option optionFromJson(dynamic json) => optionOf(json);
-dynamic optionToJson(Option opts) => opts.toNullable();
+Option<T> optionFromJson<T>(T json) {
+  if ((json is String) && json.isEmpty) {
+    return none();
+  }
+  return optionOf(json);
+}
 
 @immutable
-@JsonSerializable()
 class AppConfig {
-  @JsonKey(name: 'base_url', fromJson: optionFromJson, toJson: optionToJson)
   final Option<String> baseUrl;
-
-  @JsonKey(
-    name: 'broker_lb_url',
-    fromJson: optionFromJson,
-    toJson: optionToJson,
-  )
   final Option<String> brokerLbUrl;
-
-  @JsonKey(name: 'broker_url', fromJson: optionFromJson, toJson: optionToJson)
   final Option<String> brokerUrl;
-
-  @JsonKey(
-    name: 'enable_event_report',
-    fromJson: optionFromJson,
-    toJson: optionToJson,
-  )
   final Option<bool> enableEventReport;
-
-  @JsonKey(
-    name: 'enable_realtime',
-    fromJson: optionFromJson,
-    toJson: optionToJson,
-  )
   final Option<bool> enableRealtime;
-
-  @JsonKey(
-    name: 'enable_realtime_check',
-    fromJson: optionFromJson,
-    toJson: optionToJson,
-  )
   final Option<bool> enableRealtimeCheck;
-
-  @JsonKey(name: 'extras', fromJson: optionFromJson, toJson: optionToJson)
   final Option<Map<String, dynamic>> extras;
-
-  @JsonKey(
-    name: 'sync_interval',
-    fromJson: optionFromJson,
-    toJson: optionToJson,
-  )
   final Option<int> syncInterval;
-
-  @JsonKey(
-    name: 'sync_on_connect',
-    fromJson: optionFromJson,
-    toJson: optionToJson,
-  )
   final Option<int> syncOnConnect;
 
   AppConfig({
@@ -74,8 +35,27 @@ class AppConfig {
     @required this.syncOnConnect,
   });
 
-  factory AppConfig.fromJson(Map<String, dynamic> json) =>
-      _$AppConfigFromJson(json);
+  factory AppConfig.fromJson(Map<String, dynamic> json) {
+    return AppConfig(
+      baseUrl: optionFromJson<String>(json['base_url']),
+      brokerLbUrl: optionFromJson<String>(json['broker_lb_url']),
+      brokerUrl: optionFromJson(json['broker_url']),
+      enableEventReport: optionFromJson(json['enable_event_report']),
+      enableRealtime: optionFromJson(json['enable_realtime']),
+      enableRealtimeCheck: optionFromJson(json['enable_realtime_check']),
+      syncInterval: optionFromJson(json['sync_interval']),
+      syncOnConnect: optionFromJson(json['sync_on_connect']),
+      extras: ((extras) {
+        if ((extras is String) && extras.isNotEmpty) {
+          var json = jsonDecode(extras) as Map<String, dynamic>;
+          return optionFromJson(json);
+        } else {
+          return none<Map<String, dynamic>>();
+        }
+      })(json['extras']),
+    );
+  }
+
   void hydrateStorage(Storage s) {
     baseUrl.do_((it) => s.baseUrl = it);
     baseUrl.do_((it) => s.baseUrl = it);

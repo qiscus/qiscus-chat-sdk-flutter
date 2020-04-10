@@ -8,6 +8,7 @@ import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:qiscus_chat_sdk/src/features/channel/usecase/create.dart';
 import 'package:qiscus_chat_sdk/src/features/core/usecase/app_config.dart';
 import 'package:qiscus_chat_sdk/src/features/message/usecase/delete_message.dart';
@@ -61,10 +62,14 @@ class QiscusSDK {
         return request;
       },
     );
-    return Dio(BaseOptions())
+    var dio = Dio(BaseOptions())
       ..interceptors.addAll([
         interceptor,
       ]);
+    if (_logger.enabled) {
+      dio.interceptors.add(PrettyDioLogger());
+    }
+    return dio;
   }
 
   static final _coreApi = CoreApi(_dio);
@@ -737,15 +742,18 @@ class QiscusSDK {
     @required Function1<Exception, void> callback,
   }) {
     AppConfigUseCase(_coreRepo, _storage)(noParams)
-        .andThen(Task.delay(() {
+        .tap((_) {
           _storage.appId = appId;
           _storage.baseUrl = baseUrl;
           _storage.brokerUrl = brokerUrl;
           _storage.brokerLbUrl = brokerLbUrl;
           _storage.syncInterval = syncInterval;
           _storage.syncIntervalWhenConnected = syncIntervalWhenConnected;
-        }))
-        .leftMap((exc) => callback(exc))
+        })
+        .map((either) => either.fold(
+              (err) => callback(err),
+              (_) => callback(null),
+            ))
         .run();
   }
 

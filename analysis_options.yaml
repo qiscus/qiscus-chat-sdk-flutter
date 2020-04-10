@@ -10,5 +10,5 @@ include: package:pedantic/analysis_options.yaml
 #     - camel_case_types
 
 analyzer:
-#   exclude:
+  exclude: ['**/*.g.dart', '**/*.freezed.dart']
 #     - path/to/excluded/files/**
