@@ -61,8 +61,14 @@ class BlockUserRequest {
 @immutable
 @JsonSerializable()
 class DeviceTokenRequest {
+  @JsonKey(name: 'device_token')
   final String token;
+
+  @JsonKey(name: 'is_development')
   final bool is_development;
+
+  final String platform = 'rn';
+
   const DeviceTokenRequest(this.token, [this.is_development = false]);
 
   Map<String, dynamic> toJson() => _$DeviceTokenRequestToJson(this);
