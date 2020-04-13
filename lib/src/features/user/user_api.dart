@@ -52,6 +52,7 @@ class AuthenticateWithTokenRequest {
 @immutable
 @JsonSerializable()
 class BlockUserRequest {
+  @JsonKey(name: 'user_email')
   final String user_id;
   const BlockUserRequest(this.user_id);
 

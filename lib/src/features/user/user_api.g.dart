@@ -41,13 +41,13 @@ Map<String, dynamic> _$AuthenticateWithTokenRequestToJson(
 
 BlockUserRequest _$BlockUserRequestFromJson(Map<String, dynamic> json) {
   return BlockUserRequest(
-    json['user_id'] as String,
+    json['user_email'] as String,
   );
 }
 
 Map<String, dynamic> _$BlockUserRequestToJson(BlockUserRequest instance) =>
     <String, dynamic>{
-      'user_id': instance.user_id,
+      'user_email': instance.user_id,
     };
 
 DeviceTokenRequest _$DeviceTokenRequestFromJson(Map<String, dynamic> json) {
