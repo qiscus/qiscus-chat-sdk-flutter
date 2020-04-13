@@ -163,8 +163,8 @@ abstract class UserApi {
 class UsersResponse {
   final List<User> users;
   factory UsersResponse.fromJson(Map<String, dynamic> json) {
-    var users = json['results']['users'] as List<Map<String, dynamic>>;
-    var users_ = users.map((it) {
+    var users = json['results']['users'] as List;
+    var users_ = users.cast<Map<String, dynamic>>().map((it) {
       return User.fromJson(it);
     }).toList(growable: false);
     return UsersResponse._(users_);
