@@ -63,14 +63,14 @@ class MessageRepositoryImpl implements MessageRepository {
 
   @override
   Task<Either<Exception, Unit>> updateStatus({
-    int roomId,
+    @required int roomId,
     int readId = 0,
     int deliveredId = 0,
   }) {
     return Task(() => _api.updateStatus(UpdateStatusRequest(
-          roomId: roomId,
-          lastDeliveredId: deliveredId,
-          lastReadId: readId,
+          roomId: roomId.toString(),
+          lastDeliveredId: deliveredId.toString(),
+          lastReadId: readId.toString(),
         ))).attempt().leftMapToException().rightMap((_) => unit);
   }
 

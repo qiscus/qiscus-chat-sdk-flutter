@@ -65,13 +65,17 @@ class DeviceTokenRequest {
   @JsonKey(name: 'device_token')
   final String token;
 
-  @JsonKey(name: 'is_development')
+  @JsonKey(name: 'is_development', nullable: true)
   final bool is_development;
 
-  @JsonKey(name: 'device_platform')
-  final String platform = 'rn';
+  @JsonKey(name: 'device_platform', defaultValue: 'rn')
+  final String platform;
 
-  const DeviceTokenRequest(this.token, [this.is_development = false]);
+  const DeviceTokenRequest(
+    this.token, [
+    this.is_development = false,
+    this.platform = 'rn',
+  ]);
 
   Map<String, dynamic> toJson() => _$DeviceTokenRequestToJson(this);
 }
@@ -147,16 +151,16 @@ abstract class UserApi {
     @Query('limit') int limit,
   });
 
-  @POST('set_user_device_token')
-  Future<bool> registerDeviceToken(@Body() DeviceTokenRequest request);
+  @POST('set_user_device_token', autoCastResponse: false)
+  Future<String> registerDeviceToken(@Body() DeviceTokenRequest request);
 
   @POST('unblock_user')
   Future<User> unblockUser(
     @Body() BlockUserRequest request,
   );
 
-  @POST('remove_user_device_token')
-  Future<bool> unregisterDeviceToken(@Body() DeviceTokenRequest request);
+  @POST('remove_user_device_token', autoCastResponse: false)
+  Future<String> unregisterDeviceToken(@Body() DeviceTokenRequest request);
 
   @PATCH('my_profile')
   Future<Account> updateUser(@Body() UpdateUserRequest request);

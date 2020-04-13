@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/account.dart';
@@ -89,7 +91,11 @@ class UserRepositoryImpl implements UserRepository {
             token,
             isDevelopment,
           ),
-        )).attempt().leftMapToException();
+        )).attempt().leftMapToException().rightMap((str) {
+      var json = jsonDecode(str) as Map<String, dynamic>;
+      var changed = json['results']['changed'];
+      return changed;
+    });
   }
 
   @override
@@ -107,7 +113,11 @@ class UserRepositoryImpl implements UserRepository {
     return Task(() => _api.unregisterDeviceToken(DeviceTokenRequest(
           token,
           isDevelopment,
-        ))).attempt().leftMapToException();
+        ))).attempt().leftMapToException().rightMap((str) {
+      var json = jsonDecode(str) as Map<String, dynamic>;
+      var changed = json['results']['changed'];
+      return changed;
+    });
   }
 
   @override

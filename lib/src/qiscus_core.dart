@@ -67,7 +67,10 @@ class QiscusSDK {
         interceptor,
       ]);
     if (_logger.enabled) {
-      dio.interceptors.add(PrettyDioLogger());
+      dio.interceptors.add(PrettyDioLogger(
+        requestBody: true,
+        requestHeader: true,
+      ));
     }
     return dio;
   }
@@ -339,7 +342,6 @@ class QiscusSDK {
     @required String uniqueId,
     @required void Function(QChatRoom, Exception) callback,
   }) {
-    //
     _authenticated
         .andThen(GetOrCreateChannelUseCase(_roomRepo)(GetOrCreateChannelParams(
           uniqueId,
@@ -350,8 +352,8 @@ class QiscusSDK {
   }
 
   void getChatRooms({
-    List<int> roomIds, // ignore: always_require_non_null_named_parameters
-    List<String> uniqueIds, // ignore: always_require_non_null_named_parameters
+    List<int> roomIds,
+    List<String> uniqueIds,
     int page,
     bool showRemoved,
     bool showParticipants,

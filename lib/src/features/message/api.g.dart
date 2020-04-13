@@ -8,9 +8,9 @@ part of 'api.dart';
 
 UpdateStatusRequest _$UpdateStatusRequestFromJson(Map<String, dynamic> json) {
   return UpdateStatusRequest(
-    roomId: json['room_id'] as int,
-    lastReadId: json['last_comment_read_id'] as int ?? 0,
-    lastDeliveredId: json['last_comment_received_id'] as int ?? 0,
+    roomId: json['room_id'] as String,
+    lastReadId: json['last_comment_read_id'] as String ?? 0,
+    lastDeliveredId: json['last_comment_received_id'] as String ?? 0,
   );
 }
 

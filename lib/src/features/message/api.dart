@@ -34,18 +34,18 @@ abstract class MessageApi {
 @JsonSerializable()
 class UpdateStatusRequest {
   const UpdateStatusRequest({
-    this.roomId,
-    this.lastReadId = 0,
-    this.lastDeliveredId = 0,
+    @required this.roomId,
+    this.lastReadId,
+    this.lastDeliveredId,
   });
 
   @JsonKey(name: 'room_id')
-  final int roomId;
+  final String roomId;
 
-  @JsonKey(name: 'last_comment_read_id', defaultValue: 0)
-  final int lastReadId;
-  @JsonKey(name: 'last_comment_received_id', defaultValue: 0)
-  final int lastDeliveredId;
+  @JsonKey(name: 'last_comment_read_id', defaultValue: 0, nullable: true)
+  final String lastReadId;
+  @JsonKey(name: 'last_comment_received_id', defaultValue: 0, nullable: true)
+  final String lastDeliveredId;
 
   Map<String, dynamic> toJson() => _$UpdateStatusRequestToJson(this);
 }

@@ -54,6 +54,7 @@ DeviceTokenRequest _$DeviceTokenRequestFromJson(Map<String, dynamic> json) {
   return DeviceTokenRequest(
     json['device_token'] as String,
     json['is_development'] as bool,
+    json['device_platform'] as String ?? 'rn',
   );
 }
 
@@ -61,6 +62,7 @@ Map<String, dynamic> _$DeviceTokenRequestToJson(DeviceTokenRequest instance) =>
     <String, dynamic>{
       'device_token': instance.token,
       'is_development': instance.is_development,
+      'device_platform': instance.platform,
     };
 
 UpdateUserRequest _$UpdateUserRequestFromJson(Map<String, dynamic> json) {
@@ -238,7 +240,7 @@ class _UserApi implements UserApi {
     final queryParameters = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(request?.toJson() ?? <String, dynamic>{});
-    final Response<bool> _result = await _dio.request('set_user_device_token',
+    final Response<String> _result = await _dio.request('set_user_device_token',
         queryParameters: queryParameters,
         options: RequestOptions(
             method: 'POST',
@@ -277,7 +279,7 @@ class _UserApi implements UserApi {
     final queryParameters = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(request?.toJson() ?? <String, dynamic>{});
-    final Response<bool> _result = await _dio.request(
+    final Response<String> _result = await _dio.request(
         'remove_user_device_token',
         queryParameters: queryParameters,
         options: RequestOptions(
