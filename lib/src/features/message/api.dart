@@ -11,8 +11,8 @@ abstract class MessageApi {
 
   @GET('load_comments')
   Future<String> loadComments(
-    @Query('topic_id') int roomId,
-    @Query('last_comment_id') int lastMessageId, {
+    @Query('topic_id') int roomId, {
+    @Query('last_comment_id') int lastMessageId,
     @Query('after') bool after = false,
     @Query('limit') int limit = 20,
   });

@@ -70,9 +70,8 @@ class _MessageApi implements MessageApi {
   String baseUrl;
 
   @override
-  loadComments(roomId, lastMessageId, {after = false, limit = 20}) async {
+  loadComments(roomId, {lastMessageId, after = false, limit = 20}) async {
     ArgumentError.checkNotNull(roomId, 'roomId');
-    ArgumentError.checkNotNull(lastMessageId, 'lastMessageId');
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       'topic_id': roomId,

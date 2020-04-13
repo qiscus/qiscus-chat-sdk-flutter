@@ -68,6 +68,7 @@ class DeviceTokenRequest {
   @JsonKey(name: 'is_development')
   final bool is_development;
 
+  @JsonKey(name: 'device_platform')
   final String platform = 'rn';
 
   const DeviceTokenRequest(this.token, [this.is_development = false]);

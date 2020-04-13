@@ -26,7 +26,7 @@ class CustomEventUseCase extends UseCase<RealtimeService, void, CustomEvent>
     return Task.delay(() => catching<void>(() => repository.publishCustomEvent(
           roomId: p.roomId,
           payload: p.payload,
-        )));
+        )) as Either<Exception, void>);
   }
 
   @override

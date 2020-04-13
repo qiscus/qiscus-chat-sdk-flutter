@@ -82,7 +82,7 @@ Map<String, dynamic> _$GetOrCreateChannelRequestToJson(
 GetParticipantsRequest _$GetParticipantsRequestFromJson(
     Map<String, dynamic> json) {
   return GetParticipantsRequest(
-    json['unique_id'] as String,
+    json['room_unique_id'] as String,
     json['page'] as int,
     json['limit'] as int,
     json['sorting'] as String,
@@ -92,7 +92,7 @@ GetParticipantsRequest _$GetParticipantsRequestFromJson(
 Map<String, dynamic> _$GetParticipantsRequestToJson(
         GetParticipantsRequest instance) =>
     <String, dynamic>{
-      'unique_id': instance.roomUniqueId,
+      'room_unique_id': instance.roomUniqueId,
       'page': instance.page,
       'limit': instance.limit,
       'sorting': instance.sorting,
@@ -132,15 +132,15 @@ Map<String, dynamic> _$GetAllRoomsRequestToJson(GetAllRoomsRequest instance) =>
 
 ParticipantRequest _$ParticipantRequestFromJson(Map<String, dynamic> json) {
   return ParticipantRequest(
-    json['roomId'] as int,
-    (json['participantIds'] as List)?.map((e) => e as String)?.toList(),
+    json['room_id'] as int,
+    (json['emails'] as List)?.map((e) => e as String)?.toList(),
   );
 }
 
 Map<String, dynamic> _$ParticipantRequestToJson(ParticipantRequest instance) =>
     <String, dynamic>{
-      'roomId': instance.roomId,
-      'participantIds': instance.participantIds,
+      'room_id': instance.roomId,
+      'emails': instance.participantIds,
     };
 
 // **************************************************************************

@@ -144,7 +144,7 @@ class GetParticipantsRequest {
     this.sorting,
   ]);
 
-  @JsonKey(name: 'unique_id')
+  @JsonKey(name: 'room_unique_id')
   final String roomUniqueId;
   @JsonKey(nullable: true)
   final int page;
@@ -229,7 +229,9 @@ class GetAllRoomsRequest {
 class ParticipantRequest {
   const ParticipantRequest(this.roomId, this.participantIds);
 
+  @JsonKey(name: 'room_id')
   final int roomId;
+  @JsonKey(name: 'emails')
   final List<String> participantIds;
 
   Map<String, dynamic> toJson() => _$ParticipantRequestToJson(this);

@@ -23,7 +23,7 @@ class MessageRepositoryImpl implements MessageRepository {
     return Task(
       () => _api.loadComments(
         roomId,
-        lastMessageId,
+        lastMessageId: lastMessageId,
         limit: limit,
         after: after,
       ),
