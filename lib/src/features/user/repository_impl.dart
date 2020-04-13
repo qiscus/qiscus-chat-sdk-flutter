@@ -118,7 +118,7 @@ class UserRepositoryImpl implements UserRepository {
   }) {
     return Task(() => _api.updateUser(
           UpdateUserRequest(
-            username: name,
+            name: name,
             avatar_url: avatarUrl,
             extras: extras,
           ),

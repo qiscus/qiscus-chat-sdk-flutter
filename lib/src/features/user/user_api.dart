@@ -99,9 +99,10 @@ class GetUserResponse {
 @immutable
 @JsonSerializable()
 class UpdateUserRequest {
-  final String username, avatar_url;
+  final String name;
+  final String avatar_url;
   final Map<String, dynamic> extras;
-  const UpdateUserRequest({this.username, this.avatar_url, this.extras});
+  const UpdateUserRequest({this.name, this.avatar_url, this.extras});
 
   Map<String, dynamic> toJson() => _$UpdateUserRequestToJson(this);
 }

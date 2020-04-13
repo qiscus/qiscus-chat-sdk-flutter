@@ -52,20 +52,20 @@ Map<String, dynamic> _$BlockUserRequestToJson(BlockUserRequest instance) =>
 
 DeviceTokenRequest _$DeviceTokenRequestFromJson(Map<String, dynamic> json) {
   return DeviceTokenRequest(
-    json['token'] as String,
+    json['device_token'] as String,
     json['is_development'] as bool,
   );
 }
 
 Map<String, dynamic> _$DeviceTokenRequestToJson(DeviceTokenRequest instance) =>
     <String, dynamic>{
-      'token': instance.token,
+      'device_token': instance.token,
       'is_development': instance.is_development,
     };
 
 UpdateUserRequest _$UpdateUserRequestFromJson(Map<String, dynamic> json) {
   return UpdateUserRequest(
-    username: json['username'] as String,
+    name: json['name'] as String,
     avatar_url: json['avatar_url'] as String,
     extras: json['extras'] as Map<String, dynamic>,
   );
@@ -73,7 +73,7 @@ UpdateUserRequest _$UpdateUserRequestFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$UpdateUserRequestToJson(UpdateUserRequest instance) =>
     <String, dynamic>{
-      'username': instance.username,
+      'name': instance.name,
       'avatar_url': instance.avatar_url,
       'extras': instance.extras,
     };
