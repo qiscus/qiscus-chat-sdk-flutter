@@ -10,13 +10,13 @@ environment:
 dependencies:
   sealed_unions: ^3.0.2+2
   json_annotation: ^3.0.1
+  async: ^2.4.0
   meta: ^1.1.8
   dartz: ^0.8.9
   mqtt_client: ^6.0.0
   retrofit: ^1.3.0
   logger: ^0.8.3
   dio: ^3.0.8
-  rxdart: ^0.23.1
   equatable: ^1.1.1
   pretty_dio_logger: ^1.1.1
   flutter:
