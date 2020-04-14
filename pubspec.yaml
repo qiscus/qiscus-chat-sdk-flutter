@@ -2,16 +2,16 @@ name: qiscus_chat_sdk
 description: A starting point for Dart libraries or applications.
 version: 0.1.0
 homepage: https://sdk.qiscus.com
+repository: https://github.com/qiscus/qiscus-chat-sdk-flutter
 
 environment:
   sdk: '>=2.7.0 <3.0.0'
 
 dependencies:
-  # sqflite: ^1.3.0
   sealed_unions: ^3.0.2+2
   json_annotation: ^3.0.1
   meta: ^1.1.8
-  dartz: 0.9.0-dev.6
+  dartz: ^0.8.9
   mqtt_client: ^6.0.0
   retrofit: ^1.3.0
   logger: ^0.8.3
@@ -19,6 +19,8 @@ dependencies:
   rxdart: ^0.23.1
   equatable: ^1.1.1
   pretty_dio_logger: ^1.1.1
+  flutter:
+    sdk: flutter
 
 dev_dependencies:
   json_serializable: ^3.2.5
@@ -27,3 +29,5 @@ dev_dependencies:
   mockito: ^4.1.1
   pedantic: ^1.8.0
   test: ^1.6.0
+  flutter_test:
+    sdk: flutter

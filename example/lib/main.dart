@@ -1,21 +1,3 @@
-# Qiscus Chat SDK
-
-> Qiscus Chat SDK for Flutter
-
-## Introduction
-
-Qiscus Chat SDK (Software Development Kit) is a product provided by Qiscus
-that enables you to embed an in-app chat/chat feature in your applications
-quickly and easily. With our chat SDK, you can implement chat feature
-without dealing with the complexity of real-time communication infrastructure.
-We provide a powerful API to let you implement chat feature into your
-apps in the most seamless development process.
-
-## Usage
-
-A simple usage example:
-
-```dart
 import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
 import 'package:flutter/widgets.dart';
 
@@ -60,10 +42,3 @@ class _MyHomepageState extends State<MyHomepage> {
     return Container();
   }
 }
-```
-
-## Features and bugs
-
-Please file feature requests and bugs at the [issue tracker][tracker].
-
-[tracker]: https://github.com/qiscus/qiscus-chat-sdk-flutter/issues
