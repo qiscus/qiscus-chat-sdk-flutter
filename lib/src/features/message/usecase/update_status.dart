@@ -16,16 +16,15 @@ class UpdateStatus
 
   @override
   Task<Either<Exception, Unit>> call(p) {
-    if (p.status == QMessageStatus.read) {
-      return repository.updateStatus(roomId: p.roomId, readId: p.messageId);
+    switch (p.status) {
+      case QMessageStatus.delivered:
+        return repository.updateStatus(
+            roomId: p.roomId, deliveredId: p.messageId);
+      case QMessageStatus.read:
+        return repository.updateStatus(roomId: p.roomId, readId: p.messageId);
+      default:
+        return Task.delay(() => left(Exception(
+            'Can not update status for message with status: ${p.status}')));
     }
-    if (p.status == QMessageStatus.delivered) {
-      return repository.updateStatus(
-        roomId: p.roomId,
-        deliveredId: p.messageId,
-      );
-    }
-    return Task.delay(() => left(Exception(
-        'Can not update status for message with status: ${p.status}')));
   }
 }
