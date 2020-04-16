@@ -53,7 +53,7 @@ class QiscusSDK {
     final interceptor = InterceptorsWrapper(
       onRequest: (request) {
         request.baseUrl = '${_storage?.baseUrl}/api/v2/mobile/';
-        request.headers['qiscus-sdk-app-id'] = 'sdksample';
+        request.headers['qiscus-sdk-app-id'] = _storage.appId;
         request.headers['qiscus-sdk-version'] = 'dart-alpha1.0';
         if (_storage?.token != null) {
           request.headers['qiscus-sdk-token'] = _storage.token;
@@ -165,8 +165,6 @@ class QiscusSDK {
   QAccount get currentUser => _storage?.currentUser?.toModel();
 
   bool get isLogin => _storage?.currentUser != null;
-
-  Storage get s => _storage;
 
   String get token => _storage?.token;
 
