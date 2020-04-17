@@ -9,27 +9,14 @@ import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-import 'package:qiscus_chat_sdk/src/features/channel/usecase/create.dart';
-import 'package:qiscus_chat_sdk/src/features/core/usecase/app_config.dart';
-import 'package:qiscus_chat_sdk/src/features/message/usecase/delete_message.dart';
-import 'package:qiscus_chat_sdk/src/features/room/usecase/clear_room_messages.dart';
-import 'package:qiscus_chat_sdk/src/features/room/usecase/create_group.dart';
-import 'package:qiscus_chat_sdk/src/features/room/usecase/get_room_info.dart';
-import 'package:qiscus_chat_sdk/src/features/room/usecase/get_total_unread_count.dart';
-import 'package:qiscus_chat_sdk/src/features/room/usecase/update_room.dart';
 
 import 'core/core.dart';
+import 'features/channel/usecase/create.dart';
 import 'features/core/core.dart';
 import 'features/custom_event/usecase/realtime.dart';
-import 'features/message/api.dart';
 import 'features/message/message.dart';
 import 'features/realtime/realtime.dart';
-import 'features/realtime/usecase/realtime.dart';
-import 'features/room/api.dart';
 import 'features/room/room.dart';
-import 'features/room/usecase/get_rooms.dart';
-import 'features/room/usecase/participant.dart';
-import 'features/user/usecases/unblock_user.dart';
 import 'features/user/user.dart';
 
 typedef Subscription = void Function();
@@ -569,10 +556,10 @@ class QiscusSDK {
   }
 
   Subscription onMessageReceived(void Function(QMessage) callback) {
-    var subs = _authenticated
-        .andThen(OnMessageReceived(_realtimeService)
-            .listen((m) => callback(m.toModel())))
-        .run();
+    var listenable = OnMessageReceived(_realtimeService)
+        .listen((m) => callback(m.toModel()));
+
+    var subs = _authenticated.andThen(listenable).run();
     return () => subs.then((s) => s.cancel());
   }
 
@@ -765,9 +752,21 @@ class QiscusSDK {
     Map<String, dynamic> extras,
     @required void Function(QAccount, Exception) callback,
   }) {
+    var markAsDelivered = (Stream<Message> stream) => stream.tap(
+          (m) => m.chatRoomId.fold(
+            () {},
+            (roomId) => this.markAsDelivered(
+              roomId: roomId,
+              messageId: m.id,
+              callback: (_) {},
+            ),
+          ),
+        );
     var subscribes = (token) => OnMessageReceived(_realtimeService)
         .subscribe(TokenParams(token))
+        .bind((stream) => Task.delay(() => markAsDelivered(stream)))
         .andThen(_realtimeService.subscribe(TopicBuilder.notification(token)));
+
     Authenticate(_userRepo, _storage)
         .call(AuthenticateParams(
           userId: userId,
