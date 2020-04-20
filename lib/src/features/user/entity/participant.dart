@@ -13,6 +13,16 @@ class QParticipant {
     this.lastReceivedMessageId,
     this.extras,
   });
+
+  @override
+  String toString() => 'QParticipant('
+      'id=$id,'
+      'name=$name,'
+      'avatarUrl=$avatarUrl,'
+      'lastReadMessageId=$lastReadMessageId,'
+      'lastReceivedMessageId=$lastReceivedMessageId,'
+      'extras=$extras'
+      ')';
 }
 
 class Participant {

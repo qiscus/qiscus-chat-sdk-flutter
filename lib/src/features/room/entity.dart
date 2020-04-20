@@ -136,7 +136,18 @@ class QChatRoom {
   });
 
   @override
-  String toString() => 'QChatRoom($id)';
+  String toString() => 'QChatRoom('
+      'id=$id,'
+      'name=$name,'
+      'uniqueId=$uniqueId,'
+      'unreadCount=$unreadCount,'
+      'avatarUrl=$avatarUrl,'
+      'totalParticipants=$totalParticipants,'
+      'extras=$extras,'
+      'participants=$participants,'
+      'lastMessage=$lastMessage,'
+      'type=$type'
+      ')';
 }
 
 enum QRoomType {

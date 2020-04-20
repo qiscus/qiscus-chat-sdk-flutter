@@ -13,6 +13,14 @@ class QUser {
     this.avatarUrl,
     this.extras,
   });
+
+  @override
+  String toString() => 'QUser('
+      'id=$id,'
+      'name=$name,'
+      'avatarUrl=$avatarUrl,'
+      'extras=$extras'
+      ')';
 }
 
 class User {
