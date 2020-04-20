@@ -7,11 +7,11 @@ import 'package:qiscus_chat_sdk/src/features/user/entity/account.dart';
 import 'package:qiscus_chat_sdk/src/features/user/repository.dart';
 
 @immutable
-class Authenticate extends UseCase<UserRepository, Tuple2<String, Account>,
-    AuthenticateParams> {
+class AuthenticateUserUseCase extends UseCase<UserRepository,
+    Tuple2<String, Account>, AuthenticateParams> {
   final Storage _storage;
 
-  const Authenticate(UserRepository repository, this._storage)
+  const AuthenticateUserUseCase(UserRepository repository, this._storage)
       : super(repository);
 
   @override

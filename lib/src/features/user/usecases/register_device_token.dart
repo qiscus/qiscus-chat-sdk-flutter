@@ -10,9 +10,9 @@ class DeviceTokenParams {
   const DeviceTokenParams(this.token, [this.isDevelopment = false]);
 }
 
-class RegisterDeviceToken
+class RegisterDeviceTokenUseCase
     extends UseCase<UserRepository, bool, DeviceTokenParams> {
-  RegisterDeviceToken(UserRepository repository) : super(repository);
+  RegisterDeviceTokenUseCase(UserRepository repository) : super(repository);
 
   @override
   Task<Either<Exception, bool>> call(DeviceTokenParams p) {
@@ -23,9 +23,9 @@ class RegisterDeviceToken
   }
 }
 
-class UnregisterDeviceToken
+class UnregisterDeviceTokenUseCase
     extends UseCase<UserRepository, bool, DeviceTokenParams> {
-  UnregisterDeviceToken(UserRepository repository) : super(repository);
+  UnregisterDeviceTokenUseCase(UserRepository repository) : super(repository);
 
   @override
   Task<Either<Exception, bool>> call(DeviceTokenParams p) {

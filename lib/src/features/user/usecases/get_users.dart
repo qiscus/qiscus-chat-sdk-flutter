@@ -11,8 +11,9 @@ class GetUserParams {
   const GetUserParams({this.query, this.page, this.limit});
 }
 
-class GetUsers extends UseCase<UserRepository, List<User>, GetUserParams> {
-  const GetUsers(UserRepository repository) : super(repository);
+class GetUsersUseCase
+    extends UseCase<UserRepository, List<User>, GetUserParams> {
+  const GetUsersUseCase(UserRepository repository) : super(repository);
 
   @override
   Task<Either<Exception, List<User>>> call(GetUserParams p) {

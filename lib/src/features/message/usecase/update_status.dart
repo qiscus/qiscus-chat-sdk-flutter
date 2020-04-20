@@ -10,9 +10,9 @@ class UpdateStatusParams {
   final QMessageStatus status;
 }
 
-class UpdateStatus
+class UpdateMessageStatusUseCase
     extends UseCase<MessageRepository, Unit, UpdateStatusParams> {
-  UpdateStatus(MessageRepository repository) : super(repository);
+  UpdateMessageStatusUseCase(MessageRepository repository) : super(repository);
 
   @override
   Task<Either<Exception, Unit>> call(p) {

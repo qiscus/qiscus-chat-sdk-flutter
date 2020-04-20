@@ -5,7 +5,8 @@ import 'package:qiscus_chat_sdk/src/features/core/repository.dart';
 import '../entity.dart';
 
 class AppConfigUseCase extends UseCase<CoreRepository, AppConfig, NoParams> {
-  AppConfigUseCase(repository, this._storage) : super(repository);
+  AppConfigUseCase(CoreRepository repository, this._storage)
+      : super(repository);
   final Storage _storage;
 
   @override

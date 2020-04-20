@@ -9,8 +9,9 @@ class MessageParams {
   const MessageParams(this.message);
 }
 
-class SendMessage extends UseCase<MessageRepository, Message, MessageParams> {
-  SendMessage(MessageRepository repository) : super(repository);
+class SendMessageUseCase
+    extends UseCase<MessageRepository, Message, MessageParams> {
+  SendMessageUseCase(MessageRepository repository) : super(repository);
 
   @override
   Task<Either<Exception, Message>> call(params) {

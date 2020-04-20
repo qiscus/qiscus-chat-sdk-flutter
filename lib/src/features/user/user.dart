@@ -1,7 +1,6 @@
 export 'entity/account.dart';
 export 'entity/participant.dart';
 export 'entity/user.dart';
-export 'realtime_service.dart';
 export 'repository.dart';
 export 'repository_impl.dart';
 export 'usecases/authenticate.dart';

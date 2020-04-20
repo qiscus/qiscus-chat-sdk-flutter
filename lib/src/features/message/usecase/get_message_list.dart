@@ -16,9 +16,9 @@ class GetMessageListParams {
   final bool after;
 }
 
-class GetMessageList
+class GetMessageListUseCase
     extends UseCase<MessageRepository, List<Message>, GetMessageListParams> {
-  GetMessageList(MessageRepository repository) : super(repository);
+  GetMessageListUseCase(MessageRepository repository) : super(repository);
 
   @override
   Task<Either<Exception, List<Message>>> call(GetMessageListParams params) {

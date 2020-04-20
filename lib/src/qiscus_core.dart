@@ -6,114 +6,23 @@ import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
-import 'package:mqtt_client/mqtt_client.dart';
-import 'package:mqtt_client/mqtt_server_client.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:qiscus_chat_sdk/src/features/channel/usecase/create.dart';
 
 import 'core/core.dart';
-import 'features/channel/usecase/create.dart';
+import 'core/injector.dart';
 import 'features/core/core.dart';
 import 'features/custom_event/usecase/realtime.dart';
-import 'features/message/message.dart';
 import 'features/realtime/realtime.dart';
-import 'features/room/room.dart';
 import 'features/user/user.dart';
+import 'features/room/room.dart';
+import 'features/message/message.dart';
 
 typedef Subscription = void Function();
-
 typedef UserPresenceHandler = void Function(String, bool, DateTime);
 typedef UserTypingHandler = void Function(String, int, bool);
 
 class QiscusSDK {
   static final instance = QiscusSDK();
-  static final _storage = Storage();
-
-  static final _logger = Logger();
-
-  void addHttpInterceptors(RequestOptions Function(RequestOptions) onRequest) {
-    _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: onRequest,
-    ));
-  }
-
-  static Dio get _dio {
-    final interceptor = InterceptorsWrapper(
-      onRequest: (request) {
-        request.baseUrl = '${_storage?.baseUrl}/api/v2/mobile/';
-        request.headers['qiscus-sdk-app-id'] = _storage.appId;
-        request.headers['qiscus-sdk-version'] = 'dart-alpha1.0';
-        if (_storage?.token != null) {
-          request.headers['qiscus-sdk-token'] = _storage.token;
-          request.headers['qiscus-sdk-user-id'] = _storage.userId;
-        }
-        return request;
-      },
-    );
-    var dio = Dio(BaseOptions())
-      ..interceptors.addAll([
-        interceptor,
-      ]);
-    if (_logger.enabled) {
-      dio.interceptors.add(PrettyDioLogger(
-        requestBody: true,
-        requestHeader: true,
-      ));
-    }
-    return dio;
-  }
-
-  static final _coreApi = CoreApi(_dio);
-  static final _userApi = UserApi(_dio);
-  static final _syncApi = SyncApi(_dio);
-  static final _roomApi = RoomApi(_dio);
-  static final _messageApi = MessageApi(_dio);
-
-  static String get _clientId =>
-      'dart-sdk-${DateTime.now().millisecondsSinceEpoch}';
-
-  static MqttClient get _mqttClient {
-    final _connectionMessage = MqttConnectMessage() //
-            .withClientIdentifier(_clientId)
-            .withWillTopic('u/${_storage.currentUser.id}/s')
-            .withWillMessage('0')
-            .withWillRetain()
-        //
-        ;
-
-    var brokerUrl = 'wss://mqtt.qiscus.com/mqtt';
-    var client = MqttServerClient(brokerUrl, 'sdk-dart')
-          ..logging(on: false)
-          ..useWebSocket = true
-          ..port = 1886
-          ..connectionMessage = _connectionMessage
-          ..websocketProtocols = ['mqtt']
-        //
-        ;
-    return client;
-  }
-
-  static final CoreRepository _coreRepo = CoreRepositoryImpl(_coreApi);
-  static final RealtimeService _mqttService = MqttServiceImpl(
-    () => _mqttClient,
-    _storage,
-    _logger,
-  );
-
-  static final _interval = Interval(_storage, _mqttService);
-  static final RealtimeService _syncService = SyncServiceImpl(
-    _storage,
-    _syncApi,
-    _interval,
-    _logger,
-  );
-  static final RealtimeService _realtimeService = RealtimeServiceImpl(
-    _mqttService as MqttServiceImpl,
-    _syncService as SyncServiceImpl,
-  );
-  static final UserRepository _userRepo = UserRepositoryImpl(_userApi);
-  static final RoomRepository _roomRepo = RoomRepositoryImpl(_roomApi);
-  static final MessageRepository _messageRepo =
-      MessageRepositoryImpl(_messageApi);
 
   factory QiscusSDK() => QiscusSDK._internal();
 
@@ -147,36 +56,36 @@ class QiscusSDK {
 
   QiscusSDK._internal();
 
-  String get appId => _storage?.appId;
+  String get appId => _get<Storage>()?.appId;
 
-  QAccount get currentUser => _storage?.currentUser?.toModel();
+  QAccount get currentUser => _get<Storage>()?.currentUser?.toModel();
 
-  bool get isLogin => _storage?.currentUser != null;
+  bool get isLogin => _get<Storage>()?.currentUser != null;
 
-  String get token => _storage?.token;
+  String get token => _get<Storage>()?.token;
 
-  Task<Either<Exception, void>> get _authenticated =>
-      Task(() => _isLogin).attempt().leftMapToException('Not logged in');
+  Task<Either<Exception, void>> get _authenticated {
+    final _isLogin = Stream.periodic(const Duration(milliseconds: 300))
+        .map((_) => isLogin)
+        .distinct((p, n) => p == n)
+        .firstWhere((it) => it == true);
+    return Task(() => _isLogin).attempt().leftMapToException('Not logged in');
+  }
 
-  Future<bool> get _isLogin =>
-      Stream<void>.periodic(const Duration(milliseconds: 300))
-          .map((_) => currentUser != null)
-          .distinct((p, n) => p == n)
-          .firstWhere((it) => it == true)
-          .then(
-            (isLogin) => !isLogin
-                ? Future.error('Not authenticated')
-                : Future.value(null),
-          );
+  void addHttpInterceptors(RequestOptions Function(RequestOptions) onRequest) {
+    _get<Dio>().interceptors.add(InterceptorsWrapper(
+          onRequest: onRequest,
+        ));
+  }
 
   void addParticipants({
     @required int roomId,
     @required List<String> userIds,
     @required void Function(List<QParticipant>, Exception) callback,
   }) {
+    final addParticipant = _get<AddParticipantUseCase>();
     _authenticated
-        .andThen(AddParticipantUseCase(_roomRepo)(
-            ParticipantParams(roomId, userIds)))
+        .andThen(addParticipant(ParticipantParams(roomId, userIds)))
         .rightMap((r) => r.map((m) => m.toModel()).toList())
         .toCallback(callback)
         .run();
@@ -186,8 +95,9 @@ class QiscusSDK {
     @required String userId,
     @required void Function(QUser, Exception) callback,
   }) {
+    final blocUser = _get<BlockUserUseCase>();
     _authenticated
-        .andThen(BlockUser(_userRepo).call(BlockUserParams(userId)))
+        .andThen(blocUser(BlockUserParams(userId)))
         .rightMap((it) => it.toModel())
         .toCallback(callback)
         .run();
@@ -199,7 +109,7 @@ class QiscusSDK {
     @required Function2<QChatRoom, Exception, void> callback,
   }) {
     _authenticated
-        .andThen(GetRoomByUserId(_roomRepo).call(UserIdParams(userId)))
+        .andThen(_get<GetRoomByUserIdUseCase>()(UserIdParams(userId)))
         .rightMap((u) => u.toModel())
         .toCallback(callback)
         .run();
@@ -209,9 +119,9 @@ class QiscusSDK {
     @required List<String> roomUniqueIds,
     @required void Function(Exception) callback,
   }) {
+    final clearRoom = _get<ClearRoomMessagesUseCase>();
     _authenticated
-        .andThen(ClearRoomMessagesUseCase(_roomRepo)(
-            ClearRoomMessagesParams(roomUniqueIds)))
+        .andThen(clearRoom(ClearRoomMessagesParams(roomUniqueIds)))
         .toCallback((_, e) => callback(e))
         .run();
   }
@@ -221,9 +131,9 @@ class QiscusSDK {
   }) {
     _authenticated
         .andThen(Task.delay(() {
-          _storage.clear();
-          _mqttService.end();
-          _syncService.end();
+          _get<Storage>().clear();
+          _get<RealtimeService>('mqtt-service').end();
+          _get<RealtimeService>('mqtt-service').end();
         }))
         .run()
         .catchError((error) {
@@ -238,8 +148,9 @@ class QiscusSDK {
     Map<String, dynamic> extras,
     @required void Function(QChatRoom, Exception) callback,
   }) {
+    final useCase = _get<GetOrCreateChannelUseCase>();
     _authenticated
-        .andThen(GetOrCreateChannelUseCase(_roomRepo)(GetOrCreateChannelParams(
+        .andThen(useCase(GetOrCreateChannelParams(
           uniqueId,
           name: name,
           avatarUrl: avatarUrl,
@@ -257,8 +168,9 @@ class QiscusSDK {
     Map<String, dynamic> extras,
     @required void Function(QChatRoom, Exception) callback,
   }) {
+    final useCase = _get<CreateGroupChatUseCase>();
     _authenticated
-        .andThen(CreateGroupChatUseCase(_roomRepo)(CreateGroupChatParams(
+        .andThen(useCase(CreateGroupChatParams(
           name: name,
           userIds: userIds,
           avatarUrl: avatarUrl,
@@ -273,16 +185,16 @@ class QiscusSDK {
     @required List<String> messageUniqueIds,
     @required void Function(List<QMessage>, Exception) callback,
   }) {
+    final useCase = _get<DeleteMessageUseCase>();
     _authenticated
-        .andThen(DeleteMessageUseCase(_messageRepo)(
-            DeleteMessageParams(messageUniqueIds)))
+        .andThen(useCase(DeleteMessageParams(messageUniqueIds)))
         .rightMap((it) => it.map((i) => i.toModel()).toList())
         .toCallback(callback)
         .run();
   }
 
   void enableDebugMode({bool enable = false}) {
-    _logger.enabled = enable;
+    _get<Storage>().debugEnabled = enable;
   }
 
   void getAllChatRooms({
@@ -293,8 +205,9 @@ class QiscusSDK {
     int page,
     @required void Function(List<QChatRoom>, Exception) callback,
   }) {
+    final useCase = _get<GetAllRoomsUseCase>();
     _authenticated
-        .andThen(GetAllRoomsUseCase(_roomRepo)(GetAllRoomsParams(
+        .andThen(useCase(GetAllRoomsParams(
           withParticipants: showParticipant,
           withRemovedRoom: showRemoved,
           withEmptyRoom: showEmpty,
@@ -306,13 +219,15 @@ class QiscusSDK {
         .run();
   }
 
+  final _get = Injector.get;
+
   void getBlockedUsers({
     int page,
     int limit,
     @required void Function(List<QUser>, Exception) callback,
   }) {
     _authenticated
-        .andThen(GetBlockedUser(_userRepo).call(
+        .andThen(_get<GetBlocedUserUseCase>().call(
           GetBlockedUserParams(
             page: page,
             limit: limit,
@@ -328,7 +243,7 @@ class QiscusSDK {
     @required void Function(QChatRoom, Exception) callback,
   }) {
     _authenticated
-        .andThen(GetOrCreateChannelUseCase(_roomRepo)(GetOrCreateChannelParams(
+        .andThen(_get<GetOrCreateChannelUseCase>()(GetOrCreateChannelParams(
           uniqueId,
         )))
         .rightMap((room) => room.toModel())
@@ -350,7 +265,7 @@ class QiscusSDK {
     assert(roomIds != null && uniqueIds != null, errorMessage);
 
     _authenticated
-        .andThen(GetRoomInfoUseCase(_roomRepo)(GetRoomInfoParams(
+        .andThen(_get<GetRoomInfoUseCase>()(GetRoomInfoParams(
           roomIds: roomIds,
           uniqueIds: uniqueIds,
           withRemoved: showRemoved,
@@ -367,7 +282,7 @@ class QiscusSDK {
     @required void Function(QChatRoom, List<QMessage>, Exception) callback,
   }) {
     _authenticated
-        .andThen(GetRoomWithMessages(_roomRepo).call(RoomIdParams(roomId)))
+        .andThen(_get<GetRoomWithMessagesUseCase>()(RoomIdParams(roomId)))
         .leftMap((err) => callback(null, null, err))
         .rightMap((it) => callback(
               it.value1.toModel(),
@@ -380,7 +295,7 @@ class QiscusSDK {
   void getJWTNonce({
     void Function(String, Exception) callback,
   }) {
-    GetNonce(_userRepo)(NoParams()).toCallback(callback).run();
+    _get<GetNonceUseCase>()(NoParams()).toCallback(callback).run();
   }
 
   void getNextMessagesById({
@@ -390,7 +305,7 @@ class QiscusSDK {
     @required void Function(List<QMessage>, Exception) callback,
   }) {
     _authenticated
-        .andThen(GetMessageList(_messageRepo)(
+        .andThen(_get<GetMessageListUseCase>()(
           GetMessageListParams(roomId, messageId, after: true, limit: limit),
         ))
         .rightMap((it) => it.map((it) => it.toModel()).toList())
@@ -406,8 +321,8 @@ class QiscusSDK {
     @required void Function(List<QParticipant>, Exception) callback,
   }) {
     _authenticated
-        .andThen(GetParticipantsUseCase(_roomRepo)(
-            RoomUniqueIdsParams(roomUniqueId)))
+        .andThen(
+            _get<GetParticipantsUseCase>()(RoomUniqueIdsParams(roomUniqueId)))
         .rightMap((r) => r.map((p) => p.toModel()).toList())
         .toCallback(callback)
         .run();
@@ -420,7 +335,7 @@ class QiscusSDK {
     @required Function2<List<QMessage>, Exception, void> callback,
   }) {
     _authenticated
-        .andThen(GetMessageList(_messageRepo)(
+        .andThen(_get<GetMessageListUseCase>()(
           GetMessageListParams(roomId, messageId, after: false, limit: limit),
         ))
         .rightMap((it) => it.map((m) => m.toModel()).toList())
@@ -434,7 +349,7 @@ class QiscusSDK {
     @required void Function(int, Exception) callback,
   }) {
     _authenticated
-        .andThen(GetTotalUnreadCountUseCase(_roomRepo)(noParams))
+        .andThen(_get<GetTotalUnreadCountUseCase>()(noParams))
         .toCallback(callback)
         .run();
   }
@@ -443,7 +358,7 @@ class QiscusSDK {
     void Function(QAccount, Exception) callback,
   }) {
     _authenticated
-        .andThen(GetUserData(_userRepo).call(NoParams()))
+        .andThen(_get<GetUserDataUseCase>().call(NoParams()))
         .rightMap((user) => user.toModel())
         .toCallback(callback)
         .run();
@@ -456,7 +371,7 @@ class QiscusSDK {
     @required void Function(List<QUser>, Exception) callback,
   }) {
     _authenticated
-        .andThen(GetUsers(_userRepo).call(GetUserParams(
+        .andThen(_get<GetUsersUseCase>().call(GetUserParams(
           query: searchUsername,
           page: page,
           limit: limit,
@@ -483,7 +398,7 @@ class QiscusSDK {
     @required void Function(Exception) callback,
   }) {
     _authenticated
-        .andThen(UpdateStatus(_messageRepo).call(UpdateStatusParams(
+        .andThen(_get<UpdateMessageStatusUseCase>()(UpdateStatusParams(
           roomId,
           messageId,
           QMessageStatus.delivered,
@@ -498,7 +413,7 @@ class QiscusSDK {
     @required void Function(Exception) callback,
   }) {
     _authenticated
-        .andThen(UpdateStatus(_messageRepo).call(UpdateStatusParams(
+        .andThen(_get<UpdateMessageStatusUseCase>()(UpdateStatusParams(
           roomId,
           messageId,
           QMessageStatus.read,
@@ -509,7 +424,7 @@ class QiscusSDK {
 
   Subscription onChatRoomCleared(void Function(int) handler) {
     var ret = _authenticated
-        .andThen(OnRoomMessagesCleared(_realtimeService).subscribe(noParams))
+        .andThen(_get<OnRoomMessagesCleared>().subscribe(noParams))
         .bind((s) => Task.delay(() => s.listen((it) => handler(it))))
         .run();
     return () => ret.then((s) => s.cancel());
@@ -517,7 +432,7 @@ class QiscusSDK {
 
   Subscription onConnected(void Function() handler) {
     var ret = _authenticated
-        .andThen(OnConnected(_realtimeService).subscribe(NoParams()))
+        .andThen(_get<OnConnected>().subscribe(NoParams()))
         .bind((stream) => Task.delay(() => stream.listen((_) => handler())))
         .run();
     return () => ret.then((s) => s.cancel());
@@ -525,7 +440,7 @@ class QiscusSDK {
 
   Subscription onDisconnected(void Function() handler) {
     var ret = _authenticated
-        .andThen(OnDisconnected(_realtimeService).subscribe(noParams))
+        .andThen(_get<OnDisconnected>().subscribe(noParams))
         .bind((s) => Task.delay(() => s.listen((_) => handler())))
         .run();
     return () => ret.then((s) => s.cancel());
@@ -533,31 +448,29 @@ class QiscusSDK {
 
   Subscription onMessageDeleted(Function1<QMessage, void> callback) {
     var subs = _authenticated
-        .andThen(OnMessageDeleted(_realtimeService)
-            .listen((m) => callback(m.toModel())))
+        .andThen(_get<OnMessageDeleted>().listen((m) => callback(m.toModel())))
         .run();
     return () => subs.then((s) => s.cancel());
   }
 
   Subscription onMessageDelivered(void Function(QMessage) callback) {
     final subs = _authenticated
-        .andThen(OnMessageDelivered(_realtimeService)
-            .listen((m) => callback(m.toModel())))
+        .andThen(
+            _get<OnMessageDelivered>().listen((m) => callback(m.toModel())))
         .run();
     return () => subs.then((s) => s.cancel());
   }
 
   Subscription onMessageRead(void Function(QMessage) callback) {
     final subs = _authenticated
-        .andThen(OnMessageRead(_realtimeService)
-            .listen((m) => callback(m.toModel())))
+        .andThen(_get<OnMessageRead>().listen((m) => callback(m.toModel())))
         .run();
     return () => subs.then((s) => s.cancel());
   }
 
   Subscription onMessageReceived(void Function(QMessage) callback) {
-    var listenable = OnMessageReceived(_realtimeService)
-        .listen((m) => callback(m.toModel()));
+    var listenable =
+        _get<OnMessageReceived>().listen((m) => callback(m.toModel()));
 
     var subs = _authenticated.andThen(listenable).run();
     return () => subs.then((s) => s.cancel());
@@ -565,7 +478,7 @@ class QiscusSDK {
 
   Subscription onReconnecting(void Function() handler) {
     var ret = _authenticated
-        .andThen(OnReconnecting(_realtimeService).subscribe(noParams))
+        .andThen(_get<OnReconnecting>().subscribe(noParams))
         .bind((s) => Task.delay(() => s.listen((_) => handler())))
         .run();
     return () => ret.then((s) => s.cancel());
@@ -575,7 +488,7 @@ class QiscusSDK {
     void Function(String, bool, DateTime) handler,
   ) {
     final subs = _authenticated //
-        .andThen(PresenceUseCase(_realtimeService).listen((data) {
+        .andThen(_get<PresenceUseCase>().listen((data) {
           handler(data.userId, data.isOnline, data.lastSeen);
         }))
         .run();
@@ -584,7 +497,7 @@ class QiscusSDK {
 
   Subscription onUserTyping(void Function(String, int, bool) handler) {
     var subs = _authenticated
-        .andThen(TypingUseCase(_realtimeService).listen((data) {
+        .andThen(_get<TypingUseCase>().listen((data) {
           handler(data.userId, data.roomId, data.isTyping);
         }))
         .run();
@@ -598,7 +511,7 @@ class QiscusSDK {
   }) {
     _authenticated
         .andThen(
-          CustomEventUseCase(_realtimeService)(CustomEvent(roomId, payload)),
+          _get<CustomEventUseCase>()(CustomEvent(roomId, payload)),
         )
         .map((either) => either.fold((e) => callback(e), (_) {}))
         .run();
@@ -609,8 +522,8 @@ class QiscusSDK {
     @required void Function(Exception) callback,
   }) {
     _authenticated
-        .andThen(PresenceUseCase(_realtimeService).call(Presence(
-          userId: _storage.userId,
+        .andThen(_get<PresenceUseCase>()(Presence(
+          userId: _get<Storage>().userId,
           isOnline: isOnline,
           lastSeen: DateTime.now(),
         )))
@@ -623,8 +536,8 @@ class QiscusSDK {
     bool isTyping,
   }) {
     _authenticated
-        .andThen(TypingUseCase(_realtimeService).call(Typing(
-          userId: _storage.userId,
+        .andThen(_get<TypingUseCase>()(Typing(
+          userId: _get<Storage>().userId,
           roomId: roomId,
           isTyping: isTyping,
         )))
@@ -637,7 +550,7 @@ class QiscusSDK {
     void Function(bool, Exception) callback,
   }) {
     _authenticated
-        .andThen(RegisterDeviceToken(_userRepo).call(DeviceTokenParams(
+        .andThen(_get<RegisterDeviceTokenUseCase>()(DeviceTokenParams(
           token,
           isDevelopment,
         )))
@@ -651,7 +564,7 @@ class QiscusSDK {
     void Function(bool, Exception) callback,
   }) {
     _authenticated
-        .andThen(UnregisterDeviceToken(_userRepo).call(DeviceTokenParams(
+        .andThen(_get<UnregisterDeviceTokenUseCase>()(DeviceTokenParams(
           token,
           isDevelopment,
         )))
@@ -665,7 +578,7 @@ class QiscusSDK {
     @required void Function(List<String>, Exception) callback,
   }) {
     _authenticated
-        .andThen(RemoveParticipantUseCase(_roomRepo)(
+        .andThen(_get<RemoveParticipantUseCase>()(
             ParticipantParams(roomId, userIds)))
         .toCallback(callback)
         .run();
@@ -700,19 +613,19 @@ class QiscusSDK {
     @required QMessage message,
     @required void Function(QMessage, Exception) callback,
   }) {
-    _authenticated //
-        .andThen(SendMessage(_messageRepo).call(MessageParams(message)))
+    _authenticated
+        .andThen(_get<SendMessageUseCase>().call(MessageParams(message)))
         .rightMap((it) => it.toModel())
         .toCallback(callback)
         .run();
   }
 
   void setCustomHeader(Map<String, String> headers) {
-    _storage.customHeaders = headers;
+    _get<Storage>().customHeaders = headers;
   }
 
   void setSyncInterval(double interval) {
-    _storage.syncInterval = interval.ceil();
+    _get<Storage>().syncInterval = interval.ceil();
   }
 
   void setup(String appId, {@required Function1<Exception, void> callback}) {
@@ -728,14 +641,14 @@ class QiscusSDK {
     int syncIntervalWhenConnected = Storage.defaultSyncIntervalWhenConnected,
     @required Function1<Exception, void> callback,
   }) {
-    AppConfigUseCase(_coreRepo, _storage)(noParams)
+    _get<AppConfigUseCase>()(noParams)
         .tap((_) {
-          _storage.appId = appId;
-          _storage.baseUrl = baseUrl;
-          _storage.brokerUrl = brokerUrl;
-          _storage.brokerLbUrl = brokerLbUrl;
-          _storage.syncInterval = syncInterval;
-          _storage.syncIntervalWhenConnected = syncIntervalWhenConnected;
+          _get<Storage>().appId = appId;
+          _get<Storage>().baseUrl = baseUrl;
+          _get<Storage>().brokerUrl = brokerUrl;
+          _get<Storage>().brokerLbUrl = brokerLbUrl;
+          _get<Storage>().syncInterval = syncInterval;
+          _get<Storage>().syncIntervalWhenConnected = syncIntervalWhenConnected;
         })
         .map((either) => either.fold(
               (err) => callback(err),
@@ -762,19 +675,19 @@ class QiscusSDK {
             ),
           ),
         );
-    var subscribes = (token) => OnMessageReceived(_realtimeService)
+    var subscribes = (token) => _get<OnMessageReceived>()
         .subscribe(TokenParams(token))
         .bind((stream) => Task.delay(() => markAsDelivered(stream)))
-        .andThen(_realtimeService.subscribe(TopicBuilder.notification(token)));
+        .andThen(_get<RealtimeService>()
+            .subscribe(TopicBuilder.notification(token)));
 
-    Authenticate(_userRepo, _storage)
-        .call(AuthenticateParams(
-          userId: userId,
-          userKey: userKey,
-          name: username,
-          avatarUrl: avatarUrl,
-          extras: extras,
-        ))
+    _get<AuthenticateUserUseCase>()(AuthenticateParams(
+      userId: userId,
+      userKey: userKey,
+      name: username,
+      avatarUrl: avatarUrl,
+      extras: extras,
+    ))
         .bind((either) => either.fold(
               (e) =>
                   Task.delay(() => left<Exception, Tuple2<String, Account>>(e)),
@@ -790,7 +703,7 @@ class QiscusSDK {
     String token,
     @required void Function(QAccount, Exception) callback,
   }) {
-    AuthenticateWithToken(_userRepo, _storage)
+    _get<AuthenticateUserWithTokenUseCase>()
         .call(AuthenticateWithTokenParams(token))
         .rightMap((user) => user.toModel())
         .toCallback(callback)
@@ -800,9 +713,9 @@ class QiscusSDK {
   void unsubscribeChatRoom(QChatRoom room) {
     final params = RoomIdParams(room.id);
 
-    final read = OnMessageRead(_realtimeService).unsubscribe(params);
-    final delivered = OnMessageDelivered(_realtimeService).unsubscribe(params);
-    final typing = TypingUseCase(_realtimeService).unsubscribe(Typing(
+    final read = _get<OnMessageRead>().unsubscribe(params);
+    final delivered = _get<OnMessageDelivered>().unsubscribe(params);
+    final typing = _get<TypingUseCase>().unsubscribe(Typing(
       roomId: room.id,
       userId: '+',
     ));
@@ -813,9 +726,9 @@ class QiscusSDK {
   void subscribeChatRoom(QChatRoom room) {
     final params = RoomIdParams(room.id);
 
-    final read = OnMessageRead(_realtimeService).subscribe(params);
-    final delivered = OnMessageDelivered(_realtimeService).subscribe(params);
-    final typing = TypingUseCase(_realtimeService).subscribe(Typing(
+    final read = _get<OnMessageRead>().subscribe(params);
+    final delivered = _get<OnMessageDelivered>().subscribe(params);
+    final typing = _get<TypingUseCase>().subscribe(Typing(
       roomId: room.id,
       userId: '+',
     ));
@@ -827,8 +740,7 @@ class QiscusSDK {
     @required void Function(Map<String, dynamic>) callback,
   }) {
     _authenticated
-        .andThen(CustomEventUseCase(_realtimeService)
-            .subscribe(RoomIdParams(roomId)))
+        .andThen(_get<CustomEventUseCase>().subscribe(RoomIdParams(roomId)))
         .bind((stream) =>
             Task.delay(() => stream.listen((data) => callback(data.payload))))
         .run();
@@ -836,21 +748,20 @@ class QiscusSDK {
 
   void subscribeUserOnlinePresence(String userId) {
     _authenticated
-        .andThen(PresenceUseCase(_realtimeService)
-            .subscribe(Presence(userId: userId)))
+        .andThen(_get<PresenceUseCase>().subscribe(Presence(userId: userId)))
         .run();
   }
 
   void synchronize({String lastMessageId}) {
     _authenticated
-        .andThen(_realtimeService.synchronize(int.parse(lastMessageId)))
+        .andThen(_get<RealtimeService>().synchronize(int.parse(lastMessageId)))
         .run()
         .catchError((_) {});
   }
 
   void synchronizeEvent({String lastEventId}) {
     _authenticated
-        .andThen(_realtimeService.synchronizeEvent(lastEventId))
+        .andThen(_get<RealtimeService>().synchronizeEvent(lastEventId))
         .run()
         .catchError((_) {});
   }
@@ -860,7 +771,7 @@ class QiscusSDK {
     @required void Function(QUser, Exception) callback,
   }) {
     _authenticated
-        .andThen(UnblockUser(_userRepo).call(UnblockUserParams(userId)))
+        .andThen(_get<UnblockUserUseCase>().call(UnblockUserParams(userId)))
         .rightMap((u) => u.toModel())
         .toCallback(callback)
         .run();
@@ -868,15 +779,13 @@ class QiscusSDK {
 
   void unsubscribeCustomEvent({@required int roomId}) {
     _authenticated
-        .andThen(CustomEventUseCase(_realtimeService)
-            .unsubscribe(RoomIdParams(roomId)))
+        .andThen(_get<CustomEventUseCase>().unsubscribe(RoomIdParams(roomId)))
         .run();
   }
 
   void unsubscribeUserOnlinePresence(String userId) {
     _authenticated
-        .andThen(PresenceUseCase(_realtimeService)
-            .unsubscribe(Presence(userId: userId)))
+        .andThen(_get<PresenceUseCase>().unsubscribe(Presence(userId: userId)))
         .run();
   }
 
@@ -888,7 +797,7 @@ class QiscusSDK {
     @required void Function(QChatRoom, Exception) callback,
   }) {
     _authenticated
-        .andThen(UpdateRoomUseCase(_roomRepo)(UpdateRoomParams(
+        .andThen(_get<UpdateRoomUseCase>()(UpdateRoomParams(
           roomId: roomId,
           name: name,
           avatarUrl: avatarUrl,
@@ -906,7 +815,7 @@ class QiscusSDK {
     @required void Function(QAccount, Exception) callback,
   }) {
     _authenticated
-        .andThen(UpdateUser(_userRepo, _storage).call(UpdateUserParams(
+        .andThen(_get<UpdateUserUseCase>()(UpdateUserParams(
           name: name,
           avatarUrl: avatarUrl,
           extras: extras,
@@ -920,22 +829,21 @@ class QiscusSDK {
     @required File file,
     @required void Function(Exception, double, String) callback,
   }) async {
+    final uploadUrl = _get<Storage>().uploadUrl;
+    final dio = _get<Dio>();
     var filename = file.path.split('/').last;
     var formData = FormData.fromMap({
       'file': await MultipartFile.fromFile(file.path, filename: filename),
     });
-    await _dio.post(
-      _storage.uploadUrl,
+    await dio.post(
+      uploadUrl,
       data: formData,
       onSendProgress: (count, total) {
         var percentage = (count / total) * 100;
         callback(null, percentage, null);
       },
     ).then((resp) {
-      print('got resp: $resp');
       var json = resp.data;
-      print(json);
-      print(json.runtimeType);
       var url = json['results']['file']['url'] as String;
       callback(null, null, url);
     }).catchError((error) {

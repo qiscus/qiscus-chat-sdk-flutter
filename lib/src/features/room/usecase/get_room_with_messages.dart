@@ -5,9 +5,9 @@ import 'package:qiscus_chat_sdk/src/features/message/message.dart';
 import 'package:qiscus_chat_sdk/src/features/room/entity.dart';
 import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
 
-class GetRoomWithMessages extends UseCase<RoomRepository,
+class GetRoomWithMessagesUseCase extends UseCase<RoomRepository,
     Tuple2<ChatRoom, List<Message>>, RoomIdParams> {
-  GetRoomWithMessages(RoomRepository repository) : super(repository);
+  GetRoomWithMessagesUseCase(RoomRepository repository) : super(repository);
 
   @override
   Task<Either<Exception, Tuple2<ChatRoom, List<Message>>>> call(params) {

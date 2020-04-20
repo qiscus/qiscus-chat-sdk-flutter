@@ -1,7 +1,10 @@
-class Logger {
-  var enabled = false;
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 
-//  final _logger = l.Logger();
+class Logger {
+  const Logger(this.storage);
+  final Storage storage;
+
+  bool get enabled => storage.debugEnabled;
 
   void log(String str) {
     if (enabled) print(str);

@@ -11,8 +11,9 @@ class UnblockUserParams {
 }
 
 @immutable
-class UnblockUser extends UseCase<UserRepository, User, UnblockUserParams> {
-  const UnblockUser(UserRepository repository) : super(repository);
+class UnblockUserUseCase
+    extends UseCase<UserRepository, User, UnblockUserParams> {
+  const UnblockUserUseCase(UserRepository repository) : super(repository);
 
   @override
   Task<Either<Exception, User>> call(UnblockUserParams params) {
