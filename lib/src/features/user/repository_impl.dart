@@ -93,7 +93,7 @@ class UserRepositoryImpl implements UserRepository {
           ),
         )).attempt().leftMapToException().rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
-      var changed = json['results']['changed'];
+      var changed = json['results']['changed'] as bool;
       return changed;
     });
   }
@@ -115,7 +115,7 @@ class UserRepositoryImpl implements UserRepository {
           isDevelopment,
         ))).attempt().leftMapToException().rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
-      var changed = json['results']['changed'];
+      var changed = json['results']['changed'] as bool;
       return changed;
     });
   }

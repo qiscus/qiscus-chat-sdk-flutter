@@ -83,11 +83,11 @@ class Account {
   }
 
   Account copy({
-    name = immutable,
-    avatarUrl = immutable,
-    lastMessageId = immutable,
-    lastEventId = immutable,
-    extras = immutable,
+    dynamic name = immutable,
+    dynamic avatarUrl = immutable,
+    dynamic lastMessageId = immutable,
+    dynamic lastEventId = immutable,
+    dynamic extras = immutable,
   }) =>
       Account(
         id: id,

@@ -25,7 +25,7 @@ class MqttServiceImpl implements RealtimeService {
     _mqtt
         .connect()
         .then((status) => log('connected to mqtt: $status'))
-        .catchError((error) => log('cannot connect to mqtt: $error'));
+        .catchError((dynamic error) => log('cannot connect to mqtt: $error'));
     _mqtt.updates.expand((it) => it).listen((event) {
       var p = event.payload as MqttPublishMessage;
       var payload = MqttPublishPayload.bytesToStringAsString(p.payload.message);
@@ -45,13 +45,14 @@ class MqttServiceImpl implements RealtimeService {
 
   MqttClient get _mqtt => __mqtt ??= _getClient();
 
-  Future get _isConnected => Stream.periodic(const Duration(milliseconds: 300))
+  Future<bool> get _isConnected => Stream<bool>.periodic(
+          const Duration(milliseconds: 300))
       .map((_) => _mqtt.connectionStatus.state == MqttConnectionState.connected)
       .distinct()
       .firstWhere((it) => it == true);
 
   Task<Either<Exception, void>> _connected() =>
-      Task(() => _isConnected).attempt().leftMapToException();
+      Task<bool>(() => _isConnected).attempt().leftMapToException();
 
   @override
   Task<Either<Exception, void>> subscribe(String topic) => _connected()
@@ -155,10 +156,8 @@ class MqttServiceImpl implements RealtimeService {
         ?.asyncMap((event) {
       // appId/channelId/c;
       var messageData = event.payload.toString();
-      var messageJson = jsonDecode(messageData);
-      var response = MessageReceivedResponse.fromJson(
-        messageJson as Map<String, dynamic>,
-      );
+      var messageJson = jsonDecode(messageData) as Map<String, dynamic>;
+      var response = MessageReceivedResponse.fromJson(messageJson);
 
       return response;
     });
@@ -216,7 +215,7 @@ class MqttServiceImpl implements RealtimeService {
 
   @override
   Stream<Message> subscribeMessageReceived() {
-    var decode = (str) => jsonDecode(str) as Map<String, dynamic>;
+    var decode = (String str) => jsonDecode(str) as Map<String, dynamic>;
     return _mqtt
         .forTopic(TopicBuilder.messageNew(_s.token))
         .asyncMap((CMqttMessage it) => decode(it.payload.toString()))
@@ -300,7 +299,7 @@ class MqttServiceImpl implements RealtimeService {
 
   @override
   Stream<void> onConnected() =>
-      Stream.periodic(const Duration(milliseconds: 300))
+      Stream<void>.periodic(const Duration(milliseconds: 300))
           .asyncMap((_) =>
               _mqtt.connectionStatus.state == MqttConnectionState.connected)
           .distinct()
@@ -308,7 +307,7 @@ class MqttServiceImpl implements RealtimeService {
 
   @override
   Stream<void> onDisconnected() =>
-      Stream.periodic(const Duration(milliseconds: 300))
+      Stream<void>.periodic(const Duration(milliseconds: 300))
           .asyncMap((_) =>
               _mqtt.connectionStatus.state == MqttConnectionState.disconnected)
           .distinct()
@@ -316,7 +315,7 @@ class MqttServiceImpl implements RealtimeService {
 
   @override
   Stream<void> onReconnecting() =>
-      Stream.periodic(const Duration(milliseconds: 300))
+      Stream<void>.periodic(const Duration(milliseconds: 300))
           .asyncMap((_) =>
               _mqtt.connectionStatus.state == MqttConnectionState.disconnecting)
           .distinct()

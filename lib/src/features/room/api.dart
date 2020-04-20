@@ -37,7 +37,8 @@ abstract class RoomApi {
   Future<String> createGroup(@Body() CreateGroupRequest request);
 
   @DELETE('clear_room_messages')
-  Future<String> clearMessages(@Query('room_channel_ids') uniqueIds);
+  Future<String> clearMessages(
+      @Query('room_channel_ids') List<String> uniqueIds);
 
   @GET('rooms_info')
   Future<String> getRoomInfo(@Body() GetRoomInfoRequest request);

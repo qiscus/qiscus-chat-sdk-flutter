@@ -70,7 +70,7 @@ class Participant {
       lastReadMessageId: optionOf(json['last_read_comment_id'] as String),
       extras: optionOf(
         json['extras'] as Map<String, dynamic>,
-      ).map((it) => imap(it)),
+      ).map((it) => imap<String, dynamic>(it)),
     );
   }
 

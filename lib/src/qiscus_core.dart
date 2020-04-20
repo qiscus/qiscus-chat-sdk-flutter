@@ -65,7 +65,7 @@ class QiscusSDK {
   String get token => _get<Storage>()?.token;
 
   Task<Either<Exception, void>> get _authenticated {
-    final _isLogin = Stream.periodic(const Duration(milliseconds: 300))
+    final _isLogin = Stream<void>.periodic(const Duration(milliseconds: 300))
         .map((_) => isLogin)
         .distinct((p, n) => p == n)
         .firstWhere((it) => it == true);
@@ -136,7 +136,7 @@ class QiscusSDK {
           _get<RealtimeService>('mqtt-service').end();
         }))
         .run()
-        .catchError((error) {
+        .catchError((Exception error) {
           callback(error);
         });
   }
@@ -427,7 +427,7 @@ class QiscusSDK {
         .andThen(_get<OnRoomMessagesCleared>().subscribe(noParams))
         .bind((s) => Task.delay(() => s.listen((it) => handler(it))))
         .run();
-    return () => ret.then((s) => s.cancel());
+    return () => ret.then<void>((s) => s.cancel());
   }
 
   Subscription onConnected(void Function() handler) {
@@ -435,7 +435,7 @@ class QiscusSDK {
         .andThen(_get<OnConnected>().subscribe(NoParams()))
         .bind((stream) => Task.delay(() => stream.listen((_) => handler())))
         .run();
-    return () => ret.then((s) => s.cancel());
+    return () => ret.then<void>((s) => s.cancel());
   }
 
   Subscription onDisconnected(void Function() handler) {
@@ -443,14 +443,14 @@ class QiscusSDK {
         .andThen(_get<OnDisconnected>().subscribe(noParams))
         .bind((s) => Task.delay(() => s.listen((_) => handler())))
         .run();
-    return () => ret.then((s) => s.cancel());
+    return () => ret.then<void>((s) => s.cancel());
   }
 
   Subscription onMessageDeleted(Function1<QMessage, void> callback) {
     var subs = _authenticated
         .andThen(_get<OnMessageDeleted>().listen((m) => callback(m.toModel())))
         .run();
-    return () => subs.then((s) => s.cancel());
+    return () => subs.then<void>((s) => s.cancel());
   }
 
   Subscription onMessageDelivered(void Function(QMessage) callback) {
@@ -458,14 +458,14 @@ class QiscusSDK {
         .andThen(
             _get<OnMessageDelivered>().listen((m) => callback(m.toModel())))
         .run();
-    return () => subs.then((s) => s.cancel());
+    return () => subs.then<void>((s) => s.cancel());
   }
 
   Subscription onMessageRead(void Function(QMessage) callback) {
     final subs = _authenticated
         .andThen(_get<OnMessageRead>().listen((m) => callback(m.toModel())))
         .run();
-    return () => subs.then((s) => s.cancel());
+    return () => subs.then<void>((s) => s.cancel());
   }
 
   Subscription onMessageReceived(void Function(QMessage) callback) {
@@ -473,7 +473,7 @@ class QiscusSDK {
         _get<OnMessageReceived>().listen((m) => callback(m.toModel()));
 
     var subs = _authenticated.andThen(listenable).run();
-    return () => subs.then((s) => s.cancel());
+    return () => subs.then<void>((s) => s.cancel());
   }
 
   Subscription onReconnecting(void Function() handler) {
@@ -481,7 +481,7 @@ class QiscusSDK {
         .andThen(_get<OnReconnecting>().subscribe(noParams))
         .bind((s) => Task.delay(() => s.listen((_) => handler())))
         .run();
-    return () => ret.then((s) => s.cancel());
+    return () => ret.then<void>((s) => s.cancel());
   }
 
   Subscription onUserOnlinePresence(
@@ -492,7 +492,7 @@ class QiscusSDK {
           handler(data.userId, data.isOnline, data.lastSeen);
         }))
         .run();
-    return () => subs.then((s) => s.cancel());
+    return () => subs.then<void>((s) => s.cancel());
   }
 
   Subscription onUserTyping(void Function(String, int, bool) handler) {
@@ -501,7 +501,7 @@ class QiscusSDK {
           handler(data.userId, data.roomId, data.isTyping);
         }))
         .run();
-    return () => subs.then((s) => s.cancel());
+    return () => subs.then<void>((s) => s.cancel());
   }
 
   void publishCustomEvent({
@@ -596,7 +596,7 @@ class QiscusSDK {
         if (error == null && progress != null) {
           return callback(null, progress, null);
         }
-        message.payload ??= {};
+        message.payload ??= <String, dynamic>{};
         message.payload['url'] = url;
         message.payload['size'] = await message.payload['size'];
         message.text = '[file] $url [/file]';
@@ -675,7 +675,7 @@ class QiscusSDK {
             ),
           ),
         );
-    var subscribes = (token) => _get<OnMessageReceived>()
+    var subscribes = (String token) => _get<OnMessageReceived>()
         .subscribe(TokenParams(token))
         .bind((stream) => Task.delay(() => markAsDelivered(stream)))
         .andThen(_get<RealtimeService>()
@@ -756,14 +756,14 @@ class QiscusSDK {
     _authenticated
         .andThen(_get<RealtimeService>().synchronize(int.parse(lastMessageId)))
         .run()
-        .catchError((_) {});
+        .catchError((dynamic _) {});
   }
 
   void synchronizeEvent({String lastEventId}) {
     _authenticated
         .andThen(_get<RealtimeService>().synchronizeEvent(lastEventId))
         .run()
-        .catchError((_) {});
+        .catchError((dynamic _) {});
   }
 
   void unblockUser({
@@ -832,10 +832,10 @@ class QiscusSDK {
     final uploadUrl = _get<Storage>().uploadUrl;
     final dio = _get<Dio>();
     var filename = file.path.split('/').last;
-    var formData = FormData.fromMap({
+    var formData = FormData.fromMap(<String, dynamic>{
       'file': await MultipartFile.fromFile(file.path, filename: filename),
     });
-    await dio.post(
+    await dio.post<Map<String, dynamic>>(
       uploadUrl,
       data: formData,
       onSendProgress: (count, total) {
@@ -846,7 +846,7 @@ class QiscusSDK {
       var json = resp.data;
       var url = json['results']['file']['url'] as String;
       callback(null, null, url);
-    }).catchError((error) {
+    }).catchError((dynamic error) {
       callback(Exception(error.toString()), null, null);
     });
   }

@@ -3,7 +3,7 @@ import 'package:qiscus_chat_sdk/src/features/user/entity/account.dart';
 final _makeGetter = <T1>(Map s, String name, [T1 valueIfEmpty]) =>
     s[name] as T1 ?? valueIfEmpty;
 final _makeSetter = <T2>(Map s, String name, T2 value) =>
-    s.update(name, (_) => value, ifAbsent: () => value);
+    s.update(name, (dynamic _) => value, ifAbsent: () => value);
 
 class Storage {
   Storage();
@@ -94,7 +94,7 @@ class Storage {
       _makeSetter(_storage, 'Config::realtime-check-enabled', enable);
 
   Map<String, dynamic> get configExtras =>
-      _makeGetter(_storage, 'Config::extras', {});
+      _makeGetter(_storage, 'Config::extras', <String, dynamic>{});
   set configExtras(Map<String, dynamic> extras) =>
       _makeSetter(_storage, 'Config::extras', extras);
 

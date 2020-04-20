@@ -74,7 +74,7 @@ class QMessage {
       status: status,
       extras: extras,
       timestamp: timestamp,
-      payload: {
+      payload: <String, dynamic>{
         'url': '',
         'file_name': filename,
         'size': size,

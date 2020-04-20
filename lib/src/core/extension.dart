@@ -52,17 +52,17 @@ extension CEither<L, R> on Either<L, R> {
   Either<Exception, R> leftMapToException([String message]) {
     return leftMap((err) {
       if (err is DioError && err.response != null) {
-        var json;
+        Map<String, dynamic> json;
         if (err.response.data is Map<String, dynamic>) {
-          json = err.response.data;
+          json = err.response.data as Map<String, dynamic>;
         } else {
-          json = jsonDecode(err.response.data as String);
+          json =
+              jsonDecode(err.response.data as String) as Map<String, dynamic>;
         }
         if (message != null) {
           return Exception(message);
         } else {
-          print(json['error']);
-          var message = json['error']['message'];
+          var message = json['error']['message'] as String;
           return Exception(message);
         }
       }

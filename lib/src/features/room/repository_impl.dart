@@ -20,7 +20,7 @@ class RoomRepositoryImpl implements RoomRepository {
         .attempt()
         .leftMapToException()
         .rightMap((res) {
-      var json = jsonDecode(res);
+      var json = jsonDecode(res) as Map<String, dynamic>;
       return GetRoomResponse(json['results']['room'] as Map<String, dynamic>);
     });
   }
@@ -32,9 +32,10 @@ class RoomRepositoryImpl implements RoomRepository {
         .attempt()
         .leftMapToException()
         .rightMap((str) {
-      var json = jsonDecode(str);
-      var room = json['results']['room'];
-      var comments = (json['results']['comments']).cast<Map<String, dynamic>>();
+      var json = jsonDecode(str) as Map<String, dynamic>;
+      var room = json['results']['room'] as Map<String, dynamic>;
+      var comments = (json['results']['comments'] as List) //
+          .cast<Map<String, dynamic>>();
       return GetRoomWithMessagesResponse(room, comments);
     });
   }
@@ -53,7 +54,8 @@ class RoomRepositoryImpl implements RoomRepository {
       var _participants = (json['results']['participants_added'] as List)
           .cast<Map<String, dynamic>>();
       var participants = _participants //
-          .map((json) => Participant.fromJson(json));
+          .map((json) => Participant.fromJson(json))
+          .toList();
       return AddParticipantResponse(roomId, participants);
     });
   }
@@ -80,11 +82,12 @@ class RoomRepositoryImpl implements RoomRepository {
         .attempt()
         .leftMapToException()
         .rightMap((str) {
-      var json = jsonDecode(str);
+      var json = jsonDecode(str) as Map<String, dynamic>;
       var participants_ = (json['results']['participants'] as List)
           .cast<Map<String, dynamic>>();
       var participants = participants_ //
-          .map((json) => Participant.fromJson(json));
+          .map((json) => Participant.fromJson(json))
+          .toList();
       return GetParticipantsResponse(uniqueId, participants);
     });
   }
@@ -125,8 +128,8 @@ class RoomRepositoryImpl implements RoomRepository {
           avatarUrl: avatarUrl,
           options: options,
         ))).attempt().leftMapToException().rightMap((res) {
-      var json = jsonDecode(res);
-      return ChatRoom.fromJson(json['results']['room']);
+      var json = jsonDecode(res) as Map<String, dynamic>;
+      return ChatRoom.fromJson(json['results']['room'] as Map<String, dynamic>);
     });
   }
 
@@ -143,8 +146,8 @@ class RoomRepositoryImpl implements RoomRepository {
           avatarUrl: avatarUrl,
           extras: extras,
         ))).attempt().leftMapToException().rightMap((resp) {
-      var json = jsonDecode(resp);
-      return ChatRoom.fromJson(json['results']['room']);
+      var json = jsonDecode(resp) as Map<String, dynamic>;
+      return ChatRoom.fromJson(json['results']['room'] as Map<String, dynamic>);
     });
   }
 
@@ -173,7 +176,7 @@ class RoomRepositoryImpl implements RoomRepository {
           withRemoved: withRemoved,
           page: page,
         ))).attempt().leftMapToException().rightMap((str) {
-      var json = jsonDecode(str);
+      var json = jsonDecode(str) as Map<String, dynamic>;
       var roomsInfo = json['results']['rooms_info'] as List;
       return roomsInfo
           .cast<Map<String, dynamic>>()
@@ -188,7 +191,7 @@ class RoomRepositoryImpl implements RoomRepository {
         .attempt()
         .leftMapToException()
         .rightMap((str) {
-      var json = jsonDecode(str);
+      var json = jsonDecode(str) as Map<String, dynamic>;
       return json['results']['total_unread_count'] as int;
     });
   }
@@ -206,8 +209,8 @@ class RoomRepositoryImpl implements RoomRepository {
           avatarUrl: avatarUrl,
           extras: extras,
         ))).attempt().leftMapToException().rightMap((str) {
-      var json = jsonDecode(str);
-      return ChatRoom.fromJson(json['results']['room']);
+      var json = jsonDecode(str) as Map<String, dynamic>;
+      return ChatRoom.fromJson(json['results']['room'] as Map<String, dynamic>);
     });
   }
 }

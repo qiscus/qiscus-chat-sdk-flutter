@@ -28,9 +28,8 @@ class MessageRepositoryImpl implements MessageRepository {
         after: after,
       ),
     ).attempt().leftMapToException().rightMap((str) {
-      var json = jsonDecode(str);
-      var messages = json['results']['comments'] //
-          .cast<List>() //
+      var json = jsonDecode(str) as Map<String, dynamic>;
+      var messages = (json['results']['comments'] as List) //
           .cast<Map<String, dynamic>>();
       return GetMessageListResponse(messages);
     });
@@ -55,8 +54,8 @@ class MessageRepositoryImpl implements MessageRepository {
         payload: payload,
       )),
     ).attempt().leftMapToException().rightMap((str) {
-      var json = jsonDecode(str);
-      var comment = json['results']['comment'];
+      var json = jsonDecode(str) as Map<String, dynamic>;
+      var comment = json['results']['comment'] as Map<String, dynamic>;
       return SendMessageResponse(comment);
     });
   }
@@ -84,7 +83,7 @@ class MessageRepositoryImpl implements MessageRepository {
         .attempt()
         .leftMapToException()
         .rightMap((res) {
-      var json = jsonDecode(res);
+      var json = jsonDecode(res) as Map<String, dynamic>;
       var messages = (json['results']['comments'] as List)
           .cast<Map<String, dynamic>>()
           .map((m) => Message.fromJson(m))

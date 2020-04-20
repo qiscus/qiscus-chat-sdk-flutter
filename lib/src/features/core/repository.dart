@@ -22,7 +22,7 @@ class CoreRepositoryImpl implements CoreRepository {
         .leftMapToException()
         .rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
-      var config = AppConfig.fromJson(json['results']);
+      var config = AppConfig.fromJson(json['results'] as Map<String, dynamic>);
       return config;
     });
   }

@@ -37,22 +37,23 @@ class AppConfig {
 
   factory AppConfig.fromJson(Map<String, dynamic> json) {
     return AppConfig(
-      baseUrl: optionFromJson<String>(json['base_url']),
-      brokerLbUrl: optionFromJson<String>(json['broker_lb_url']),
-      brokerUrl: optionFromJson(json['broker_url']),
-      enableEventReport: optionFromJson(json['enable_event_report']),
-      enableRealtime: optionFromJson(json['enable_realtime']),
-      enableRealtimeCheck: optionFromJson(json['enable_realtime_check']),
-      syncInterval: optionFromJson(json['sync_interval']),
-      syncOnConnect: optionFromJson(json['sync_on_connect']),
-      extras: ((extras) {
+      baseUrl: optionFromJson<String>(json['base_url'] as String),
+      brokerLbUrl: optionFromJson<String>(json['broker_lb_url'] as String),
+      brokerUrl: optionFromJson(json['broker_url'] as String),
+      enableEventReport: optionFromJson(json['enable_event_report'] as bool),
+      enableRealtime: optionFromJson(json['enable_realtime'] as bool),
+      enableRealtimeCheck:
+          optionFromJson(json['enable_realtime_check'] as bool),
+      syncInterval: optionFromJson(json['sync_interval'] as int),
+      syncOnConnect: optionFromJson(json['sync_on_connect'] as int),
+      extras: ((String extras) {
         if ((extras is String) && extras.isNotEmpty) {
           var json = jsonDecode(extras) as Map<String, dynamic>;
           return optionFromJson(json);
         } else {
           return none<Map<String, dynamic>>();
         }
-      })(json['extras']),
+      })(json['extras'] as String),
     );
   }
 
