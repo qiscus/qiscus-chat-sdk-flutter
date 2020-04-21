@@ -1,5 +1,7 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
+// ignore_for_file: argument_type_not_assignable, implicit_dynamic_parameter, unused_element
+
 part of 'user_api.dart';
 
 // **************************************************************************
