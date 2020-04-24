@@ -22,7 +22,7 @@ dependencies:
   pretty_dio_logger: ^1.1.1
   flutter:
     sdk: flutter
-  kiwi: ^0.2.0
+  get_it: ^4.0.1
 
 dev_dependencies:
   json_serializable: ^3.2.5

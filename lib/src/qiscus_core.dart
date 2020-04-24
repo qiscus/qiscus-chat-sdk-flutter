@@ -12,10 +12,10 @@ import 'core/core.dart';
 import 'core/injector.dart';
 import 'features/core/core.dart';
 import 'features/custom_event/usecase/realtime.dart';
-import 'features/realtime/realtime.dart';
-import 'features/user/user.dart';
-import 'features/room/room.dart';
 import 'features/message/message.dart';
+import 'features/realtime/realtime.dart';
+import 'features/room/room.dart';
+import 'features/user/user.dart';
 
 typedef Subscription = void Function();
 typedef UserPresenceHandler = void Function(String, bool, DateTime);
@@ -54,7 +54,9 @@ class QiscusSDK {
       );
   }
 
-  QiscusSDK._internal();
+  QiscusSDK._internal() {
+    Injector.setup();
+  }
 
   String get appId => _get<Storage>()?.appId;
 
@@ -641,20 +643,72 @@ class QiscusSDK {
     int syncIntervalWhenConnected = Storage.defaultSyncIntervalWhenConnected,
     @required Function1<Exception, void> callback,
   }) {
+    final storage = _get<Storage>();
+    storage.appId = appId;
+    storage.baseUrl = baseUrl;
+    storage.brokerUrl = brokerUrl;
+    storage.brokerLbUrl = brokerLbUrl;
+    storage.syncInterval = syncInterval;
+    storage.syncIntervalWhenConnected = syncIntervalWhenConnected;
+
     _get<AppConfigUseCase>()(noParams)
         .tap((_) {
-          _get<Storage>().appId = appId;
-          _get<Storage>().baseUrl = baseUrl;
-          _get<Storage>().brokerUrl = brokerUrl;
-          _get<Storage>().brokerLbUrl = brokerLbUrl;
-          _get<Storage>().syncInterval = syncInterval;
-          _get<Storage>().syncIntervalWhenConnected = syncIntervalWhenConnected;
+          storage.appId = appId;
+          storage.baseUrl = baseUrl;
+          storage.brokerUrl = brokerUrl;
+          storage.brokerLbUrl = brokerLbUrl;
+          storage.syncInterval = syncInterval;
+          storage.syncIntervalWhenConnected = syncIntervalWhenConnected;
         })
         .map((either) => either.fold(
               (err) => callback(err),
               (_) => callback(null),
             ))
         .run();
+  }
+
+  void _markDelivered(int roomId, int messageId) {
+    markAsDelivered(roomId: roomId, messageId: messageId, callback: (_) {});
+  }
+
+  void _receiveMessage(Stream<Message> stream) {
+    stream.tap((message) {
+      message.chatRoomId.fold(() {}, (roomId) {
+        _markDelivered(roomId, message.id);
+      });
+    });
+  }
+
+  Task<Either<Exception, void>> _subscribes(String token) {
+    return _get<OnMessageReceived>()
+        .subscribe(TokenParams(token))
+        .bind((stream) => Task.delay(() => _receiveMessage(stream)))
+        .andThen(_get<RealtimeService>()
+            .subscribe(TopicBuilder.notification(token)));
+  }
+
+  Future<QAccount> setUser$({
+    @required String userId,
+    @required String userKey,
+    String username,
+    String avatarUrl,
+    Map<String, dynamic> extras,
+  }) {
+    final authenticate = _get<AuthenticateUserUseCase>();
+    final params = AuthenticateParams(
+      userId: userId,
+      userKey: userKey,
+      name: username,
+      avatarUrl: avatarUrl,
+      extras: extras,
+    );
+    return authenticate(params)
+        .tap((data) => _subscribes(data.value1))
+        .run()
+        .then((either) => either.fold(
+              (error) => Future.error(error),
+              (data) => Future.value(data.value2.toModel()),
+            ));
   }
 
   void setUser({
@@ -665,38 +719,14 @@ class QiscusSDK {
     Map<String, dynamic> extras,
     @required void Function(QAccount, Exception) callback,
   }) {
-    var markAsDelivered = (Stream<Message> stream) => stream.tap(
-          (m) => m.chatRoomId.fold(
-            () {},
-            (roomId) => this.markAsDelivered(
-              roomId: roomId,
-              messageId: m.id,
-              callback: (_) {},
-            ),
-          ),
-        );
-    var subscribes = (String token) => _get<OnMessageReceived>()
-        .subscribe(TokenParams(token))
-        .bind((stream) => Task.delay(() => markAsDelivered(stream)))
-        .andThen(_get<RealtimeService>()
-            .subscribe(TopicBuilder.notification(token)));
-
-    _get<AuthenticateUserUseCase>()(AuthenticateParams(
-      userId: userId,
-      userKey: userKey,
-      name: username,
-      avatarUrl: avatarUrl,
-      extras: extras,
-    ))
-        .bind((either) => either.fold(
-              (e) =>
-                  Task.delay(() => left<Exception, Tuple2<String, Account>>(e)),
-              (tuple) => subscribes(tuple.value1).andThen(Task.delay(
-                  () => right<Exception, Tuple2<String, Account>>(tuple))),
-            ))
-        .rightMap((tuple) => tuple.value2.toModel())
-        .toCallback(callback)
-        .run();
+    setUser$(
+            userId: userId,
+            userKey: userKey,
+            username: username,
+            avatarUrl: avatarUrl,
+            extras: extras)
+        .then((account) => callback(account, null))
+        .catchError((Exception error) => callback(null, error));
   }
 
   void setUserWithIdentityToken({

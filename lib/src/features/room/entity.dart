@@ -32,16 +32,15 @@ class ChatRoom {
   factory ChatRoom({
     @required String uniqueId,
     @required QRoomType type,
-    Option<int> id,
-    Option<String> name,
-    Option<int> unreadCount,
-    Option<String> avatarUrl,
-    Option<int> totalParticipants,
-    Option<IMap<String, dynamic>> extras,
-    Option<ISet<Participant>> participants,
-    Option<Message> lastMessages,
-    Option<User> sender,
-    Option<Message> lastMessage,
+    @required Option<int> id,
+    @required Option<String> name,
+    @required Option<int> unreadCount,
+    @required Option<String> avatarUrl,
+    @required Option<int> totalParticipants,
+    @required Option<IMap<String, dynamic>> extras,
+    @required Option<ISet<Participant>> participants,
+    @required Option<Message> lastMessage,
+    @required Option<User> sender,
   }) =>
       ChatRoom._(
         uniqueId: uniqueId,
@@ -53,7 +52,7 @@ class ChatRoom {
         totalParticipants: totalParticipants ?? none(),
         extras: extras ?? none(),
         participants: participants ?? none(),
-        lastMessage: lastMessages ?? none(),
+        lastMessage: lastMessage ?? none(),
         sender: sender ?? none(),
       );
 
@@ -62,6 +61,9 @@ class ChatRoom {
         .map((it) => it.cast<Map<String, dynamic>>())
         .map((it) => it.map((json) => Participant.fromJson(json)))
         .map((it) => isetWithOrder(Participant.participantOrder, it));
+    var lastMessage = catching<Message>(
+      () => Message.fromJson(json['last_comment'] as Map<String, dynamic>),
+    );
 
     QRoomType _type;
     var jsonType = json['room_type'] as String;
@@ -86,13 +88,7 @@ class ChatRoom {
       participants: participants,
       type: _type,
       sender: none<User>(),
-      lastMessage: catching<Message>(
-        () => Message(
-          id: json['last_comment_id'] as int,
-          text: optionOf(json['last_comment_message'] as String),
-          sender: none(),
-        ),
-      ).toOption(),
+      lastMessage: lastMessage.toOption(),
     );
   }
 
@@ -101,7 +97,7 @@ class ChatRoom {
         id: id.toNullable(),
         avatarUrl: avatarUrl.toNullable(),
         extras: extras.map((it) => it.toMap()).toNullable(),
-        lastMessage: lastMessage.map((it) => it.toModel()).toNullable(),
+        lastMessage: this.lastMessage.map((it) => it.toModel()).toNullable(),
         name: name.toNullable(),
         participants: participants
             .getOrElse(() => emptySet())

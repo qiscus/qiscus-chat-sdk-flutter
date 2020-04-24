@@ -7,7 +7,7 @@ MqttClient getMqttClient(Storage storage) {
 
   final connectionMessage = MqttConnectMessage() //
           .withClientIdentifier(clientId())
-          .withWillTopic('u/${storage.currentUser.id}/s')
+          .withWillTopic('u/${storage.currentUser?.id}/s')
           .withWillMessage('0')
           .withWillRetain()
       //

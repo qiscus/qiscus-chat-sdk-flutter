@@ -92,6 +92,7 @@ class UserRepositoryImpl implements UserRepository {
             isDevelopment,
           ),
         )).attempt().leftMapToException().rightMap((str) {
+      if (str.isEmpty) return true;
       var json = jsonDecode(str) as Map<String, dynamic>;
       var changed = json['results']['changed'] as bool;
       return changed;
