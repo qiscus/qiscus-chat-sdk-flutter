@@ -105,17 +105,25 @@ class QiscusSDK {
         .run();
   }
 
+  Future<QChatRoom> chatUser$({
+    @required String userId,
+    Map<String, dynamic> extras,
+  }) async {
+    return _authenticated
+        .andThen(_get<GetRoomByUserIdUseCase>()(UserIdParams(userId)))
+        .rightMap((u) => u.toModel())
+        .run()
+        .then((either) => either.fold(
+              (err) => Future<QChatRoom>.error(err),
+              (room) => Future.value(room),
+            ));
+  }
+
   void chatUser({
     @required String userId,
     Map<String, dynamic> extras,
     @required Function2<QChatRoom, Exception, void> callback,
-  }) {
-    _authenticated
-        .andThen(_get<GetRoomByUserIdUseCase>()(UserIdParams(userId)))
-        .rightMap((u) => u.toModel())
-        .toCallback(callback)
-        .run();
-  }
+  }) {}
 
   void clearMessagesByChatRoomId({
     @required List<String> roomUniqueIds,
@@ -330,19 +338,32 @@ class QiscusSDK {
         .run();
   }
 
+  Future<List<QMessage>> getPreviousMessagesById$({
+    @required int roomId,
+    int limit,
+    int messageId,
+  }) async {
+    return _authenticated
+        .andThen(_get<GetMessageListUseCase>()(
+          GetMessageListParams(roomId, messageId, after: false, limit: limit),
+        ))
+        .rightMap((it) => it.map((m) => m.toModel()).toList())
+        .run()
+        .then((either) => either.fold(
+              (error) => Future<List<QMessage>>.error(error),
+              (messages) => Future.value(messages),
+            ));
+  }
+
   void getPreviousMessagesById({
     @required int roomId,
     int limit,
     int messageId,
     @required Function2<List<QMessage>, Exception, void> callback,
   }) {
-    _authenticated
-        .andThen(_get<GetMessageListUseCase>()(
-          GetMessageListParams(roomId, messageId, after: false, limit: limit),
-        ))
-        .rightMap((it) => it.map((m) => m.toModel()).toList())
-        .toCallback(callback)
-        .run();
+    getPreviousMessagesById$(roomId: roomId, limit: limit, messageId: messageId)
+        .then((messages) => callback(messages, null))
+        .catchError((Exception error) => callback(null, error));
   }
 
   String getThumbnailURL(String url) => '';
@@ -630,8 +651,48 @@ class QiscusSDK {
     _get<Storage>().syncInterval = interval.ceil();
   }
 
+  Future<void> setup$(String appId) async {
+    return setupWithCustomServer$(appId);
+  }
+
   void setup(String appId, {@required Function1<Exception, void> callback}) {
-    setupWithCustomServer(appId, callback: callback);
+    setup$(appId)
+        .then((_) => callback(null))
+        .catchError((Exception error) => callback(error));
+  }
+
+  Future<void> setupWithCustomServer$(
+    String appId, {
+    String baseUrl = Storage.defaultBaseUrl,
+    String brokerUrl = Storage.defaultBrokerUrl,
+    String brokerLbUrl = Storage.defaultBrokerLbUrl,
+    int syncInterval = Storage.defaultSyncInterval,
+    int syncIntervalWhenConnected = Storage.defaultSyncIntervalWhenConnected,
+  }) async {
+    final storage = _get<Storage>();
+    storage
+      ..appId = appId
+      ..baseUrl = baseUrl
+      ..brokerUrl = brokerUrl
+      ..brokerLbUrl = brokerLbUrl
+      ..syncInterval = syncInterval
+      ..syncIntervalWhenConnected = syncIntervalWhenConnected;
+
+    return _get<AppConfigUseCase>()(noParams)
+        .tap((_) {
+          storage
+            ..appId = appId
+            ..baseUrl = baseUrl
+            ..brokerUrl = brokerUrl
+            ..brokerLbUrl = brokerLbUrl
+            ..syncInterval = syncInterval
+            ..syncIntervalWhenConnected = syncIntervalWhenConnected;
+        })
+        .map((either) => either.fold(
+              (err) => Future<void>.error(err),
+              (_) => Future.value(null),
+            ))
+        .run();
   }
 
   void setupWithCustomServer(
@@ -643,28 +704,14 @@ class QiscusSDK {
     int syncIntervalWhenConnected = Storage.defaultSyncIntervalWhenConnected,
     @required Function1<Exception, void> callback,
   }) {
-    final storage = _get<Storage>();
-    storage.appId = appId;
-    storage.baseUrl = baseUrl;
-    storage.brokerUrl = brokerUrl;
-    storage.brokerLbUrl = brokerLbUrl;
-    storage.syncInterval = syncInterval;
-    storage.syncIntervalWhenConnected = syncIntervalWhenConnected;
-
-    _get<AppConfigUseCase>()(noParams)
-        .tap((_) {
-          storage.appId = appId;
-          storage.baseUrl = baseUrl;
-          storage.brokerUrl = brokerUrl;
-          storage.brokerLbUrl = brokerLbUrl;
-          storage.syncInterval = syncInterval;
-          storage.syncIntervalWhenConnected = syncIntervalWhenConnected;
-        })
-        .map((either) => either.fold(
-              (err) => callback(err),
-              (_) => callback(null),
-            ))
-        .run();
+    setupWithCustomServer$(appId,
+            baseUrl: baseUrl,
+            brokerUrl: brokerUrl,
+            brokerLbUrl: brokerLbUrl,
+            syncInterval: syncInterval,
+            syncIntervalWhenConnected: syncIntervalWhenConnected)
+        .then((_) => callback(null))
+        .catchError((Exception error) => callback(error));
   }
 
   void _markDelivered(int roomId, int messageId) {
