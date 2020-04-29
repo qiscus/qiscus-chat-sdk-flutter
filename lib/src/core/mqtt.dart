@@ -13,7 +13,7 @@ MqttClient getMqttClient(Storage storage) {
       //
       ;
 
-  var brokerUrl = 'wss://mqtt.qiscus.com/mqtt';
+  var brokerUrl = storage.brokerUrl;
   var client = MqttServerClient(brokerUrl, 'sdk-dart')
         ..logging(on: false)
         ..useWebSocket = true

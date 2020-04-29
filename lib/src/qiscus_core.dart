@@ -6,10 +6,10 @@ import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/features/channel/usecase/create.dart';
 
 import 'core/core.dart';
 import 'core/injector.dart';
+import 'features/channel/channel.dart';
 import 'features/core/core.dart';
 import 'features/custom_event/usecase/realtime.dart';
 import 'features/message/message.dart';
@@ -203,8 +203,13 @@ class QiscusSDK {
         .run();
   }
 
-  void enableDebugMode({bool enable = false}) {
-    _get<Storage>().debugEnabled = enable;
+  void enableDebugMode({
+    @required bool enable,
+    QLogLevel level = QLogLevel.verbose,
+  }) {
+    _get<Storage>()
+      ..debugEnabled = enable
+      ..logLevel = level;
   }
 
   void getAllChatRooms({

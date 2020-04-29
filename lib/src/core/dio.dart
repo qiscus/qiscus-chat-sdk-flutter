@@ -19,7 +19,7 @@ Dio getDio(Storage storage, Logger logger) {
     ..interceptors.addAll([
       interceptor,
     ]);
-  if (logger.enabled) {
+  if (logger.enabled && logger.level == QLogLevel.verbose) {
     dio.interceptors.add(PrettyDioLogger(
       requestBody: true,
       requestHeader: true,
