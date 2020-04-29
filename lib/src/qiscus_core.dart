@@ -26,6 +26,32 @@ class QiscusSDK {
 
   factory QiscusSDK() => QiscusSDK._internal();
 
+  static Future<QiscusSDK> withAppId$(String appId) async {
+    var qiscus = QiscusSDK();
+    await qiscus.setup$(appId);
+    return qiscus;
+  }
+
+  static Future<QiscusSDK> withCustomServer$(
+    String appId, {
+    String baseUrl = Storage.defaultBaseUrl,
+    String brokerUrl = Storage.defaultBrokerUrl,
+    String brokerLbUrl = Storage.defaultBrokerLbUrl,
+    int syncInterval = Storage.defaultSyncInterval,
+    int syncIntervalWhenConnected = Storage.defaultSyncIntervalWhenConnected,
+  }) async {
+    var qiscus = QiscusSDK();
+    await qiscus.setupWithCustomServer$(
+      appId,
+      baseUrl: baseUrl,
+      brokerUrl: brokerUrl,
+      brokerLbUrl: brokerLbUrl,
+      syncInterval: syncInterval,
+      syncIntervalWhenConnected: syncIntervalWhenConnected,
+    );
+    return qiscus;
+  }
+
   factory QiscusSDK.withAppId(
     String appId, {
     @required void Function(Exception) callback,
@@ -59,11 +85,8 @@ class QiscusSDK {
   }
 
   String get appId => _get<Storage>()?.appId;
-
   QAccount get currentUser => _get<Storage>()?.currentUser?.toModel();
-
   bool get isLogin => _get<Storage>()?.currentUser != null;
-
   String get token => _get<Storage>()?.token;
 
   Task<Either<Exception, void>> get _authenticated {
@@ -125,30 +148,60 @@ class QiscusSDK {
     @required Function2<QChatRoom, Exception, void> callback,
   }) {}
 
+  Future<void> clearMessagesByChatRoomId$({
+    @required List<String> roomUniqueIds,
+  }) async {
+    final clearRoom = _get<ClearRoomMessagesUseCase>();
+    return _authenticated
+        .andThen(clearRoom(ClearRoomMessagesParams(roomUniqueIds)))
+        .run()
+        .then((_) => null);
+  }
+
   void clearMessagesByChatRoomId({
     @required List<String> roomUniqueIds,
     @required void Function(Exception) callback,
-  }) {
-    final clearRoom = _get<ClearRoomMessagesUseCase>();
-    _authenticated
-        .andThen(clearRoom(ClearRoomMessagesParams(roomUniqueIds)))
-        .toCallback((_, e) => callback(e))
-        .run();
+  }) =>
+      clearMessagesByChatRoomId$(roomUniqueIds: roomUniqueIds)
+          .then((_) => callback(null))
+          .catchError((Exception error) => callback(error));
+
+  Future<void> clearUser$() async {
+    return _authenticated.andThen(Task.delay(() {
+      _get<Storage>().clear();
+      _get<RealtimeService>('mqtt-service').end();
+      _get<RealtimeService>('mqtt-service').end();
+    })).run();
   }
 
   void clearUser({
     @required void Function(Exception) callback,
   }) {
-    _authenticated
-        .andThen(Task.delay(() {
-          _get<Storage>().clear();
-          _get<RealtimeService>('mqtt-service').end();
-          _get<RealtimeService>('mqtt-service').end();
-        }))
+    clearUser$()
+        .then((_) => callback(null))
+        .catchError((Exception error) => callback(error));
+  }
+
+  Future<QChatRoom> createChannel$({
+    @required String uniqueId,
+    String name,
+    String avatarUrl,
+    Map<String, dynamic> extras,
+  }) async {
+    final useCase = _get<GetOrCreateChannelUseCase>();
+    return _authenticated
+        .andThen(useCase(GetOrCreateChannelParams(
+          uniqueId,
+          name: name,
+          avatarUrl: avatarUrl,
+          options: extras,
+        )))
+        .rightMap((room) => room.toModel())
         .run()
-        .catchError((Exception error) {
-          callback(error);
-        });
+        .then((either) => either.fold(
+              (err) => Future.error(err),
+              (room) => Future.value(room),
+            ));
   }
 
   void createChannel({
@@ -157,19 +210,14 @@ class QiscusSDK {
     String avatarUrl,
     Map<String, dynamic> extras,
     @required void Function(QChatRoom, Exception) callback,
-  }) {
-    final useCase = _get<GetOrCreateChannelUseCase>();
-    _authenticated
-        .andThen(useCase(GetOrCreateChannelParams(
-          uniqueId,
-          name: name,
-          avatarUrl: avatarUrl,
-          options: extras,
-        )))
-        .rightMap((room) => room.toModel())
-        .toCallback(callback)
-        .run();
-  }
+  }) =>
+      createChannel$(
+              uniqueId: uniqueId,
+              name: name,
+              avatarUrl: avatarUrl,
+              extras: extras)
+          .then((room) => callback(room, null))
+          .catchError((Exception error) => callback(null, error));
 
   void createGroupChat({
     @required String name,
