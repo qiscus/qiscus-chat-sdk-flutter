@@ -1,3 +1,7 @@
+## 1.0.0+alpha4
+
+- Fix not handling error on future `onError` handler
+
 ## 1.0.0+alpha3
 
 - Add some method which will return a future instead of using callback
