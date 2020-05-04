@@ -2,6 +2,7 @@ library qiscus_chat_sdk;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
@@ -85,8 +86,11 @@ class QiscusSDK {
   }
 
   String get appId => _get<Storage>()?.appId;
+
   QAccount get currentUser => _get<Storage>()?.currentUser?.toModel();
+
   bool get isLogin => _get<Storage>()?.currentUser != null;
+
   String get token => _get<Storage>()?.token;
 
   Task<Either<Exception, void>> get _authenticated {
@@ -685,16 +689,28 @@ class QiscusSDK {
     );
   }
 
+  Future<QMessage> sendMessage$({@required QMessage message}) async {
+    return _authenticated
+        .andThen(Task.delay(() {
+          message.sender = _get<Storage>().currentUser?.toModel()?.asUser();
+          return message;
+        }))
+        .bind((message) => _get<SendMessageUseCase>()(MessageParams(message)))
+        .rightMap((it) => it.toModel())
+        .run()
+        .then((either) => either.fold(
+              (err) => Future<QMessage>.error(err),
+              (message) => Future.value(message),
+            ));
+  }
+
   void sendMessage({
     @required QMessage message,
     @required void Function(QMessage, Exception) callback,
-  }) {
-    _authenticated
-        .andThen(_get<SendMessageUseCase>().call(MessageParams(message)))
-        .rightMap((it) => it.toModel())
-        .toCallback(callback)
-        .run();
-  }
+  }) =>
+      sendMessage$(message: message)
+          .then((m) => callback(m, null))
+          .catchError((Exception err) => callback(null, err));
 
   void setCustomHeader(Map<String, String> headers) {
     _get<Storage>().customHeaders = headers;
@@ -820,25 +836,36 @@ class QiscusSDK {
     @required void Function(QAccount, Exception) callback,
   }) {
     setUser$(
-            userId: userId,
-            userKey: userKey,
-            username: username,
-            avatarUrl: avatarUrl,
-            extras: extras)
+        userId: userId,
+        userKey: userKey,
+        username: username,
+        avatarUrl: avatarUrl,
+        extras: extras)
         .then((account) => callback(account, null))
         .catchError((Exception error) => callback(null, error));
+  }
+
+  Future<QAccount> setUserWithIdentityToken$({String token}) {
+    var completer = Completer<QAccount>();
+    _get<AuthenticateUserWithTokenUseCase>()
+        .call(AuthenticateWithTokenParams(token))
+        .rightMap((user) => user.toModel())
+        .run()
+        .then((either) =>
+        either.fold(
+              (err) => completer.completeError(err),
+              (account) => completer.complete(account),
+        ));
+    return completer.future;
   }
 
   void setUserWithIdentityToken({
     String token,
     @required void Function(QAccount, Exception) callback,
-  }) {
-    _get<AuthenticateUserWithTokenUseCase>()
-        .call(AuthenticateWithTokenParams(token))
-        .rightMap((user) => user.toModel())
-        .toCallback(callback)
-        .run();
-  }
+  }) =>
+      setUserWithIdentityToken$(token: token)
+          .then((account) => callback(account, null))
+          .catchError((Exception error) => callback(null, error));
 
   void unsubscribeChatRoom(QChatRoom room) {
     final params = RoomIdParams(room.id);
@@ -979,6 +1006,94 @@ class QiscusSDK {
     }).catchError((dynamic error) {
       callback(Exception(error.toString()), null, null);
     });
+  }
+
+  String _generateUniqueId() =>
+      'flutter-${DateTime
+          .now()
+          .millisecondsSinceEpoch}';
+
+  QMessage generateMessage({
+    @required int chatRoomId,
+    @required String text,
+    Map<String, dynamic> extras,
+  }) {
+    var id = Random.secure().nextInt(10000);
+    return QMessage(
+      // Provided by user
+      chatRoomId: chatRoomId,
+      text: text,
+      extras: extras,
+      timestamp: DateTime.now(),
+      uniqueId: _generateUniqueId(),
+      //
+      id: id,
+      payload: null,
+      previousMessageId: 0,
+      sender: currentUser.asUser(),
+      status: QMessageStatus.sending,
+      type: QMessageType.text,
+    );
+  }
+
+  QMessage generateCustomMessage({
+    @required int chatRoomId,
+    @required String text,
+    @required String type,
+    Map<String, dynamic> extras,
+    @required Map<String, dynamic> payload,
+  }) {
+    var id = Random.secure().nextInt(10000);
+    return QMessage(
+      // Provided by user
+      chatRoomId: chatRoomId,
+      text: text,
+      timestamp: DateTime.now(),
+      uniqueId: _generateUniqueId(),
+      extras: extras,
+      payload: <String, dynamic>{
+        'type': type,
+        'payload': payload,
+      },
+      //
+      id: id,
+      previousMessageId: 0,
+      sender: currentUser.asUser(),
+      status: QMessageStatus.sending,
+      type: QMessageType.custom,
+    );
+  }
+
+  QMessage generateFileAttachmentMessage({
+    @required int chatRoomId,
+    @required String caption,
+    @required String url,
+    String filename,
+    String text,
+    int size,
+    Map<String, dynamic> extras,
+  }) {
+    var id = Random.secure().nextInt(10000);
+    return QMessage(
+      // Provided by user
+      chatRoomId: chatRoomId,
+      text: text,
+      timestamp: DateTime.now(),
+      uniqueId: _generateUniqueId(),
+      extras: extras,
+      payload: <String, dynamic>{
+        'url': '',
+        'file_name': filename,
+        'size': size,
+        'caption': caption,
+      },
+      //
+      id: id,
+      previousMessageId: 0,
+      sender: currentUser.asUser(),
+      status: QMessageStatus.sending,
+      type: QMessageType.custom,
+    );
   }
 }
 
