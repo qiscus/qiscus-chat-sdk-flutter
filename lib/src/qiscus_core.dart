@@ -167,8 +167,7 @@ class QiscusSDK {
     @required void Function(Exception) callback,
   }) =>
       clearMessagesByChatRoomId$(roomUniqueIds: roomUniqueIds)
-          .then((_) => callback(null))
-          .catchError((Exception error) => callback(error));
+          .toCallback1(callback);
 
   Future<void> clearUser$() async {
     return _authenticated.andThen(Task.delay(() {
@@ -181,9 +180,7 @@ class QiscusSDK {
   void clearUser({
     @required void Function(Exception) callback,
   }) {
-    clearUser$()
-        .then((_) => callback(null))
-        .catchError((Exception error) => callback(error));
+    clearUser$().toCallback1(callback);
   }
 
   Future<QChatRoom> createChannel$({
@@ -220,8 +217,7 @@ class QiscusSDK {
               name: name,
               avatarUrl: avatarUrl,
               extras: extras)
-          .then((room) => callback(room, null))
-          .catchError((Exception error) => callback(null, error));
+          .toCallback2(callback);
 
   void createGroupChat({
     @required String name,
@@ -419,8 +415,7 @@ class QiscusSDK {
     @required Function2<List<QMessage>, Exception, void> callback,
   }) {
     getPreviousMessagesById$(roomId: roomId, limit: limit, messageId: messageId)
-        .then((messages) => callback(messages, null))
-        .catchError((Exception error) => callback(null, error));
+        .toCallback2(callback);
   }
 
   String getThumbnailURL(String url) => '';
@@ -708,9 +703,7 @@ class QiscusSDK {
     @required QMessage message,
     @required void Function(QMessage, Exception) callback,
   }) =>
-      sendMessage$(message: message)
-          .then((m) => callback(m, null))
-          .catchError((Exception err) => callback(null, err));
+      sendMessage$(message: message).toCallback2(callback);
 
   void setCustomHeader(Map<String, String> headers) {
     _get<Storage>().customHeaders = headers;
@@ -725,9 +718,7 @@ class QiscusSDK {
   }
 
   void setup(String appId, {@required Function1<Exception, void> callback}) {
-    setup$(appId)
-        .then((_) => callback(null))
-        .catchError((Exception error) => callback(error));
+    setup$(appId).toCallback1(callback);
   }
 
   Future<void> setupWithCustomServer$(
@@ -749,6 +740,7 @@ class QiscusSDK {
 
     return _get<AppConfigUseCase>()(noParams)
         .tap((_) {
+          // override server value with user provided value
           storage
             ..appId = appId
             ..baseUrl = baseUrl
@@ -779,8 +771,7 @@ class QiscusSDK {
             brokerLbUrl: brokerLbUrl,
             syncInterval: syncInterval,
             syncIntervalWhenConnected: syncIntervalWhenConnected)
-        .then((_) => callback(null))
-        .catchError((Exception error) => callback(error));
+        .toCallback1(callback);
   }
 
   void _markDelivered(int roomId, int messageId) {
@@ -836,13 +827,12 @@ class QiscusSDK {
     @required void Function(QAccount, Exception) callback,
   }) {
     setUser$(
-        userId: userId,
-        userKey: userKey,
-        username: username,
-        avatarUrl: avatarUrl,
-        extras: extras)
-        .then((account) => callback(account, null))
-        .catchError((Exception error) => callback(null, error));
+            userId: userId,
+            userKey: userKey,
+            username: username,
+            avatarUrl: avatarUrl,
+            extras: extras)
+        .toCallback2(callback);
   }
 
   Future<QAccount> setUserWithIdentityToken$({String token}) {
@@ -851,21 +841,19 @@ class QiscusSDK {
         .call(AuthenticateWithTokenParams(token))
         .rightMap((user) => user.toModel())
         .run()
-        .then((either) =>
-        either.fold(
+        .then((either) => either.fold(
               (err) => completer.completeError(err),
               (account) => completer.complete(account),
-        ));
+            ));
     return completer.future;
   }
 
   void setUserWithIdentityToken({
     String token,
     @required void Function(QAccount, Exception) callback,
-  }) =>
-      setUserWithIdentityToken$(token: token)
-          .then((account) => callback(account, null))
-          .catchError((Exception error) => callback(null, error));
+  }) {
+    setUserWithIdentityToken$(token: token).toCallback2(callback);
+  }
 
   void unsubscribeChatRoom(QChatRoom room) {
     final params = RoomIdParams(room.id);
@@ -1009,9 +997,7 @@ class QiscusSDK {
   }
 
   String _generateUniqueId() =>
-      'flutter-${DateTime
-          .now()
-          .millisecondsSinceEpoch}';
+      'flutter-${DateTime.now().millisecondsSinceEpoch}';
 
   QMessage generateMessage({
     @required int chatRoomId,
@@ -1104,5 +1090,21 @@ extension _TaskX<L1, R1> on Task<Either<L1, R1>> {
     }).rightMap((val) {
       callback(val, null);
     });
+  }
+}
+
+extension _FutureX<T> on Future<T> {
+  void toCallback1(void Function(Exception) callback) {
+    this.then(
+      (_) => callback(null),
+      onError: (Object error) => callback(error as Exception),
+    );
+  }
+
+  void toCallback2(void Function(T, Exception) callback) {
+    this.then(
+      (value) => callback(value, null),
+      onError: (Object error) => callback(null, error as Exception),
+    );
   }
 }
