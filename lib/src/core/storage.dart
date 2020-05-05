@@ -13,9 +13,9 @@ class Storage {
 
   static const defaultBaseUrl = 'https://api.qiscus.com';
   static const defaultUploadUrl = '$defaultBaseUrl/api/v2/sdk/upload';
-  static const defaultBrokerPort = 1335;
+  static const defaultBrokerPort = 1886;
   static const defaultBrokerUrl = 'wss://mqtt.qiscus.com:1886/mqtt';
-  static const defaultBrokerLbUrl = 'https://realtime.qiscus.com';
+  static const defaultBrokerLbUrl = 'https://realtime-lb.qiscus.com';
   static const defaultAccInterval = 1000;
   static const defaultSyncInterval = 5000;
   static const defaultSyncIntervalWhenConnected = 30000;

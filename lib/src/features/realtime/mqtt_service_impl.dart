@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
+import 'package:qiscus_chat_sdk/src/core/injector.dart';
 import 'package:qiscus_chat_sdk/src/core/storage.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
@@ -15,7 +17,10 @@ import 'package:sealed_unions/union_2.dart';
 class MqttServiceImpl implements RealtimeService {
   MqttServiceImpl(this._getClient, this._s, this._logger) {
     _mqtt.onConnected = () => log('on mqtt connected');
-    _mqtt.onDisconnected = () => log('on mqtt disconnected');
+    _mqtt.onDisconnected = () {
+      log('on mqtt disconnected');
+      _onDisconnected(_mqtt.connectionStatus);
+    };
     _mqtt.onSubscribed = (topic) {
       _subscribedTopics.add(topic);
       log('on mqtt subscribed: $topic');
@@ -35,6 +40,29 @@ class MqttServiceImpl implements RealtimeService {
   }
 
   void log(String str) => _logger.log('MqttServiceImpl::- $str');
+
+  void _onDisconnected(MqttClientConnectionStatus connectionStatus) async {
+    // if connected state are not disconnected
+    if (connectionState.state != MqttConnectionState.disconnected) {
+      log('Mqtt disconnected with unknown state: ${connectionStatus.state}');
+      return;
+    }
+
+    // get a new broker url by calling lb
+    var dio = Injector.resolve<Dio>();
+    var result = await dio.get<Map<String, dynamic>>(_s.brokerLbUrl);
+    var data = result.data['data'] as Map<String, dynamic>;
+    var url = data['url'] as String;
+    var port = data['wss_port'] as String;
+    var newUrl = 'wss://$url:$port/mqtt';
+    _s.brokerUrl = newUrl;
+    try {
+      __mqtt = getMqttClient(_s);
+      await _mqtt.connect();
+    } catch (e) {
+      log('got error when reconnecting mqtt: $e');
+    }
+  }
 
   final Logger _logger;
 

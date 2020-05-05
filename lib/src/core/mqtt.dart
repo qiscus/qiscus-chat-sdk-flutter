@@ -5,8 +5,9 @@ import 'package:qiscus_chat_sdk/src/core/core.dart';
 MqttClient getMqttClient(Storage storage) {
   final clientId = () => 'dart-sdk-${DateTime.now().millisecondsSinceEpoch}';
 
+  var clientId_ = clientId();
   final connectionMessage = MqttConnectMessage() //
-          .withClientIdentifier(clientId())
+          .withClientIdentifier(clientId_)
           .withWillTopic('u/${storage.currentUser?.id}/s')
           .withWillMessage('0')
           .withWillRetain()
@@ -14,7 +15,7 @@ MqttClient getMqttClient(Storage storage) {
       ;
 
   var brokerUrl = storage.brokerUrl;
-  var client = MqttServerClient(brokerUrl, 'sdk-dart')
+  var client = MqttServerClient(brokerUrl, clientId_)
         ..logging(on: false)
         ..useWebSocket = true
         ..port = 1886
