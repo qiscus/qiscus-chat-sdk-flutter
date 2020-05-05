@@ -1,3 +1,7 @@
+## 1.0.0+alpha5
+
+- Fix not subscribing to new message
+
 ## 1.0.0+alpha4
 
 - Fix not handling error on future `onError` handler
