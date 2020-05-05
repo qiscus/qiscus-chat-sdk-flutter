@@ -173,7 +173,7 @@ class QiscusSDK {
     return _authenticated.andThen(Task.delay(() {
       _get<Storage>().clear();
       _get<RealtimeService>('mqtt-service').end();
-      _get<RealtimeService>('mqtt-service').end();
+      _get<RealtimeService>('sync-service').end();
     })).run();
   }
 
@@ -787,11 +787,12 @@ class QiscusSDK {
   }
 
   Task<Either<Exception, void>> _subscribes(String token) {
-    return _get<OnMessageReceived>()
+    final onMessageReceived = _get<OnMessageReceived>();
+    final realtimeService = _get<RealtimeService>();
+    return onMessageReceived
         .subscribe(TokenParams(token))
         .bind((stream) => Task.delay(() => _receiveMessage(stream)))
-        .andThen(_get<RealtimeService>()
-            .subscribe(TopicBuilder.notification(token)));
+        .andThen(realtimeService.subscribe(TopicBuilder.notification(token)));
   }
 
   Future<QAccount> setUser$({
@@ -810,7 +811,15 @@ class QiscusSDK {
       extras: extras,
     );
     return authenticate(params)
-        .tap((data) => _subscribes(data.value1))
+        .bind((either) {
+          return either.fold(
+            (e) =>
+                Task.delay(() => left<Exception, Tuple2<String, Account>>(e)),
+            (tuple) => _subscribes(tuple.value1).andThen(Task.delay(
+              () => right<Exception, Tuple2<String, Account>>(tuple),
+            )),
+          );
+        })
         .run()
         .then((either) => either.fold(
               (error) => Future.error(error),
