@@ -150,7 +150,9 @@ class QiscusSDK {
     @required String userId,
     Map<String, dynamic> extras,
     @required Function2<QChatRoom, Exception, void> callback,
-  }) {}
+  }) =>
+      chatUser$(userId: userId, extras: extras)
+          .toCallback2(callback);
 
   Future<void> clearMessagesByChatRoomId$({
     @required List<String> roomUniqueIds,
