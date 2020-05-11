@@ -170,7 +170,7 @@ class RoomRepositoryImpl implements RoomRepository {
     int page,
   }) {
     return Task(() => _api.getRoomInfo(GetRoomInfoRequest(
-          roomIds: roomIds,
+          roomIds: roomIds.map((it) => it.toString()).toList(),
           uniqueIds: uniqueIds,
           withParticipants: withParticipants,
           withRemoved: withRemoved,

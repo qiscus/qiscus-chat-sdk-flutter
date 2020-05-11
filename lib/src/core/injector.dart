@@ -86,7 +86,7 @@ abstract class Injector {
         ));
     factory(() => BlockUserUseCase(resolve<UserRepository>()));
     factory(() => UnblockUserUseCase(resolve<UserRepository>()));
-    factory(() => GetBlocedUserUseCase(resolve<UserRepository>()));
+    factory(() => GetBlockedUserUseCase(resolve<UserRepository>()));
     factory(() => GetNonceUseCase(resolve<UserRepository>()));
     factory(() => GetUserDataUseCase(resolve<UserRepository>()));
     factory(() => GetUsersUseCase(resolve<UserRepository>()));

@@ -27,7 +27,7 @@ Map<String, dynamic> _$UpdateRoomRequestToJson(UpdateRoomRequest instance) =>
 
 GetRoomInfoRequest _$GetRoomInfoRequestFromJson(Map<String, dynamic> json) {
   return GetRoomInfoRequest(
-    roomIds: (json['room_id'] as List)?.map((e) => e as int)?.toList(),
+    roomIds: (json['room_id'] as List)?.map((e) => e as String)?.toList(),
     uniqueIds:
         (json['room_unique_id'] as List)?.map((e) => e as String)?.toList(),
     withParticipants: json['show_participants'] as bool,
@@ -340,7 +340,7 @@ class _RoomApi implements RoomApi {
     final Response<String> _result = await _dio.request('rooms_info',
         queryParameters: queryParameters,
         options: RequestOptions(
-            method: 'GET',
+            method: 'POST',
             headers: <String, dynamic>{},
             extra: _extra,
             baseUrl: baseUrl),

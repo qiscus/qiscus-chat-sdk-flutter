@@ -40,7 +40,7 @@ abstract class RoomApi {
   Future<String> clearMessages(
       @Query('room_channel_ids') List<String> uniqueIds);
 
-  @GET('rooms_info')
+  @POST('rooms_info')
   Future<String> getRoomInfo(@Body() GetRoomInfoRequest request);
 
   @GET('total_unread_count')
@@ -84,7 +84,7 @@ class GetRoomInfoRequest {
     this.page,
   });
   @JsonKey(name: 'room_id', nullable: true)
-  final List<int> roomIds;
+  final List<String> roomIds;
   @JsonKey(name: 'room_unique_id', nullable: null)
   final List<String> uniqueIds;
   @JsonKey(name: 'show_participants', nullable: true)

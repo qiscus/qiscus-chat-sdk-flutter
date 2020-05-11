@@ -10,9 +10,9 @@ class GetBlockedUserParams {
   const GetBlockedUserParams({this.page, this.limit});
 }
 
-class GetBlocedUserUseCase
+class GetBlockedUserUseCase
     extends UseCase<UserRepository, List<User>, GetBlockedUserParams> {
-  const GetBlocedUserUseCase(UserRepository repository) : super(repository);
+  const GetBlockedUserUseCase(UserRepository repository) : super(repository);
 
   @override
   Task<Either<Exception, List<User>>> call(GetBlockedUserParams params) {

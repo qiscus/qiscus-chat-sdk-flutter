@@ -85,12 +85,10 @@ class QiscusSDK {
     Injector.setup();
   }
 
+  final _get = Injector.get;
   String get appId => _get<Storage>()?.appId;
-
   QAccount get currentUser => _get<Storage>()?.currentUser?.toModel();
-
   bool get isLogin => _get<Storage>()?.currentUser != null;
-
   String get token => _get<Storage>()?.token;
 
   Task<Either<Exception, void>> get _authenticated {
@@ -107,29 +105,39 @@ class QiscusSDK {
         ));
   }
 
+  Future<List<QParticipant>> addParticipants$({
+    @required int roomId,
+    @required List<String> userIds,
+  }) async {
+    final params = ParticipantParams(roomId, userIds);
+    final useCase = _get<AddParticipantUseCase>();
+    final addParticipant = _authenticated.to(useCase(params));
+    return addParticipant
+        .rightMap((r) => r.map((m) => m.toModel()).toList())
+        .toFuture();
+  }
+
   void addParticipants({
     @required int roomId,
     @required List<String> userIds,
     @required void Function(List<QParticipant>, Exception) callback,
   }) {
-    final addParticipant = _get<AddParticipantUseCase>();
-    _authenticated
-        .andThen(addParticipant(ParticipantParams(roomId, userIds)))
-        .rightMap((r) => r.map((m) => m.toModel()).toList())
-        .toCallback(callback)
-        .run();
+    addParticipants$(roomId: roomId, userIds: userIds).toCallback2(callback);
+  }
+
+  Future<QUser> blockUser$({@required String userId}) {
+    final blockUser = _get<BlockUserUseCase>();
+    return _authenticated
+        .andThen(blockUser(BlockUserParams(userId)))
+        .rightMap((it) => it.toModel())
+        .toFuture();
   }
 
   void blockUser({
     @required String userId,
     @required void Function(QUser, Exception) callback,
   }) {
-    final blocUser = _get<BlockUserUseCase>();
-    _authenticated
-        .andThen(blocUser(BlockUserParams(userId)))
-        .rightMap((it) => it.toModel())
-        .toCallback(callback)
-        .run();
+    blockUser$(userId: userId).toCallback2(callback);
   }
 
   Future<QChatRoom> chatUser$({
@@ -139,18 +147,16 @@ class QiscusSDK {
     return _authenticated
         .andThen(_get<GetRoomByUserIdUseCase>()(UserIdParams(userId)))
         .rightMap((u) => u.toModel())
-        .run()
-        .then((either) => either.fold(
-              (err) => Future<QChatRoom>.error(err),
-              (room) => Future.value(room),
-            ));
+        .toFuture();
   }
 
   void chatUser({
     @required String userId,
     Map<String, dynamic> extras,
     @required Function2<QChatRoom, Exception, void> callback,
-  }) {}
+  }) {
+    chatUser$(userId: userId, extras: extras).toCallback2(callback);
+  }
 
   Future<void> clearMessagesByChatRoomId$({
     @required List<String> roomUniqueIds,
@@ -198,11 +204,7 @@ class QiscusSDK {
           options: extras,
         )))
         .rightMap((room) => room.toModel())
-        .run()
-        .then((either) => either.fold(
-              (err) => Future.error(err),
-              (room) => Future.value(room),
-            ));
+        .toFuture();
   }
 
   void createChannel({
@@ -239,16 +241,21 @@ class QiscusSDK {
         .run();
   }
 
+  Future<List<QMessage>> deleteMessages$({
+    @required List<String> messageUniqueIds,
+  }) {
+    final deleteMessages = _get<DeleteMessageUseCase>();
+    return _authenticated
+        .andThen(deleteMessages(DeleteMessageParams(messageUniqueIds)))
+        .rightMap((it) => it.map((i) => i.toModel()).toList())
+        .toFuture();
+  }
+
   void deleteMessages({
     @required List<String> messageUniqueIds,
     @required void Function(List<QMessage>, Exception) callback,
   }) {
-    final useCase = _get<DeleteMessageUseCase>();
-    _authenticated
-        .andThen(useCase(DeleteMessageParams(messageUniqueIds)))
-        .rightMap((it) => it.map((i) => i.toModel()).toList())
-        .toCallback(callback)
-        .run();
+    deleteMessages$(messageUniqueIds: messageUniqueIds).toCallback2(callback);
   }
 
   void enableDebugMode({
@@ -260,6 +267,27 @@ class QiscusSDK {
       ..logLevel = level;
   }
 
+  Future<List<QChatRoom>> getAllChatRooms$({
+    bool showParticipant,
+    bool showRemoved,
+    bool showEmpty,
+    int limit,
+    int page,
+  }) {
+    final params = GetAllRoomsParams(
+      withParticipants: showParticipant,
+      withRemovedRoom: showRemoved,
+      withEmptyRoom: showEmpty,
+      limit: limit,
+      page: page,
+    );
+    final useCase = _get<GetAllRoomsUseCase>();
+    return _authenticated
+        .andThen(useCase(params))
+        .rightMap((r) => r.map((c) => c.toModel()).toList())
+        .toFuture();
+  }
+
   void getAllChatRooms({
     bool showParticipant,
     bool showRemoved,
@@ -268,50 +296,76 @@ class QiscusSDK {
     int page,
     @required void Function(List<QChatRoom>, Exception) callback,
   }) {
-    final useCase = _get<GetAllRoomsUseCase>();
-    _authenticated
-        .andThen(useCase(GetAllRoomsParams(
-          withParticipants: showParticipant,
-          withRemovedRoom: showRemoved,
-          withEmptyRoom: showEmpty,
-          limit: limit,
-          page: page,
-        )))
-        .rightMap((r) => r.map((c) => c.toModel()).toList())
-        .toCallback(callback)
-        .run();
+    getAllChatRooms$(
+      showParticipant: showParticipant,
+      showRemoved: showRemoved,
+      showEmpty: showEmpty,
+      limit: limit,
+      page: page,
+    ).toCallback2(callback);
   }
 
-  final _get = Injector.get;
+  Future<List<QUser>> getBlockedUsers$({int page, int limit}) {
+    final params = GetBlockedUserParams(page: page, limit: limit);
+    final useCase = _get<GetBlockedUserUseCase>();
+    return _authenticated
+        .andThen(useCase(params))
+        .rightMap((it) => it.map((u) => u.toModel()).toList())
+        .toFuture();
+  }
 
   void getBlockedUsers({
     int page,
     int limit,
     @required void Function(List<QUser>, Exception) callback,
   }) {
-    _authenticated
-        .andThen(_get<GetBlocedUserUseCase>().call(
-          GetBlockedUserParams(
-            page: page,
-            limit: limit,
-          ),
-        ))
-        .rightMap((it) => it.map((u) => u.toModel()).toList())
-        .toCallback(callback)
-        .run();
+    getBlockedUsers$(page: page, limit: limit).toCallback2(callback);
+  }
+
+  Future<QChatRoom> getChannel$({@required String uniqueId}) {
+    final params = GetOrCreateChannelParams(uniqueId);
+    final useCase = _get<GetOrCreateChannelUseCase>();
+    return _authenticated
+        .andThen(useCase(params))
+        .rightMap((r) => r.toModel())
+        .toFuture();
   }
 
   void getChannel({
     @required String uniqueId,
     @required void Function(QChatRoom, Exception) callback,
   }) {
-    _authenticated
-        .andThen(_get<GetOrCreateChannelUseCase>()(GetOrCreateChannelParams(
-          uniqueId,
-        )))
-        .rightMap((room) => room.toModel())
-        .toCallback(callback)
-        .run();
+    getChannel$(uniqueId: uniqueId).toCallback2(callback);
+  }
+
+  Future<List<QChatRoom>> getChatRooms$({
+    List<int> roomIds,
+    List<String> uniqueIds,
+    int page,
+    bool showRemoved,
+    bool showParticipants,
+  }) async {
+    const errorMessage = 'Please specify either `roomIds` or `uniqueIds`';
+    // Throw error if both roomIds and uniqueIds are null
+    if (roomIds == null && uniqueIds == null) {
+      return Future<List<QChatRoom>>.error(Exception(errorMessage));
+    }
+    if (roomIds != null && uniqueIds != null) {
+      return Future<List<QChatRoom>>.error(Exception(errorMessage));
+    }
+
+    final params = GetRoomInfoParams(
+      roomIds: roomIds,
+      uniqueIds: uniqueIds,
+      withRemoved: showRemoved,
+      withParticipants: showParticipants,
+      page: page,
+    );
+    final useCase = _get<GetRoomInfoUseCase>();
+    return _authenticated
+        .andThen(useCase(params))
+        .rightMap((r) => r.map((it) => it.toModel()).toList())
+        .toFuture();
   }
 
   void getChatRooms({
@@ -322,43 +376,57 @@ class QiscusSDK {
     bool showParticipants,
     @required void Function(List<QChatRoom>, Exception) callback,
   }) {
-    const errorMessage = 'Please specify either `roomIds` or `uniqueIds`';
-    // Throw error if both roomIds and uniqueIds are null
-    assert(roomIds == null && uniqueIds == null, errorMessage);
-    assert(roomIds != null && uniqueIds != null, errorMessage);
+    getChatRooms$(
+      roomIds: roomIds,
+      uniqueIds: uniqueIds,
+      page: page,
+      showRemoved: showRemoved,
+      showParticipants: showParticipants,
+    ).toCallback2(callback);
+  }
 
-    _authenticated
-        .andThen(_get<GetRoomInfoUseCase>()(GetRoomInfoParams(
-          roomIds: roomIds,
-          uniqueIds: uniqueIds,
-          withRemoved: showRemoved,
-          withParticipants: showParticipants,
-          page: page,
-        )))
-        .rightMap((r) => r.map((it) => it.toModel()).toList())
-        .toCallback(callback)
-        .run();
+  Future<QChatRoomWithMessages> getChatRoomWithMessages$({
+    @required int roomId,
+  }) async {
+    final useCase = _get<GetRoomWithMessagesUseCase>();
+    return _authenticated
+        .andThen(useCase(RoomIdParams(roomId)))
+        .rightMap((it) => QChatRoomWithMessages(
+              it.value1.toModel(),
+              it.value2.map((i) => i.toModel()).toList(),
+            ))
+        .toFuture();
   }
 
   void getChatRoomWithMessages({
     @required int roomId,
     @required void Function(QChatRoom, List<QMessage>, Exception) callback,
   }) {
-    _authenticated
-        .andThen(_get<GetRoomWithMessagesUseCase>()(RoomIdParams(roomId)))
-        .leftMap((err) => callback(null, null, err))
-        .rightMap((it) => callback(
-              it.value1.toModel(),
-              it.value2.map((m) => m.toModel()).toList(),
-              null,
-            ))
-        .run();
+    getChatRoomWithMessages$(roomId: roomId).then(
+        (value) => callback(value.room, value.messages, null),
+        onError: (Object error) => callback(null, null, error as Exception));
   }
 
-  void getJWTNonce({
-    void Function(String, Exception) callback,
+  Future<String> getJWTNonce$() {
+    return _get<GetNonceUseCase>()(NoParams()).toFuture();
+  }
+
+  void getJWTNonce({void Function(String, Exception) callback}) {
+    getJWTNonce$().toCallback2(callback);
+  }
+
+  Future<List<QMessage>> getNextMessagesById$({
+    @required int roomId,
+    @required int messageId,
+    int limit,
   }) {
-    _get<GetNonceUseCase>()(NoParams()).toCallback(callback).run();
+    final useCase = _get<GetMessageListUseCase>();
+    final params =
+        GetMessageListParams(roomId, messageId, after: true, limit: limit);
+    return _authenticated
+        .andThen(useCase(params))
+        .rightMap((it) => it.map((it) => it.toModel()).toList())
+        .toFuture();
   }
 
   void getNextMessagesById({
@@ -367,13 +435,8 @@ class QiscusSDK {
     int limit,
     @required void Function(List<QMessage>, Exception) callback,
   }) {
-    _authenticated
-        .andThen(_get<GetMessageListUseCase>()(
-          GetMessageListParams(roomId, messageId, after: true, limit: limit),
-        ))
-        .rightMap((it) => it.map((it) => it.toModel()).toList())
-        .toCallback(callback)
-        .run();
+    getNextMessagesById$(roomId: roomId, messageId: messageId, limit: limit)
+        .toCallback2(callback);
   }
 
   void getParticipants({
@@ -1092,6 +1155,30 @@ class QiscusSDK {
   }
 }
 
+class TaskGenericOperator<In, Out> {
+  final Task<In> _;
+  const TaskGenericOperator(this._);
+
+  Task<Out> operator >>(Task<Out> other) => _.andThen(other);
+}
+
+extension __<A, B> on Task<A> {
+  TaskGenericOperator<A, Out> call<Out>() => TaskGenericOperator<A, Out>(this);
+  Task<Out> to<Out>(Task<Out> other) => this.andThen(other);
+}
+
+void main() {
+  var task1 = Task.delay(() => print('Task1'));
+  var task2 = Task.delay(() => print('Task2'));
+  var task3 = Task.delay(() => 'Hi there');
+
+//  final task = task1.to(task2).to(task3);
+
+  final task = task1<void>() >> task2<String>() >> task3;
+  final task_ = task<String>() >> task3;
+  task.run();
+}
+
 extension _TaskX<L1, R1> on Task<Either<L1, R1>> {
   Task<Either<void, void>> toCallback(void Function(R1, L1) callback) {
     return leftMap((err) {
@@ -1099,6 +1186,13 @@ extension _TaskX<L1, R1> on Task<Either<L1, R1>> {
     }).rightMap((val) {
       callback(val, null);
     });
+  }
+
+  Future<R1> toFuture() {
+    return run().then((either) => either.fold(
+          (err) => Future<R1>.error(err),
+          (data) => Future.value(data),
+        ));
   }
 }
 
@@ -1116,4 +1210,11 @@ extension _FutureX<T> on Future<T> {
       onError: (Object error) => callback(null, error as Exception),
     );
   }
+}
+
+class QChatRoomWithMessages {
+  const QChatRoomWithMessages(this.room, this.messages);
+
+  final QChatRoom room;
+  final List<QMessage> messages;
 }
