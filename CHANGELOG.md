@@ -1,3 +1,9 @@
+## 1.0.0+alpha6
+
+- Fix cannot get user data
+- Fix cannot determine if room are single, group, or channel
+- Add more method which return Future
+
 ## 1.0.0+alpha5
 
 - Fix not subscribing to new message
