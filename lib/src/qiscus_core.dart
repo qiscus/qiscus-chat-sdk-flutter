@@ -111,7 +111,7 @@ class QiscusSDK {
   }) async {
     final params = ParticipantParams(roomId, userIds);
     final useCase = _get<AddParticipantUseCase>();
-    final addParticipant = _authenticated.to(useCase(params));
+    final addParticipant = _authenticated.andThen(useCase(params));
     return addParticipant
         .rightMap((r) => r.map((m) => m.toModel()).toList())
         .toFuture();
@@ -492,14 +492,18 @@ class QiscusSDK {
         .run();
   }
 
+  Future<QAccount> getUserData$() async {
+    var useCase = _get<GetUserDataUseCase>();
+    return _authenticated
+        .andThen(useCase(noParams))
+        .rightMap((u) => u.toModel())
+        .toFuture();
+  }
+
   void getUserData({
     void Function(QAccount, Exception) callback,
   }) {
-    _authenticated
-        .andThen(_get<GetUserDataUseCase>().call(NoParams()))
-        .rightMap((user) => user.toModel())
-        .toCallback(callback)
-        .run();
+    getUserData$().toCallback2(callback);
   }
 
   void getUsers({
@@ -682,18 +686,31 @@ class QiscusSDK {
         .run();
   }
 
+  Future<bool> registerDeviceToken$({
+    @required String token,
+    bool isDevelopment,
+  }) async {
+    var useCase = _get<RegisterDeviceTokenUseCase>();
+    var params = DeviceTokenParams(token, isDevelopment);
+    return _authenticated.andThen(useCase(params)).toFuture();
+  }
+
   void registerDeviceToken({
     @required String token,
     bool isDevelopment,
     void Function(bool, Exception) callback,
   }) {
-    _authenticated
-        .andThen(_get<RegisterDeviceTokenUseCase>()(DeviceTokenParams(
-          token,
-          isDevelopment,
-        )))
-        .toCallback(callback)
-        .run();
+    registerDeviceToken$(token: token, isDevelopment: isDevelopment)
+        .toCallback2(callback);
+  }
+
+  Future<bool> removeDeviceToken$({
+    @required String token,
+    bool isDevelopment,
+  }) async {
+    var useCase = _get<UnregisterDeviceTokenUseCase>();
+    var params = DeviceTokenParams(token, isDevelopment);
+    return _authenticated.andThen(useCase(params)).toFuture();
   }
 
   void removeDeviceToken({
@@ -701,13 +718,8 @@ class QiscusSDK {
     bool isDevelopment,
     void Function(bool, Exception) callback,
   }) {
-    _authenticated
-        .andThen(_get<UnregisterDeviceTokenUseCase>()(DeviceTokenParams(
-          token,
-          isDevelopment,
-        )))
-        .toCallback(callback)
-        .run();
+    return removeDeviceToken$(token: token, isDevelopment: isDevelopment)
+        .toCallback2(callback);
   }
 
   void removeParticipants({
@@ -1025,21 +1037,31 @@ class QiscusSDK {
         .run();
   }
 
+  Future<QAccount> updateUser$({
+    String name,
+    String avatarUrl,
+    Map<String, dynamic> extras,
+  }) async {
+    var useCase = _get<UpdateUserUseCase>();
+    var params = UpdateUserParams(
+      name: name,
+      avatarUrl: avatarUrl,
+      extras: extras,
+    );
+    return _authenticated
+        .andThen(useCase(params))
+        .rightMap((u) => u.toModel())
+        .toFuture();
+  }
+
   void updateUser({
     String name,
     String avatarUrl,
     Map<String, dynamic> extras,
     @required void Function(QAccount, Exception) callback,
   }) {
-    _authenticated
-        .andThen(_get<UpdateUserUseCase>()(UpdateUserParams(
-          name: name,
-          avatarUrl: avatarUrl,
-          extras: extras,
-        )))
-        .rightMap((u) => u.toModel())
-        .toCallback(callback)
-        .run();
+    updateUser$(name: name, avatarUrl: avatarUrl, extras: extras)
+        .toCallback2(callback);
   }
 
   void upload({
@@ -1153,30 +1175,6 @@ class QiscusSDK {
       type: QMessageType.custom,
     );
   }
-}
-
-class TaskGenericOperator<In, Out> {
-  final Task<In> _;
-  const TaskGenericOperator(this._);
-
-  Task<Out> operator >>(Task<Out> other) => _.andThen(other);
-}
-
-extension __<A, B> on Task<A> {
-  TaskGenericOperator<A, Out> call<Out>() => TaskGenericOperator<A, Out>(this);
-  Task<Out> to<Out>(Task<Out> other) => this.andThen(other);
-}
-
-void main() {
-  var task1 = Task.delay(() => print('Task1'));
-  var task2 = Task.delay(() => print('Task2'));
-  var task3 = Task.delay(() => 'Hi there');
-
-//  final task = task1.to(task2).to(task3);
-
-  final task = task1<void>() >> task2<String>() >> task3;
-  final task_ = task<String>() >> task3;
-  task.run();
 }
 
 extension _TaskX<L1, R1> on Task<Either<L1, R1>> {

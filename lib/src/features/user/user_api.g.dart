@@ -301,8 +301,7 @@ class _UserApi implements UserApi {
     final queryParameters = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(request?.toJson() ?? <String, dynamic>{});
-    final Response<Map<String, dynamic>> _result = await _dio.request(
-        'my_profile',
+    final Response<String> _result = await _dio.request('my_profile',
         queryParameters: queryParameters,
         options: RequestOptions(
             method: 'PATCH',
@@ -310,7 +309,7 @@ class _UserApi implements UserApi {
             extra: _extra,
             baseUrl: baseUrl),
         data: _data);
-    final value = Account.fromJson(_result.data);
+    final value = _result.data;
     return Future.value(value);
   }
 }

@@ -133,6 +133,10 @@ class UserRepositoryImpl implements UserRepository {
             avatar_url: avatarUrl,
             extras: extras,
           ),
-        )).attempt().leftMapToException();
+        )).attempt().leftMapToException().rightMap((String str) {
+      var json = jsonDecode(str) as Map<String, dynamic>;
+      var userJson = json['results']['user'] as Map<String, dynamic>;
+      return Account.fromJson(userJson);
+    });
   }
 }

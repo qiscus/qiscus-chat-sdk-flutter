@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
@@ -66,8 +67,9 @@ class ChatRoom {
     );
 
     QRoomType _type;
-    var jsonType = json['room_type'] as String;
+    var jsonType = json['chat_type'] as String;
     var isChannel = json['is_public_channel'] as bool;
+
     if (isChannel) {
       _type = QRoomType.channel;
     } else if (jsonType == 'single') {

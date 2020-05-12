@@ -162,8 +162,8 @@ abstract class UserApi {
   @POST('remove_user_device_token', autoCastResponse: false)
   Future<String> unregisterDeviceToken(@Body() DeviceTokenRequest request);
 
-  @PATCH('my_profile')
-  Future<Account> updateUser(@Body() UpdateUserRequest request);
+  @PATCH('my_profile', autoCastResponse: false)
+  Future<String> updateUser(@Body() UpdateUserRequest request);
 }
 
 @immutable
