@@ -25,6 +25,8 @@ typedef UserTypingHandler = void Function(String, int, bool);
 class QiscusSDK {
   static final instance = QiscusSDK();
 
+  final injector = Injector();
+
   factory QiscusSDK() => QiscusSDK._internal();
 
   static Future<QiscusSDK> withAppId$(String appId) async {
@@ -82,13 +84,19 @@ class QiscusSDK {
   }
 
   QiscusSDK._internal() {
-    Injector.setup();
+    injector.setup();
   }
 
-  final _get = Injector.get;
+  T _get<T>([String name]) {
+    return injector.get<T>(name);
+  }
+
   String get appId => _get<Storage>()?.appId;
+
   QAccount get currentUser => _get<Storage>()?.currentUser?.toModel();
+
   bool get isLogin => _get<Storage>()?.currentUser != null;
+
   String get token => _get<Storage>()?.token;
 
   Task<Either<Exception, void>> get _authenticated {

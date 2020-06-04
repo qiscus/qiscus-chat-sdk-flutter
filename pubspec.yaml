@@ -11,9 +11,9 @@ environment:
 dependencies:
   sealed_unions: ^3.0.2+2
   json_annotation: ^3.0.1
-  async: ^2.4.0
+  async: ^2.4.1
   meta: ^1.1.8
-  dartz: ^0.8.9
+  dartz: ^0.9.1
   mqtt_client: ^6.0.0
   retrofit: ^1.3.0
   logger: ^0.8.3
@@ -22,7 +22,7 @@ dependencies:
   pretty_dio_logger: ^1.1.1
   flutter:
     sdk: flutter
-  get_it: ^4.0.1
+  get_it: ^4.0.2
 
 dev_dependencies:
   json_serializable: ^3.2.5

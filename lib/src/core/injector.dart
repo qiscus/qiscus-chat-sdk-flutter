@@ -11,20 +11,30 @@ import 'package:qiscus_chat_sdk/src/features/room/room.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 
 @sealed
-abstract class Injector {
-  static final c = GetIt.asNewInstance();
-  static final resolve = c.get;
-  static final singleton = c.registerLazySingleton;
-  static final lazySingleton = c.registerLazySingleton;
-  static final factory = c.registerFactory;
+class Injector {
+  final c = GetIt.asNewInstance();
 
-  static T get<T>([String name]) => resolve<T>(instanceName: name);
+  void singleton<T>(T Function() inst, [String name]) {
+    c.registerLazySingleton<T>(inst, instanceName: name);
+  }
 
-  static void setup() {
+  void factory_<T>(T Function() inst, [String name]) {
+    c.registerFactory(inst, instanceName: name);
+  }
+
+  T resolve<T>([String name]) {
+    return c.get<T>(instanceName: name);
+  }
+
+  T get<T>([String name]) {
+    return resolve<T>(name);
+  }
+
+  void setup() {
     _configure();
   }
 
-  static void _configure() {
+  void _configure() {
     // core
     singleton(() => Storage());
     singleton(() => Logger(resolve<Storage>()));
@@ -33,7 +43,8 @@ abstract class Injector {
     singleton(() => CoreApi(resolve<Dio>()));
     singleton<CoreRepository>(() => CoreRepositoryImpl(resolve<CoreApi>()));
     singleton(
-        () => AppConfigUseCase(resolve<CoreRepository>(), resolve<Storage>()));
+      () => AppConfigUseCase(resolve<CoreRepository>(), resolve<Storage>()),
+    );
 
     // realtime
     singleton(() => SyncApi(resolve<Dio>()));
@@ -41,6 +52,7 @@ abstract class Injector {
           () => resolve<MqttClient>(),
           resolve<Storage>(),
           resolve<Logger>(),
+          resolve<Dio>(),
         ));
     singleton(() => Interval(
           resolve<Storage>(),
@@ -50,9 +62,10 @@ abstract class Injector {
           resolve<Storage>(),
           resolve<SyncApi>(),
           resolve<Interval>(),
-          resolve<Logger>(),
-        ));
-    singleton<RealtimeService>(() => RealtimeServiceImpl(
+      resolve<Logger>(),
+    ));
+    singleton<RealtimeService>(() =>
+        RealtimeServiceImpl(
           resolve<MqttServiceImpl>(),
           resolve<SyncServiceImpl>(),
         ));
@@ -60,39 +73,42 @@ abstract class Injector {
     // room
     singleton(() => RoomApi(resolve<Dio>()));
     singleton<RoomRepository>(() => RoomRepositoryImpl(resolve<RoomApi>()));
-    factory(() => ClearRoomMessagesUseCase(resolve<RoomRepository>()));
-    factory(() => CreateGroupChatUseCase(resolve<RoomRepository>()));
-    factory(() => GetRoomUseCase(resolve<RoomRepository>()));
-    factory(() => GetRoomByUserIdUseCase(resolve<RoomRepository>()));
-    factory(() => GetRoomInfoUseCase(resolve<RoomRepository>()));
-    factory(() => GetRoomWithMessagesUseCase(resolve<RoomRepository>()));
-    factory(() => GetAllRoomsUseCase(resolve<RoomRepository>()));
-    factory(() => GetTotalUnreadCountUseCase(resolve<RoomRepository>()));
-    factory(() => AddParticipantUseCase(resolve<RoomRepository>()));
-    factory(() => GetParticipantsUseCase(resolve<RoomRepository>()));
-    factory(() => RemoveParticipantUseCase(resolve<RoomRepository>()));
-    factory(() => UpdateRoomUseCase(resolve<RoomRepository>()));
+    factory_(() => ClearRoomMessagesUseCase(resolve<RoomRepository>()));
+    factory_(() => CreateGroupChatUseCase(resolve<RoomRepository>()));
+    factory_(() => GetRoomUseCase(resolve<RoomRepository>()));
+    factory_(() => GetRoomByUserIdUseCase(resolve<RoomRepository>()));
+    factory_(() => GetRoomInfoUseCase(resolve<RoomRepository>()));
+    factory_(() => GetRoomWithMessagesUseCase(resolve<RoomRepository>()));
+    factory_(() => GetAllRoomsUseCase(resolve<RoomRepository>()));
+    factory_(() => GetTotalUnreadCountUseCase(resolve<RoomRepository>()));
+    factory_(() => AddParticipantUseCase(resolve<RoomRepository>()));
+    factory_(() => GetParticipantsUseCase(resolve<RoomRepository>()));
+    factory_(() => RemoveParticipantUseCase(resolve<RoomRepository>()));
+    factory_(() => UpdateRoomUseCase(resolve<RoomRepository>()));
 
     // user
     singleton(() => UserApi(resolve<Dio>()));
     singleton<UserRepository>(() => UserRepositoryImpl(resolve<UserApi>()));
-    factory(() => AuthenticateUserUseCase(
+    factory_(() =>
+        AuthenticateUserUseCase(
           resolve<UserRepository>(),
           resolve<Storage>(),
         ));
-    factory(() => AuthenticateUserWithTokenUseCase(
+    factory_(() =>
+        AuthenticateUserWithTokenUseCase(
           resolve<UserRepository>(),
           resolve<Storage>(),
         ));
-    factory(() => BlockUserUseCase(resolve<UserRepository>()));
-    factory(() => UnblockUserUseCase(resolve<UserRepository>()));
-    factory(() => GetBlockedUserUseCase(resolve<UserRepository>()));
-    factory(() => GetNonceUseCase(resolve<UserRepository>()));
-    factory(() => GetUserDataUseCase(resolve<UserRepository>()));
-    factory(() => GetUsersUseCase(resolve<UserRepository>()));
-    factory(() => RegisterDeviceTokenUseCase(resolve<UserRepository>()));
-    factory(() => UnregisterDeviceTokenUseCase(resolve<UserRepository>()));
-    factory(() => UpdateUserUseCase(
+    factory_(() => BlockUserUseCase(resolve<UserRepository>()));
+    factory_(() => UnblockUserUseCase(resolve<UserRepository>()));
+    factory_(() => GetBlockedUserUseCase(resolve<UserRepository>()));
+    factory_(() => GetNonceUseCase(resolve<UserRepository>()));
+    factory_(() => GetUserDataUseCase(resolve<UserRepository>()));
+    factory_(() => GetUsersUseCase(resolve<UserRepository>()));
+    factory_(() => RegisterDeviceTokenUseCase(resolve<UserRepository>()));
+    factory_(() => UnregisterDeviceTokenUseCase(resolve<UserRepository>()));
+    factory_(() =>
+        UpdateUserUseCase(
           resolve<UserRepository>(),
           resolve<Storage>(),
         ));
@@ -102,12 +118,16 @@ abstract class Injector {
     // message
     singleton(() => MessageApi(resolve<Dio>()));
     singleton<MessageRepository>(
-        () => MessageRepositoryImpl(resolve<MessageApi>()));
-    factory(() => DeleteMessageUseCase(resolve<MessageRepository>()));
-    factory(() => GetMessageListUseCase(resolve<MessageRepository>()));
-    factory(() => SendMessageUseCase(resolve<MessageRepository>()));
-    factory(() => UpdateMessageStatusUseCase(resolve<MessageRepository>()));
-    singleton(() => OnMessageReceived(resolve<RealtimeService>()));
+            () => MessageRepositoryImpl(resolve<MessageApi>()));
+    factory_(() => DeleteMessageUseCase(resolve<MessageRepository>()));
+    factory_(() => GetMessageListUseCase(resolve<MessageRepository>()));
+    factory_(() => SendMessageUseCase(resolve<MessageRepository>()));
+    factory_(() => UpdateMessageStatusUseCase(resolve<MessageRepository>()));
+    singleton(() =>
+        OnMessageReceived(
+          resolve<RealtimeService>(),
+          resolve<UpdateMessageStatusUseCase>(),
+        ));
     singleton(() => OnMessageDelivered(resolve<RealtimeService>()));
     singleton(() => OnMessageRead(resolve<RealtimeService>()));
     singleton(() => OnMessageDeleted(resolve<RealtimeService>()));

@@ -6,7 +6,6 @@ import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
-import 'package:qiscus_chat_sdk/src/core/injector.dart';
 import 'package:qiscus_chat_sdk/src/core/storage.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
@@ -15,7 +14,7 @@ import 'package:sealed_unions/implementations/union_2_impl.dart';
 import 'package:sealed_unions/union_2.dart';
 
 class MqttServiceImpl implements RealtimeService {
-  MqttServiceImpl(this._getClient, this._s, this._logger) {
+  MqttServiceImpl(this._getClient, this._s, this._logger, this._dio) {
     _mqtt.onConnected = () => log('on mqtt connected');
     _mqtt.onDisconnected = () {
       log('on mqtt disconnected');
@@ -49,8 +48,7 @@ class MqttServiceImpl implements RealtimeService {
     }
 
     // get a new broker url by calling lb
-    var dio = Injector.resolve<Dio>();
-    var result = await dio.get<Map<String, dynamic>>(_s.brokerLbUrl);
+    var result = await _dio.get<Map<String, dynamic>>(_s.brokerLbUrl);
     var data = result.data['data'] as Map<String, dynamic>;
     var url = data['url'] as String;
     var port = data['wss_port'] as String;
@@ -64,6 +62,7 @@ class MqttServiceImpl implements RealtimeService {
     }
   }
 
+  final Dio _dio;
   final Logger _logger;
 
   final MqttClient Function() _getClient;
