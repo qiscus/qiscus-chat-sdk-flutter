@@ -534,19 +534,40 @@ class QiscusSDK {
     @required Future<QMessage> Function(QMessage) callback,
   }) {}
 
-  void markAsDelivered({
+  Future<void> markAsDelivered$({
     @required int roomId,
     @required int messageId,
-    @required void Function(Exception) callback,
-  }) {
-    _authenticated
+  }) async {
+    return _authenticated
         .andThen(_get<UpdateMessageStatusUseCase>()(UpdateStatusParams(
           roomId,
           messageId,
           QMessageStatus.delivered,
         )))
-        .toCallback((_, e) => callback(e))
-        .run();
+        .rightMap((_) => null)
+        .toFuture();
+  }
+
+  void markAsDelivered({
+    @required int roomId,
+    @required int messageId,
+    @required void Function(Exception) callback,
+  }) {
+    markAsDelivered$(roomId: roomId, messageId: messageId)
+        .toCallback1(callback);
+  }
+
+  Future<void> markAsRead$({
+    @required int roomId,
+    @required int messageId,
+  }) async {
+    return _authenticated
+        .andThen(_get<UpdateMessageStatusUseCase>()(UpdateStatusParams(
+          roomId,
+          messageId,
+          QMessageStatus.read,
+        )))
+        .toFuture();
   }
 
   void markAsRead({
@@ -554,14 +575,7 @@ class QiscusSDK {
     @required int messageId,
     @required void Function(Exception) callback,
   }) {
-    _authenticated
-        .andThen(_get<UpdateMessageStatusUseCase>()(UpdateStatusParams(
-          roomId,
-          messageId,
-          QMessageStatus.read,
-        )))
-        .toCallback((_, e) => callback(e))
-        .run();
+    markAsRead$(roomId: roomId, messageId: messageId).toCallback1(callback);
   }
 
   Subscription onChatRoomCleared(void Function(int) handler) {
@@ -849,24 +863,12 @@ class QiscusSDK {
         .toCallback1(callback);
   }
 
-  void _markDelivered(int roomId, int messageId) {
-    markAsDelivered(roomId: roomId, messageId: messageId, callback: (_) {});
-  }
-
-  void _receiveMessage(Stream<Message> stream) {
-    stream.tap((message) {
-      message.chatRoomId.fold(() {}, (roomId) {
-        _markDelivered(roomId, message.id);
-      });
-    });
-  }
-
   Task<Either<Exception, void>> _subscribes(String token) {
     final onMessageReceived = _get<OnMessageReceived>();
     final realtimeService = _get<RealtimeService>();
+
     return onMessageReceived
         .subscribe(TokenParams(token))
-        .bind((stream) => Task.delay(() => _receiveMessage(stream)))
         .andThen(realtimeService.subscribe(TopicBuilder.notification(token)));
   }
 
@@ -886,20 +888,17 @@ class QiscusSDK {
       extras: extras,
     );
     return authenticate(params)
-        .bind((either) {
-          return either.fold(
-            (e) =>
-                Task.delay(() => left<Exception, Tuple2<String, Account>>(e)),
-            (tuple) => _subscribes(tuple.value1).andThen(Task.delay(
-              () => right<Exception, Tuple2<String, Account>>(tuple),
-            )),
-          );
-        })
-        .run()
-        .then((either) => either.fold(
-              (error) => Future.error(error),
-              (data) => Future.value(data.value2.toModel()),
-            ));
+        .bind((either) =>
+        either.fold(
+              (e) =>
+              Task.delay(() => left<Exception, Tuple2<String, Account>>(e)),
+              (tuple) =>
+              _subscribes(tuple.value1).andThen(Task.delay(
+                    () => right<Exception, Tuple2<String, Account>>(tuple),
+              )),
+        ))
+        .rightMap((it) => it.value2.toModel())
+        .toFuture();
   }
 
   void setUser({

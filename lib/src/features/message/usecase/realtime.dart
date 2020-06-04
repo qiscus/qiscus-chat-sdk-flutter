@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 
 import '../entity.dart';
+import '../message.dart';
 
 class RoomIdParams extends Equatable {
   const RoomIdParams(this.roomId);
@@ -43,10 +46,10 @@ class OnMessageDeleted
   Stream<Message> mapStream(_) => repository //
       .subscribeMessageDeleted()
       .asyncMap((res) => Message(
-            id: -1,
-            uniqueId: optionOf(res.messageUniqueId),
-            chatRoomId: optionOf(res.messageRoomId),
-          ));
+    id: -1,
+    uniqueId: optionOf(res.messageUniqueId),
+    chatRoomId: optionOf(res.messageRoomId),
+  ));
 
   @override
   RealtimeService get repository => _service;
@@ -67,10 +70,10 @@ class OnMessageRead with Subscription<RealtimeService, RoomIdParams, Message> {
   Stream<Message> mapStream(p) => repository
       .subscribeMessageRead(roomId: p.roomId)
       .asyncMap((res) => Message(
-            id: int.parse(res.commentId),
-            chatRoomId: optionOf(res.roomId),
-            uniqueId: optionOf(res.commentUniqueId),
-          ));
+    id: int.parse(res.commentId),
+    chatRoomId: optionOf(res.roomId),
+    uniqueId: optionOf(res.commentUniqueId),
+  ));
 
   @override
   Option<String> topic(p) =>
@@ -94,12 +97,13 @@ class TokenParams extends Equatable {
 
 class OnMessageReceived
     with Subscription<RealtimeService, TokenParams, Message> {
-  OnMessageReceived._(this._service);
+  OnMessageReceived._(this._service, this._updateMessageStatus);
 
   final RealtimeService _service;
+  final UpdateMessageStatusUseCase _updateMessageStatus;
 
-  factory OnMessageReceived(RealtimeService s) =>
-      _instance ??= OnMessageReceived._(s);
+  factory OnMessageReceived(RealtimeService s, UpdateMessageStatusUseCase us) =>
+      _instance ??= OnMessageReceived._(s, us);
   static OnMessageReceived _instance;
 
   @override
@@ -113,7 +117,27 @@ class OnMessageReceived
   }
 
   @override
-  Stream<Message> mapStream(p) => repository.subscribeMessageReceived();
+  Stream<Message> mapStream(p) =>
+      repository.subscribeMessageReceived() //
+          .transform(StreamTransformer.fromHandlers(
+        handleData: (message, sink) async {
+          sink.add(message);
+
+          var roomId = message.chatRoomId;
+          var messageId = message.id;
+          var status = QMessageStatus.delivered;
+          var res = roomId.fold<Task<Either<Exception, Unit>>>(
+                  () => Task.delay(() => right(unit)),
+                  (roomId) =>
+                  _updateMessageStatus.call(UpdateStatusParams(
+                    roomId,
+                    messageId,
+                    status,
+                  )));
+          await res.run();
+        },
+      )) //
+      ;
 
   @override
   RealtimeService get repository => _service;
@@ -133,13 +157,14 @@ class OnMessageDelivered
   static OnMessageDelivered _instance;
 
   @override
-  Stream<Message> mapStream(RoomIdParams p) => repository
-      .subscribeMessageDelivered(roomId: p.roomId)
-      .asyncMap((res) => Message(
-            id: int.parse(res.commentId),
-            chatRoomId: optionOf(res.roomId),
-            uniqueId: optionOf(res.commentUniqueId),
-          ));
+  Stream<Message> mapStream(RoomIdParams p) =>
+      repository.subscribeMessageDelivered(roomId: p.roomId).asyncMap((res) {
+        return Message(
+          id: int.parse(res.commentId),
+          chatRoomId: optionOf(res.roomId),
+          uniqueId: optionOf(res.commentUniqueId),
+        );
+      });
 
   @override
   RealtimeService get repository => _service;
