@@ -8,7 +8,7 @@ class LocalMqttClient extends MqttServerClient {
   LocalMqttClient(this._storage)
       : super.withPort(
           _storage.brokerUrl,
-          'dart-sdk-${DateTime.now().millisecondsSinceEpoch}',
+          'dart-sdk-${_storage.appId}-${DateTime.now().millisecondsSinceEpoch}',
           _storage.brokerPort,
         );
 
