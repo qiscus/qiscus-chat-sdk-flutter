@@ -1,3 +1,10 @@
+## 1.0.0+beta1
+
+- Fix sdk not usable for multiple appId
+- Fix not using appId as mqtt id
+- Fix not making message as delivered when received
+- Fix not able to send generated custom message
+
 ## 1.0.0+alpha6
 
 - Fix cannot get user data
