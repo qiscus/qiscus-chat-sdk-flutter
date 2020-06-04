@@ -1133,7 +1133,7 @@ class QiscusSDK {
       extras: extras,
       payload: <String, dynamic>{
         'type': type,
-        'payload': payload,
+        'content': payload,
       },
       //
       id: id,
