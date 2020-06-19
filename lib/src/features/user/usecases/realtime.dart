@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/usecases.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/mqtt_service_impl.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
@@ -51,7 +52,7 @@ class TypingUseCase extends UseCase<RealtimeService, void, Typing>
   static TypingUseCase _instance;
 
   @override
-  Task<Either<Exception, void>> call(params) =>
+  Task<Either<QError, void>> call(params) =>
       Task.delay(() => repository.publishTyping(
             isTyping: params.isTyping,
             userId: params.userId,
@@ -97,7 +98,7 @@ class PresenceUseCase extends UseCase<RealtimeService, void, Presence>
       .andThen(super.subscribe(params));
 
   @override
-  Task<Either<Exception, void>> call(params) =>
+  Task<Either<QError, void>> call(params) =>
       Task.delay(() => repository.publishPresence(
             isOnline: params.isOnline,
             lastSeen: params.lastSeen,

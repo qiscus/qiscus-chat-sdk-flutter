@@ -7,7 +7,7 @@ import 'api.dart';
 import 'entity.dart';
 
 abstract class CoreRepository {
-  Task<Either<Exception, AppConfig>> getConfig();
+  Task<Either<QError, AppConfig>> getConfig();
 }
 
 class CoreRepositoryImpl implements CoreRepository {
@@ -16,10 +16,10 @@ class CoreRepositoryImpl implements CoreRepository {
   final CoreApi _api;
 
   @override
-  Task<Either<Exception, AppConfig>> getConfig() {
+  Task<Either<QError, AppConfig>> getConfig() {
     return Task(() => _api.getConfig())
         .attempt()
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
       var config = AppConfig.fromJson(json['results'] as Map<String, dynamic>);

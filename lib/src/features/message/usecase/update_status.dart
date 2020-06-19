@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/usecases.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
 import 'package:qiscus_chat_sdk/src/features/message/repository.dart';
@@ -15,7 +16,7 @@ class UpdateMessageStatusUseCase
   UpdateMessageStatusUseCase(MessageRepository repository) : super(repository);
 
   @override
-  Task<Either<Exception, Unit>> call(p) {
+  Task<Either<QError, Unit>> call(p) {
     switch (p.status) {
       case QMessageStatus.delivered:
         return repository.updateStatus(
@@ -23,7 +24,7 @@ class UpdateMessageStatusUseCase
       case QMessageStatus.read:
         return repository.updateStatus(roomId: p.roomId, readId: p.messageId);
       default:
-        return Task.delay(() => left(Exception(
+        return Task.delay(() => left(QError(
             'Can not update status for message with status: ${p.status}')));
     }
   }

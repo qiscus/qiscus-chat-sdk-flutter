@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/core/usecases.dart';
 import 'package:qiscus_chat_sdk/src/features/message/message.dart';
@@ -10,7 +11,7 @@ class GetRoomWithMessagesUseCase extends UseCase<RoomRepository,
   GetRoomWithMessagesUseCase(RoomRepository repository) : super(repository);
 
   @override
-  Task<Either<Exception, Tuple2<ChatRoom, List<Message>>>> call(params) {
+  Task<Either<QError, Tuple2<ChatRoom, List<Message>>>> call(params) {
     return repository.getRoomWithId(params.roomId).rightMap((res) => Tuple2(
           ChatRoom.fromJson(res.room),
           res.messages.map((it) => Message.fromJson(it)).toList(),

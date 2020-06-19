@@ -9,7 +9,7 @@ class UpdateRoomUseCase
   UpdateRoomUseCase(RoomRepository repository) : super(repository);
 
   @override
-  Task<Either<Exception, ChatRoom>> call(p) {
+  Task<Either<QError, ChatRoom>> call(p) {
     return repository.updateRoom(
       roomId: p.roomId,
       name: p.name,

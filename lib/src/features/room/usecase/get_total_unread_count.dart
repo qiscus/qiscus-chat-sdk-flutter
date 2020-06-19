@@ -7,7 +7,7 @@ class GetTotalUnreadCountUseCase
   GetTotalUnreadCountUseCase(RoomRepository repository) : super(repository);
 
   @override
-  Task<Either<Exception, int>> call(_) {
+  Task<Either<QError, int>> call(_) {
     return repository.getTotalUnreadCount();
   }
 }

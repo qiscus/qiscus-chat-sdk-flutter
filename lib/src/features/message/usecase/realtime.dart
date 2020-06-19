@@ -106,7 +106,7 @@ class OnMessageReceived
         var roomId = message.chatRoomId;
         var messageId = message.id;
         var status = QMessageStatus.delivered;
-        var res = roomId.fold<Task<Either<Exception, Unit>>>(
+        var res = roomId.fold<Task<Either<QError, Unit>>>(
             () => Task.delay(() => right(unit)),
             (roomId) => _updateMessageStatus.call(UpdateStatusParams(
                   roomId,

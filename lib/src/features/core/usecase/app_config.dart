@@ -10,7 +10,7 @@ class AppConfigUseCase extends UseCase<CoreRepository, AppConfig, NoParams> {
   final Storage _storage;
 
   @override
-  Task<Either<Exception, AppConfig>> call(_) {
+  Task<Either<QError, AppConfig>> call(_) {
     return repository.getConfig().tap((c) => c.hydrateStorage(_storage));
   }
 }

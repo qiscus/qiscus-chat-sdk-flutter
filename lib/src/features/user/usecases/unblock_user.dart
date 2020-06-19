@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/usecases.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/user.dart';
 import 'package:qiscus_chat_sdk/src/features/user/repository.dart';
@@ -16,7 +17,7 @@ class UnblockUserUseCase
   const UnblockUserUseCase(IUserRepository repository) : super(repository);
 
   @override
-  Task<Either<Exception, User>> call(UnblockUserParams params) {
+  Task<Either<QError, User>> call(UnblockUserParams params) {
     return repository.unblockUser(userId: params.userId);
   }
 }

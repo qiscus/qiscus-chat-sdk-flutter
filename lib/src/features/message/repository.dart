@@ -1,9 +1,10 @@
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
 
 abstract class MessageRepository {
-  Task<Either<Exception, SendMessageResponse>> sendMessage(
+  Task<Either<QError, SendMessageResponse>> sendMessage(
     int roomId,
     String message, {
     String type = 'text',
@@ -12,20 +13,20 @@ abstract class MessageRepository {
     Map<String, dynamic> payload,
   });
 
-  Task<Either<Exception, GetMessageListResponse>> getMessages(
+  Task<Either<QError, GetMessageListResponse>> getMessages(
     int roomId,
     int lastMessageId, {
     bool after,
     int limit,
   });
 
-  Task<Either<Exception, Unit>> updateStatus({
+  Task<Either<QError, Unit>> updateStatus({
     int roomId,
     int readId,
     int deliveredId,
   });
 
-  Task<Either<Exception, List<Message>>> deleteMessages({
+  Task<Either<QError, List<Message>>> deleteMessages({
     @required List<String> uniqueIds,
     bool isForEveryone = true,
     bool isHard = true,

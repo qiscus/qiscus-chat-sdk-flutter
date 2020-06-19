@@ -4,3 +4,4 @@ export 'storage.dart';
 export 'usecases.dart';
 export 'mqtt.dart';
 export 'dio.dart';
+export 'errors.dart';

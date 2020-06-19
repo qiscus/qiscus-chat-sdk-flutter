@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/core/usecases.dart';
 import 'package:qiscus_chat_sdk/src/features/room/entity.dart';
@@ -14,10 +15,10 @@ class GetRoomByUserIdUseCase
   GetRoomByUserIdUseCase(RoomRepository repository) : super(repository);
 
   @override
-  Task<Either<Exception, ChatRoom>> call(UserIdParams params) {
+  Task<Either<QError, ChatRoom>> call(UserIdParams params) {
     return repository
         .getRoomWithUserId(params.userId)
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((res) => ChatRoom.fromJson(res.room));
   }
 }

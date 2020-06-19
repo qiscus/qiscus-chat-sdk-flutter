@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
 
 part 'service.g.dart';
@@ -11,11 +12,11 @@ abstract class RealtimeService {
 
   bool get isConnected;
 
-  Either<Exception, void> end();
+  Either<QError, void> end();
 
-  Task<Either<Exception, void>> subscribe(String topic);
+  Task<Either<QError, void>> subscribe(String topic);
 
-  Task<Either<Exception, void>> unsubscribe(String topic);
+  Task<Either<QError, void>> unsubscribe(String topic);
 
   Stream<void> onConnected();
 
@@ -53,25 +54,25 @@ abstract class RealtimeService {
     @required String userId,
   });
 
-  Either<Exception, void> publishTyping({
+  Either<QError, void> publishTyping({
     @required bool isTyping,
     @required String userId,
     @required int roomId,
   });
 
-  Either<Exception, void> publishPresence({
+  Either<QError, void> publishPresence({
     bool isOnline,
     DateTime lastSeen,
     String userId,
   });
 
-  Either<Exception, void> publishCustomEvent({
+  Either<QError, void> publishCustomEvent({
     @required int roomId,
     @required Map<String, dynamic> payload,
   });
 
-  Task<Either<Exception, Unit>> synchronize([int lastMessageId]);
-  Task<Either<Exception, Unit>> synchronizeEvent([String lastEventId]);
+  Task<Either<QError, Unit>> synchronize([int lastMessageId]);
+  Task<Either<QError, Unit>> synchronizeEvent([String lastEventId]);
 }
 
 class CustomEventResponse {

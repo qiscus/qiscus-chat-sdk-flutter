@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/core/storage.dart';
 import 'package:qiscus_chat_sdk/src/core/usecases.dart';
@@ -15,7 +16,7 @@ class AuthenticateUserUseCase extends UseCase<IUserRepository,
       : super(repository);
 
   @override
-  Task<Either<Exception, Tuple2<String, Account>>> call(AuthenticateParams p) {
+  Task<Either<QError, Tuple2<String, Account>>> call(AuthenticateParams p) {
     return repository
         .authenticate(
       userId: p.userId,

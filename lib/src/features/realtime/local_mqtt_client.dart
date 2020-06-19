@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/core/storage.dart';
 
@@ -27,11 +28,11 @@ class LocalMqttClient extends MqttServerClient {
     return super.connect(username, password);
   }
 
-  Either<Exception, void> publish(String topic, String message) {
+  Either<QError, void> publish(String topic, String message) {
     return catching<void>(() {
       var payload = MqttClientPayloadBuilder()..addString(message);
       super.publishMessage(topic, MqttQos.atLeastOnce, payload.payload);
-    }).leftMapToException();
+    }).leftMapToQError();
   }
 
   Stream<MqttReceivedMessage<MqttMessage>> forTopic(String topic) {

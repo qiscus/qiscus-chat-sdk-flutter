@@ -9,6 +9,7 @@ import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 
 import 'core/core.dart';
+import 'core/errors.dart';
 import 'core/injector.dart';
 import 'core/utils.dart';
 import 'features/channel/channel.dart';
@@ -32,7 +33,7 @@ class QiscusSDK {
 
   factory QiscusSDK.withAppId(
     String appId, {
-    @required void Function(Exception) callback,
+    @required void Function(QError) callback,
   }) {
     return QiscusSDK()..setup(appId, callback: callback);
   }
@@ -44,7 +45,7 @@ class QiscusSDK {
     String brokerLbUrl = Storage.defaultBrokerLbUrl,
     int syncInterval = Storage.defaultSyncInterval,
     int syncIntervalWhenConnected = Storage.defaultSyncIntervalWhenConnected,
-    @required Function1<Exception, void> callback,
+    @required Function1<QError, void> callback,
   }) {
     return QiscusSDK()
       ..setupWithCustomServer(
@@ -112,12 +113,12 @@ class QiscusSDK {
 
   String get token => _get<Storage>()?.token;
 
-  Task<Either<Exception, void>> get _authenticated {
+  Task<Either<QError, void>> get _authenticated {
     final _isLogin = Stream<void>.periodic(const Duration(milliseconds: 300))
         .map((_) => isLogin)
         .distinct((p, n) => p == n)
         .firstWhere((it) => it == true);
-    return Task(() => _isLogin).attempt().leftMapToException('Not logged in');
+    return Task(() => _isLogin).attempt().leftMapToQError('Not logged in');
   }
 
   void addHttpInterceptors(RequestOptions Function(RequestOptions) onRequest) {
@@ -129,7 +130,7 @@ class QiscusSDK {
   void addParticipants({
     @required int roomId,
     @required List<String> userIds,
-    @required void Function(List<QParticipant>, Exception) callback,
+    @required void Function(List<QParticipant>, QError) callback,
   }) {
     final params = ParticipantParams(roomId, userIds);
     final useCase = _get<AddParticipantUseCase>();
@@ -141,7 +142,7 @@ class QiscusSDK {
 
   void blockUser({
     @required String userId,
-    @required void Function(QUser, Exception) callback,
+    @required void Function(QUser, QError) callback,
   }) {
     final blockUser = _get<BlockUserUseCase>();
     _authenticated
@@ -153,7 +154,7 @@ class QiscusSDK {
   void chatUser({
     @required String userId,
     Map<String, dynamic> extras,
-    @required Function2<QChatRoom, Exception, void> callback,
+    @required Function2<QChatRoom, QError, void> callback,
   }) {
     _authenticated
         .andThen(_get<GetRoomByUserIdUseCase>()(UserIdParams(userId)))
@@ -163,7 +164,7 @@ class QiscusSDK {
 
   void clearMessagesByChatRoomId({
     @required List<String> roomUniqueIds,
-    @required void Function(Exception) callback,
+    @required void Function(QError) callback,
   }) {
     final clearRoom = _get<ClearRoomMessagesUseCase>();
     _authenticated
@@ -173,7 +174,7 @@ class QiscusSDK {
   }
 
   void clearUser({
-    @required void Function(Exception) callback,
+    @required void Function(QError) callback,
   }) {
     _authenticated
         .andThen(Task.delay(() {
@@ -190,7 +191,7 @@ class QiscusSDK {
     String name,
     String avatarUrl,
     Map<String, dynamic> extras,
-    @required void Function(QChatRoom, Exception) callback,
+    @required void Function(QChatRoom, QError) callback,
   }) {
     final useCase = _get<GetOrCreateChannelUseCase>();
     _authenticated
@@ -209,7 +210,7 @@ class QiscusSDK {
     @required List<String> userIds,
     String avatarUrl,
     Map<String, dynamic> extras,
-    @required void Function(QChatRoom, Exception) callback,
+    @required void Function(QChatRoom, QError) callback,
   }) {
     final useCase = _get<CreateGroupChatUseCase>();
     _authenticated
@@ -225,7 +226,7 @@ class QiscusSDK {
 
   void deleteMessages({
     @required List<String> messageUniqueIds,
-    @required void Function(List<QMessage>, Exception) callback,
+    @required void Function(List<QMessage>, QError) callback,
   }) {
     final deleteMessages = _get<DeleteMessageUseCase>();
     _authenticated
@@ -249,7 +250,7 @@ class QiscusSDK {
     bool showEmpty,
     int limit,
     int page,
-    @required void Function(List<QChatRoom>, Exception) callback,
+    @required void Function(List<QChatRoom>, QError) callback,
   }) {
     final params = GetAllRoomsParams(
       withParticipants: showParticipant,
@@ -268,7 +269,7 @@ class QiscusSDK {
   void getBlockedUsers({
     int page,
     int limit,
-    @required void Function(List<QUser>, Exception) callback,
+    @required void Function(List<QUser>, QError) callback,
   }) {
     final params = GetBlockedUserParams(page: page, limit: limit);
     final useCase = _get<GetBlockedUserUseCase>();
@@ -280,7 +281,7 @@ class QiscusSDK {
 
   void getChannel({
     @required String uniqueId,
-    @required void Function(QChatRoom, Exception) callback,
+    @required void Function(QChatRoom, QError) callback,
   }) {
     final params = GetOrCreateChannelParams(uniqueId);
     final useCase = _get<GetOrCreateChannelUseCase>();
@@ -296,15 +297,15 @@ class QiscusSDK {
     int page,
     bool showRemoved,
     bool showParticipants,
-    @required void Function(List<QChatRoom>, Exception) callback,
+    @required void Function(List<QChatRoom>, QError) callback,
   }) {
     const errorMessage = 'Please specify either `roomIds` or `uniqueIds`';
     // Throw error if both roomIds and uniqueIds are null
     if (roomIds == null && uniqueIds == null) {
-      return callback(null, Exception(errorMessage));
+      return callback(null, QError(errorMessage));
     }
     if (roomIds != null && uniqueIds != null) {
-      return callback(null, Exception(errorMessage));
+      return callback(null, QError(errorMessage));
     }
 
     final params = GetRoomInfoParams(
@@ -323,7 +324,7 @@ class QiscusSDK {
 
   void getChatRoomWithMessages({
     @required int roomId,
-    @required void Function(QChatRoom, List<QMessage>, Exception) callback,
+    @required void Function(QChatRoom, List<QMessage>, QError) callback,
   }) {
     final useCase = _get<GetRoomWithMessagesUseCase>();
     _authenticated
@@ -332,12 +333,12 @@ class QiscusSDK {
               it.value1.toModel(),
               it.value2.map((i) => i.toModel()).toList(),
             ))
-        .toCallback_((data, exception) {
-      callback(data.room, data.messages, exception);
+        .toCallback_((data, error) {
+      callback(data.room, data.messages, error);
     });
   }
 
-  void getJWTNonce({void Function(String, Exception) callback}) {
+  void getJWTNonce({void Function(String, QError) callback}) {
     _get<GetNonceUseCase>()(NoParams()).toCallback_(callback);
   }
 
@@ -345,7 +346,7 @@ class QiscusSDK {
     @required int roomId,
     @required int messageId,
     int limit,
-    @required void Function(List<QMessage>, Exception) callback,
+    @required void Function(List<QMessage>, QError) callback,
   }) {
     final useCase = _get<GetMessageListUseCase>();
     final params =
@@ -361,7 +362,7 @@ class QiscusSDK {
     int page,
     int limit,
     String sorting,
-    @required void Function(List<QParticipant>, Exception) callback,
+    @required void Function(List<QParticipant>, QError) callback,
   }) {
     _authenticated
         .andThen(
@@ -374,7 +375,7 @@ class QiscusSDK {
     @required int roomId,
     int limit,
     int messageId,
-    @required Function2<List<QMessage>, Exception, void> callback,
+    @required Function2<List<QMessage>, QError, void> callback,
   }) {
     _authenticated
         .andThen(_get<GetMessageListUseCase>()(
@@ -387,7 +388,7 @@ class QiscusSDK {
   String getThumbnailURL(String url) => url;
 
   void getTotalUnreadCount({
-    @required void Function(int, Exception) callback,
+    @required void Function(int, QError) callback,
   }) {
     _authenticated
         .andThen(_get<GetTotalUnreadCountUseCase>()(noParams))
@@ -395,7 +396,7 @@ class QiscusSDK {
   }
 
   void getUserData({
-    @required void Function(QAccount, Exception) callback,
+    @required void Function(QAccount, QError) callback,
   }) {
     var useCase = _get<GetUserDataUseCase>();
     _authenticated
@@ -408,7 +409,7 @@ class QiscusSDK {
     @deprecated String searchUsername,
     int page,
     int limit,
-    @required void Function(List<QUser>, Exception) callback,
+    @required void Function(List<QUser>, QError) callback,
   }) {
     final params = GetUserParams(
       query: searchUsername,
@@ -436,7 +437,7 @@ class QiscusSDK {
   void markAsDelivered({
     @required int roomId,
     @required int messageId,
-    @required void Function(Exception) callback,
+    @required void Function(QError) callback,
   }) {
     _authenticated
         .andThen(_get<UpdateMessageStatusUseCase>()(UpdateStatusParams(
@@ -451,7 +452,7 @@ class QiscusSDK {
   void markAsRead({
     @required int roomId,
     @required int messageId,
-    @required void Function(Exception) callback,
+    @required void Function(QError) callback,
   }) {
     _authenticated
         .andThen(_get<UpdateMessageStatusUseCase>()(UpdateStatusParams(
@@ -547,7 +548,7 @@ class QiscusSDK {
   void publishCustomEvent({
     @required int roomId,
     @required Map<String, dynamic> payload,
-    @required void Function(Exception) callback,
+    @required void Function(QError) callback,
   }) {
     _authenticated
         .andThen(
@@ -559,7 +560,7 @@ class QiscusSDK {
 
   void publishOnlinePresence({
     @required bool isOnline,
-    @required void Function(Exception) callback,
+    @required void Function(QError) callback,
   }) {
     _authenticated
         .andThen(_get<PresenceUseCase>()(Presence(
@@ -596,7 +597,7 @@ class QiscusSDK {
   void registerDeviceToken({
     @required String token,
     bool isDevelopment,
-    void Function(bool, Exception) callback,
+    void Function(bool, QError) callback,
   }) {
     registerDeviceToken$(token: token, isDevelopment: isDevelopment)
         .toCallback2(callback);
@@ -614,7 +615,7 @@ class QiscusSDK {
   void removeDeviceToken({
     @required String token,
     bool isDevelopment,
-    void Function(bool, Exception) callback,
+    void Function(bool, QError) callback,
   }) {
     return removeDeviceToken$(token: token, isDevelopment: isDevelopment)
         .toCallback2(callback);
@@ -623,7 +624,7 @@ class QiscusSDK {
   void removeParticipants({
     @required int roomId,
     @required List<String> userIds,
-    @required void Function(List<String>, Exception) callback,
+    @required void Function(List<String>, QError) callback,
   }) {
     var removeParticipants = _get<RemoveParticipantUseCase>();
     var params = ParticipantParams(roomId, userIds);
@@ -633,7 +634,7 @@ class QiscusSDK {
   void sendFileMessage({
     @required QMessage message,
     @required File file,
-    @required void Function(Exception, double, QMessage) callback,
+    @required void Function(QError, double, QMessage) callback,
   }) {
     upload(
       file: file,
@@ -657,7 +658,7 @@ class QiscusSDK {
 
   void sendMessage({
     @required QMessage message,
-    @required void Function(QMessage, Exception) callback,
+    @required void Function(QMessage, QError) callback,
   }) {
     _authenticated
         .andThen(Task.delay(() {
@@ -681,7 +682,7 @@ class QiscusSDK {
 
   void setup(
     String appId, {
-    @required Function1<Exception, void> callback,
+    @required Function1<QError, void> callback,
   }) {
     setupWithCustomServer(appId, callback: callback);
   }
@@ -702,7 +703,7 @@ class QiscusSDK {
     String brokerLbUrl = Storage.defaultBrokerLbUrl,
     int syncInterval = Storage.defaultSyncInterval,
     int syncIntervalWhenConnected = Storage.defaultSyncIntervalWhenConnected,
-    @required Function1<Exception, void> callback,
+    @required Function1<QError, void> callback,
   }) {
     final storage = _get<Storage>();
     storage
@@ -725,7 +726,7 @@ class QiscusSDK {
     }).toCallback_((_, e) => callback(e));
   }
 
-  Task<Either<Exception, void>> _subscribes(String token) {
+  Task<Either<QError, void>> _subscribes(String token) {
     final onMessageReceived = _get<OnMessageReceived>();
     final realtimeService = _get<RealtimeService>();
 
@@ -740,7 +741,7 @@ class QiscusSDK {
     String username,
     String avatarUrl,
     Map<String, dynamic> extras,
-    @required void Function(QAccount, Exception) callback,
+    @required void Function(QAccount, QError) callback,
   }) {
     final authenticate = _get<AuthenticateUserUseCase>();
     final params = AuthenticateParams(
@@ -752,10 +753,9 @@ class QiscusSDK {
     );
     authenticate(params)
         .bind((either) => either.fold(
-              (e) =>
-                  Task.delay(() => left<Exception, Tuple2<String, Account>>(e)),
+              (e) => Task.delay(() => left<QError, Tuple2<String, Account>>(e)),
               (tuple) => _subscribes(tuple.value1).andThen(Task.delay(
-                () => right<Exception, Tuple2<String, Account>>(tuple),
+                () => right<QError, Tuple2<String, Account>>(tuple),
               )),
             ))
         .rightMap((it) => it.value2.toModel())
@@ -764,7 +764,7 @@ class QiscusSDK {
 
   void setUserWithIdentityToken({
     @required String token,
-    @required void Function(QAccount, Exception) callback,
+    @required void Function(QAccount, QError) callback,
   }) {
     _get<AuthenticateUserWithTokenUseCase>()
         .call(AuthenticateWithTokenParams(token))
@@ -830,7 +830,7 @@ class QiscusSDK {
 
   void unblockUser({
     @required String userId,
-    @required void Function(QUser, Exception) callback,
+    @required void Function(QUser, QError) callback,
   }) {
     _authenticated
         .andThen(_get<UnblockUserUseCase>().call(UnblockUserParams(userId)))
@@ -855,7 +855,7 @@ class QiscusSDK {
     String name,
     String avatarUrl,
     Map<String, dynamic> extras,
-    @required void Function(QChatRoom, Exception) callback,
+    @required void Function(QChatRoom, QError) callback,
   }) {
     _authenticated
         .andThen(_get<UpdateRoomUseCase>()(UpdateRoomParams(
@@ -872,7 +872,7 @@ class QiscusSDK {
     String name,
     String avatarUrl,
     Map<String, dynamic> extras,
-    @required void Function(QAccount, Exception) callback,
+    @required void Function(QAccount, QError) callback,
   }) {
     var useCase = _get<UpdateUserUseCase>();
     var params = UpdateUserParams(
@@ -888,7 +888,7 @@ class QiscusSDK {
 
   void upload({
     @required File file,
-    @required void Function(Exception, double, String) callback,
+    @required void Function(QError, double, String) callback,
   }) async {
     final uploadUrl = _get<Storage>().uploadUrl;
     final dio = _get<Dio>();
@@ -908,7 +908,7 @@ class QiscusSDK {
       var url = json['results']['file']['url'] as String;
       callback(null, null, url);
     }).catchError((dynamic error) {
-      callback(Exception(error.toString()), null, null);
+      callback(QError(error.toString()), null, null);
     });
   }
 

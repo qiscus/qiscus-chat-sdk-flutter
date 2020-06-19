@@ -4,6 +4,8 @@ import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
+import 'errors.dart';
+
 class CMqttMessage {
   const CMqttMessage(this.topic, this.payload);
   final String topic;
@@ -17,11 +19,11 @@ extension OptionDo<T> on Option<T> {
 }
 
 extension CMqttClient on MqttClient {
-  Either<Exception, void> publish(String topic, String message) {
+  Either<QError, void> publish(String topic, String message) {
     return catching<void>(() {
       var payload = MqttClientPayloadBuilder()..addString(message);
       publishMessage(topic, MqttQos.atLeastOnce, payload.payload);
-    }).leftMapToException();
+    }).leftMapToQError();
   }
 
   Stream<CMqttMessage> forTopic(String topic) {
@@ -49,7 +51,7 @@ extension CEither<L, R> on Either<L, R> {
     return this;
   }
 
-  Either<Exception, R> leftMapToException([String message]) {
+  Either<QError, R> leftMapToQError([String message]) {
     return leftMap((err) {
       if (err is DioError && err.response != null) {
         Map<String, dynamic> json;
@@ -61,20 +63,20 @@ extension CEither<L, R> on Either<L, R> {
         }
         print('json: $json');
         if (message != null) {
-          return Exception(message);
+          return QError(message);
         } else {
           var message = json['error']['message'] as String;
-          return Exception(message);
+          return QError(message);
         }
       }
-      return Exception(err.toString());
+      return QError(err.toString());
     });
   }
 }
 
 extension TaskE<L, R> on Task<Either<L, R>> {
-  Task<Either<Exception, R>> leftMapToException([String message]) {
-    return map((either) => either.leftMapToException(message));
+  Task<Either<QError, R>> leftMapToQError([String message]) {
+    return map((either) => either.leftMapToQError(message));
   }
 
   Task<Either<O, R>> leftMap<O>(O Function(L) op) {
@@ -114,7 +116,7 @@ extension FlatStream<V> on Stream<Stream<V>> {
 extension COption<T01> on Option<T01> {
   T01 unwrap([String message = 'null']) {
     return fold(
-      () => throw Exception(message),
+      () => throw QError(message),
       (value) => value,
     );
   }
@@ -155,17 +157,17 @@ extension TaskX<L1, R1> on Task<Either<L1, R1>> {
 }
 
 extension FutureX<T> on Future<T> {
-  void toCallback1(void Function(Exception) callback) {
+  void toCallback1(void Function(QError) callback) {
     this.then(
       (_) => callback(null),
-      onError: (Object error) => callback(error as Exception),
+      onError: (Object error) => callback(error as QError),
     );
   }
 
-  void toCallback2(void Function(T, Exception) callback) {
+  void toCallback2(void Function(T, QError) callback) {
     this.then(
       (value) => callback(value, null),
-      onError: (Object error) => callback(null, error as Exception),
+      onError: (Object error) => callback(null, error as QError),
     );
   }
 }

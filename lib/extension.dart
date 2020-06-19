@@ -157,7 +157,7 @@ extension XQiscusSDK on QiscusSDK {
     @required List<String> userIds,
     String avatarUrl,
     Map<String, dynamic> extras,
-    @required void Function(QChatRoom, Exception) callback,
+    @required void Function(QChatRoom, QError) callback,
   }) async {
     return futurify2((cb) {
       createGroupChat(

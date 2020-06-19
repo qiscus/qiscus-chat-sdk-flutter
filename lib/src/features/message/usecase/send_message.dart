@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/core/usecases.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
@@ -14,15 +15,15 @@ class SendMessageUseCase
   SendMessageUseCase(MessageRepository repository) : super(repository);
 
   @override
-  Task<Either<Exception, Message>> call(params) {
+  Task<Either<QError, Message>> call(params) {
     if (params.message.chatRoomId == null) {
-      return Task(() async => left(Exception('`roomId` can not be null')));
+      return Task(() async => left(QError('`roomId` can not be null')));
     }
     if (params.message.text == null) {
-      return Task(() async => left(Exception('`text` can not be null')));
+      return Task(() async => left(QError('`text` can not be null')));
     }
     if (params.message.type == null) {
-      return Task(() async => left(Exception('`type` can not be null')));
+      return Task(() async => left(QError('`type` can not be null')));
     }
 
     return repository
@@ -34,7 +35,7 @@ class SendMessageUseCase
           extras: params.message.extras,
           payload: params.message.payload,
         )
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((res) => Message.fromJson(res.comment));
   }
 }

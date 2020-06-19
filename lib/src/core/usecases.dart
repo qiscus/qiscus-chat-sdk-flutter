@@ -5,6 +5,8 @@ import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 
+import 'errors.dart';
+
 class NoParams extends Equatable {
   const NoParams();
 
@@ -21,7 +23,7 @@ abstract class UseCase<Repository, ReturnType, Params> {
 
   Repository get repository => _repository;
 
-  Task<Either<Exception, ReturnType>> call(Params params);
+  Task<Either<QError, ReturnType>> call(Params params);
 }
 
 abstract class SubscriptionUseCase<Repository, ReturnType, Params> {

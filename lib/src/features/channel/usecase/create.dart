@@ -23,7 +23,7 @@ class GetOrCreateChannelUseCase
   GetOrCreateChannelUseCase(RoomRepository repository) : super(repository);
 
   @override
-  Task<Either<Exception, ChatRoom>> call(p) {
+  Task<Either<QError, ChatRoom>> call(p) {
     return repository.getOrCreateChannel(
       uniqueId: p.uniqueId,
       name: p.name,

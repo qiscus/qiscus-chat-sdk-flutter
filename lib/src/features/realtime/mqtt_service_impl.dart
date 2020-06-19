@@ -78,19 +78,19 @@ class MqttServiceImpl implements RealtimeService {
       .distinct()
       .firstWhere((it) => it == true);
 
-  Task<Either<Exception, void>> _connected() =>
-      Task<bool>(() => _isConnected).attempt().leftMapToException();
+  Task<Either<QError, void>> _connected() =>
+      Task<bool>(() => _isConnected).attempt().leftMapToQError();
 
   @override
-  Task<Either<Exception, void>> subscribe(String topic) => _connected()
+  Task<Either<QError, void>> subscribe(String topic) => _connected()
       .andThen(Task.delay(
           () => catching(() => _mqtt.subscribe(topic, MqttQos.atLeastOnce))))
-      .leftMapToException();
+      .leftMapToQError();
 
   @override
-  Task<Either<Exception, void>> unsubscribe(String topic) => _connected()
+  Task<Either<QError, void>> unsubscribe(String topic) => _connected()
       .andThen(Task.delay(() => catching(() => _mqtt.unsubscribe(topic))))
-      .leftMapToException();
+      .leftMapToQError();
 
   @override
   bool get isConnected =>
@@ -153,7 +153,7 @@ class MqttServiceImpl implements RealtimeService {
   }
 
   @override
-  Either<Exception, void> publishPresence({
+  Either<QError, void> publishPresence({
     bool isOnline,
     DateTime lastSeen,
     String userId,
@@ -164,7 +164,7 @@ class MqttServiceImpl implements RealtimeService {
   }
 
   @override
-  Either<Exception, void> publishTyping({
+  Either<QError, void> publishTyping({
     bool isTyping,
     String userId,
     int roomId,
@@ -311,7 +311,7 @@ class MqttServiceImpl implements RealtimeService {
   }
 
   @override
-  Either<Exception, void> end() {
+  Either<QError, void> end() {
     return catching<void>(() {
       _subscribedTopics.forEach((topic) {
         var status = _mqtt.getSubscriptionsStatus(topic);
@@ -321,7 +321,7 @@ class MqttServiceImpl implements RealtimeService {
       });
       _subscribedTopics.clear();
       _mqtt.disconnect();
-    }).leftMapToException();
+    }).leftMapToQError();
   }
 
   @override
@@ -349,7 +349,7 @@ class MqttServiceImpl implements RealtimeService {
           .where((it) => it == true);
 
   @override
-  Either<Exception, void> publishCustomEvent({
+  Either<QError, void> publishCustomEvent({
     int roomId,
     Map<String, dynamic> payload,
   }) {
@@ -357,13 +357,13 @@ class MqttServiceImpl implements RealtimeService {
   }
 
   @override
-  Task<Either<Exception, Unit>> synchronize([int lastMessageId]) {
-    return Task.delay(() => left(Exception('Not implemented')));
+  Task<Either<QError, Unit>> synchronize([int lastMessageId]) {
+    return Task.delay(() => left(QError('Not implemented')));
   }
 
   @override
-  Task<Either<Exception, Unit>> synchronizeEvent([String lastEventId]) {
-    return Task.delay(() => left(Exception('Not implemented')));
+  Task<Either<QError, Unit>> synchronizeEvent([String lastEventId]) {
+    return Task.delay(() => left(QError('Not implemented')));
   }
 }
 

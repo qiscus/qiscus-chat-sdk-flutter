@@ -95,13 +95,14 @@ void main() async {
     when(userRepo.authenticate(
       userId: anyNamed('userId'),
       userKey: anyNamed('userKey'),
-    )).thenReturn(Task.delay(() => left(Exception(json['error']['message']))));
+    )).thenReturn(
+        Task.delay(() => left(QError(json['error']['message'] as String))));
 
     var params = AuthenticateParams(userId: 'guest-1001', userKey: 'wrong');
     var resp = await authenticate.call(params).run();
     expect(resp.isLeft(), true);
-    resp.fold<void>((Exception err) {
-      expect(err.toString(), 'Exception: wrong password');
+    resp.fold<void>((QError err) {
+      expect(err.toString(), 'QError: wrong password');
     }, (data) {
       expect(data, null);
     });

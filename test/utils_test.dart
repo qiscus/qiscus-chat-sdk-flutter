@@ -1,11 +1,17 @@
+import 'package:qiscus_chat_sdk/src/core/errors.dart';
 import 'package:qiscus_chat_sdk/src/core/utils.dart';
 import 'package:test/test.dart';
 
 class Dummy {
-  void onFuture(void Function(int, Exception) callback) {
+  void onFuture(void Function(int, QError) callback) {
     onFuture$()
         .then((data) => callback(data, null))
-        .catchError((dynamic error) => callback(null, error as Exception));
+        .catchError((dynamic error) => callback(null, error as QError));
+  }
+
+  void onFutureE(void Function(int, QError) callback) {
+    Future<int>.error(QError('some error'))
+        .catchError((QError e) => callback(null, e));
   }
 
   void Function() onStream(void Function(int) callback) {
@@ -31,11 +37,43 @@ void main() {
   setUpAll(() {
     dummy = Dummy();
   });
-  test('futurify1', () async {
-    var future1 = futurify1((cb) => dummy.onFuture((_, e) => cb(e)));
+  test('futurify1 success', () async {
+    var future1 = () => futurify1((cb) => dummy.onFuture((_, e) => cb(e)));
+
+    expect(() => future1(), returnsNormally);
   });
 
-  test('futurify2', () async {
-    var future2 = futurify2<int>((cb) => dummy.onFuture((d, e) => cb(d, e)));
+  test('futurify1 failure', () async {
+    var future1 = () => futurify1((cb) => dummy.onFutureE((_, e) => cb(e)));
+
+    expect(
+        () => future1(),
+        throwsA(isA<QError>().having(
+          (e) => e.message,
+          'should throw',
+          'some error',
+        )));
+  });
+
+  test('futurify2 success', () async {
+    var future2 = () => futurify2<int>(
+          (cb) => dummy.onFuture((d, e) => cb(d, e)),
+        );
+
+    expect(() => future2(), returnsNormally);
+  });
+
+  test('futurify2 failure', () async {
+    var future2 = () => futurify2<int>(
+          (cb) => dummy.onFutureE((d, e) => cb(d, e)),
+        );
+
+    expect(
+        () => future2,
+        throwsA(isA<QError>().having(
+          (e) => e.message,
+          'should throw',
+          'some error',
+        )));
   });
 }

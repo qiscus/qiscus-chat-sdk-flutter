@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/features/room/api.dart';
 import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
@@ -15,10 +16,10 @@ class RoomRepositoryImpl implements RoomRepository {
   const RoomRepositoryImpl(this._api);
 
   @override
-  Task<Either<Exception, GetRoomResponse>> getRoomWithUserId(String userId) {
+  Task<Either<QError, GetRoomResponse>> getRoomWithUserId(String userId) {
     return Task(() => _api.chatTarget(ChatTargetRequest([userId])))
         .attempt()
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((res) {
       var json = jsonDecode(res) as Map<String, dynamic>;
       return GetRoomResponse(json['results']['room'] as Map<String, dynamic>);
@@ -26,11 +27,10 @@ class RoomRepositoryImpl implements RoomRepository {
   }
 
   @override
-  Task<Either<Exception, GetRoomWithMessagesResponse>> getRoomWithId(
-      int roomId) {
+  Task<Either<QError, GetRoomWithMessagesResponse>> getRoomWithId(int roomId) {
     return Task(() => _api.getRoomById(roomId))
         .attempt()
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
       var room = json['results']['room'] as Map<String, dynamic>;
@@ -41,14 +41,14 @@ class RoomRepositoryImpl implements RoomRepository {
   }
 
   @override
-  Task<Either<Exception, AddParticipantResponse>> addParticipant(
+  Task<Either<QError, AddParticipantResponse>> addParticipant(
     int roomId,
     List<String> participantIds,
   ) {
-    return Task(() =>
-            _api.addParticipant(ParticipantRequest(roomId.toString(), participantIds)))
+    return Task(() => _api.addParticipant(
+            ParticipantRequest(roomId.toString(), participantIds)))
         .attempt()
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
       var _participants = (json['results']['participants_added'] as List)
@@ -61,12 +61,12 @@ class RoomRepositoryImpl implements RoomRepository {
   }
 
   @override
-  Task<Either<Exception, RemoveParticipantResponse>> removeParticipant(
+  Task<Either<QError, RemoveParticipantResponse>> removeParticipant(
       int roomId, List<String> participantIds) {
-    return Task(() =>
-            _api.removeParticipant(ParticipantRequest(roomId.toString(), participantIds)))
+    return Task(() => _api.removeParticipant(
+            ParticipantRequest(roomId.toString(), participantIds)))
         .attempt()
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
       var ids = (json['results']['participants_removed'] as List) //
@@ -76,11 +76,11 @@ class RoomRepositoryImpl implements RoomRepository {
   }
 
   @override
-  Task<Either<Exception, GetParticipantsResponse>> getParticipants(
+  Task<Either<QError, GetParticipantsResponse>> getParticipants(
       String uniqueId) {
     return Task(() => _api.getParticipants(GetParticipantsRequest(uniqueId)))
         .attempt()
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
       var participants_ = (json['results']['participants'] as List)
@@ -93,7 +93,7 @@ class RoomRepositoryImpl implements RoomRepository {
   }
 
   @override
-  Task<Either<Exception, GetAllRoomsResponse>> getAllRooms({
+  Task<Either<QError, GetAllRoomsResponse>> getAllRooms({
     bool withParticipants,
     bool withEmptyRoom,
     bool withRemovedRoom,
@@ -106,7 +106,7 @@ class RoomRepositoryImpl implements RoomRepository {
           withRemovedRoom: withParticipants,
           limit: limit,
           page: page,
-        ))).attempt().leftMapToException().rightMap((str) {
+        ))).attempt().leftMapToQError().rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
       var rooms_ = (json['results']['rooms_info'] as List) //
           .cast<Map<String, dynamic>>();
@@ -116,7 +116,7 @@ class RoomRepositoryImpl implements RoomRepository {
   }
 
   @override
-  Task<Either<Exception, ChatRoom>> getOrCreateChannel({
+  Task<Either<QError, ChatRoom>> getOrCreateChannel({
     String uniqueId,
     String name,
     String avatarUrl,
@@ -127,14 +127,14 @@ class RoomRepositoryImpl implements RoomRepository {
           name: name,
           avatarUrl: avatarUrl,
           options: options,
-        ))).attempt().leftMapToException().rightMap((res) {
+        ))).attempt().leftMapToQError().rightMap((res) {
       var json = jsonDecode(res) as Map<String, dynamic>;
       return ChatRoom.fromJson(json['results']['room'] as Map<String, dynamic>);
     });
   }
 
   @override
-  Task<Either<Exception, ChatRoom>> createGroup({
+  Task<Either<QError, ChatRoom>> createGroup({
     String name,
     List<String> userIds,
     String avatarUrl,
@@ -145,24 +145,24 @@ class RoomRepositoryImpl implements RoomRepository {
           userIds: userIds,
           avatarUrl: avatarUrl,
           extras: extras,
-        ))).attempt().leftMapToException().rightMap((resp) {
+        ))).attempt().leftMapToQError().rightMap((resp) {
       var json = jsonDecode(resp) as Map<String, dynamic>;
       return ChatRoom.fromJson(json['results']['room'] as Map<String, dynamic>);
     });
   }
 
   @override
-  Task<Either<Exception, Unit>> clearMessages({
+  Task<Either<QError, Unit>> clearMessages({
     @required List<String> uniqueIds,
   }) {
     return Task(() => _api.clearMessages(uniqueIds))
         .attempt()
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((_) => unit);
   }
 
   @override
-  Task<Either<Exception, List<ChatRoom>>> getRoomInfo({
+  Task<Either<QError, List<ChatRoom>>> getRoomInfo({
     List<int> roomIds,
     List<String> uniqueIds,
     bool withParticipants,
@@ -175,7 +175,7 @@ class RoomRepositoryImpl implements RoomRepository {
           withParticipants: withParticipants,
           withRemoved: withRemoved,
           page: page,
-        ))).attempt().leftMapToException().rightMap((str) {
+        ))).attempt().leftMapToQError().rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
       var roomsInfo = json['results']['rooms_info'] as List;
       return roomsInfo
@@ -186,10 +186,10 @@ class RoomRepositoryImpl implements RoomRepository {
   }
 
   @override
-  Task<Either<Exception, int>> getTotalUnreadCount() {
+  Task<Either<QError, int>> getTotalUnreadCount() {
     return Task(() => _api.getTotalUnreadCount())
         .attempt()
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
       return json['results']['total_unread_count'] as int;
@@ -197,7 +197,7 @@ class RoomRepositoryImpl implements RoomRepository {
   }
 
   @override
-  Task<Either<Exception, ChatRoom>> updateRoom({
+  Task<Either<QError, ChatRoom>> updateRoom({
     @required int roomId,
     String name,
     String avatarUrl,
@@ -208,7 +208,7 @@ class RoomRepositoryImpl implements RoomRepository {
           name: name,
           avatarUrl: avatarUrl,
           extras: extras,
-        ))).attempt().leftMapToException().rightMap((str) {
+        ))).attempt().leftMapToQError().rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
       return ChatRoom.fromJson(json['results']['room'] as Map<String, dynamic>);
     });

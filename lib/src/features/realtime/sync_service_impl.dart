@@ -88,18 +88,18 @@ class SyncServiceImpl implements RealtimeService {
   }
 
   @override
-  Task<Either<Exception, Unit>> synchronize([int lastMessageId]) {
+  Task<Either<QError, Unit>> synchronize([int lastMessageId]) {
     return Task(() => _api.synchronize(lastMessageId))
         .attempt()
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((_) => unit);
   }
 
   @override
-  Task<Either<Exception, Unit>> synchronizeEvent([String eventId]) {
+  Task<Either<QError, Unit>> synchronizeEvent([String eventId]) {
     return Task(() => _api.synchronizeEvent(int.parse(eventId)))
         .attempt()
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((_) => unit);
   }
 
@@ -144,8 +144,8 @@ class SyncServiceImpl implements RealtimeService {
   }
 
   @override
-  Task<Either<Exception, void>> subscribe(String topic) =>
-      Task.delay(() => left(Exception('Not supported')));
+  Task<Either<QError, void>> subscribe(String topic) =>
+      Task.delay(() => left(QError('Not supported')));
 
   @override
   Stream<UserTypingResponse> subscribeUserTyping({String userId, int roomId}) {
@@ -153,26 +153,26 @@ class SyncServiceImpl implements RealtimeService {
   }
 
   @override
-  Either<Exception, void> publishPresence({
+  Either<QError, void> publishPresence({
     bool isOnline,
     DateTime lastSeen,
     String userId,
   }) {
-    return left(Exception('Not available for this service'));
+    return left(QError('Not available for this service'));
   }
 
   @override
-  Either<Exception, void> publishTyping({
+  Either<QError, void> publishTyping({
     bool isTyping,
     String userId,
     int roomId,
   }) {
-    return left(Exception('Not available for this service'));
+    return left(QError('Not available for this service'));
   }
 
   @override
-  Either<Exception, void> end() {
-    return left(Exception('Not available for this service'));
+  Either<QError, void> end() {
+    return left(QError('Not available for this service'));
   }
 
   @override
@@ -189,15 +189,15 @@ class SyncServiceImpl implements RealtimeService {
       Stream.empty();
 
   @override
-  Either<Exception, void> publishCustomEvent({
+  Either<QError, void> publishCustomEvent({
     int roomId,
     Map<String, dynamic> payload,
   }) {
-    return left<Exception, void>(Exception('Not implemented'));
+    return left<QError, void>(QError('Not implemented'));
   }
 
   @override
-  Task<Either<Exception, void>> unsubscribe(String topic) =>
-      Task.delay(() => left<Exception, void>(Exception('Not implemented')));
+  Task<Either<QError, void>> unsubscribe(String topic) =>
+      Task.delay(() => left<QError, void>(QError('Not implemented')));
 // endregion
 }

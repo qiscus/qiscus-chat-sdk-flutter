@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/account.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/user.dart';
@@ -13,7 +14,7 @@ class UserRepositoryImpl implements IUserRepository {
   UserRepositoryImpl(this._api);
 
   @override
-  Task<Either<Exception, AuthenticateResponse>> authenticate({
+  Task<Either<QError, AuthenticateResponse>> authenticate({
     String userId,
     String userKey,
     String name,
@@ -28,61 +29,61 @@ class UserRepositoryImpl implements IUserRepository {
             avatar_url: avatarUrl,
             extras: extras,
           ),
-        )).attempt().leftMapToException();
+        )).attempt().leftMapToQError();
   }
 
   @override
-  Task<Either<Exception, AuthenticateResponse>> authenticateWithToken({
+  Task<Either<QError, AuthenticateResponse>> authenticateWithToken({
     String identityToken,
   }) {
     return Task(() => _api.authenticateWithToken(
           AuthenticateWithTokenRequest(identityToken),
-        )).attempt().leftMapToException().rightMap((res) => res);
+        )).attempt().leftMapToQError().rightMap((res) => res);
   }
 
   @override
-  Task<Either<Exception, User>> blockUser({String userId}) {
+  Task<Either<QError, User>> blockUser({String userId}) {
     return Task(() => _api.blockUser(BlockUserRequest(userId)))
         .attempt()
-        .leftMapToException();
+        .leftMapToQError();
   }
 
   @override
-  Task<Either<Exception, List<User>>> getBlockedUser({int page, int limit}) {
+  Task<Either<QError, List<User>>> getBlockedUser({int page, int limit}) {
     return Task(() => _api.getBlockedUsers(page: page, limit: limit))
         .attempt()
-        .leftMapToException();
+        .leftMapToQError();
   }
 
   @override
-  Task<Either<Exception, String>> getNonce() {
-    return Task(_api.getNonce).attempt().leftMapToException().rightMap((res) {
+  Task<Either<QError, String>> getNonce() {
+    return Task(_api.getNonce).attempt().leftMapToQError().rightMap((res) {
       return res.nonce;
     });
   }
 
   @override
-  Task<Either<Exception, Account>> getUserData() {
+  Task<Either<QError, Account>> getUserData() {
     return Task(_api.getUserData)
         .attempt()
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((res) => res.user);
   }
 
   @override
-  Task<Either<Exception, List<User>>> getUsers({
+  Task<Either<QError, List<User>>> getUsers({
     @Deprecated('will be removed on next release') String query,
     int page,
     int limit,
   }) {
     return Task(() => _api.getUsers(query: query, page: page, limit: limit))
         .attempt()
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((resp) => resp.users);
   }
 
   @override
-  Task<Either<Exception, bool>> registerDeviceToken({
+  Task<Either<QError, bool>> registerDeviceToken({
     String token,
     bool isDevelopment,
   }) {
@@ -91,7 +92,7 @@ class UserRepositoryImpl implements IUserRepository {
             token,
             isDevelopment,
           ),
-        )).attempt().leftMapToException().rightMap((str) {
+        )).attempt().leftMapToQError().rightMap((str) {
       if (str.isEmpty) return true;
       var json = jsonDecode(str) as Map<String, dynamic>;
       var changed = json['results']['changed'] as bool;
@@ -100,21 +101,21 @@ class UserRepositoryImpl implements IUserRepository {
   }
 
   @override
-  Task<Either<Exception, User>> unblockUser({String userId}) {
+  Task<Either<QError, User>> unblockUser({String userId}) {
     return Task(() => _api.unblockUser(BlockUserRequest(userId)))
         .attempt()
-        .leftMapToException();
+        .leftMapToQError();
   }
 
   @override
-  Task<Either<Exception, bool>> unregisterDeviceToken({
+  Task<Either<QError, bool>> unregisterDeviceToken({
     String token,
     bool isDevelopment,
   }) {
     return Task(() => _api.unregisterDeviceToken(DeviceTokenRequest(
           token,
           isDevelopment,
-        ))).attempt().leftMapToException().rightMap((str) {
+        ))).attempt().leftMapToQError().rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
       var changed = json['results']['changed'] as bool;
       return changed;
@@ -122,7 +123,7 @@ class UserRepositoryImpl implements IUserRepository {
   }
 
   @override
-  Task<Either<Exception, Account>> updateUser({
+  Task<Either<QError, Account>> updateUser({
     String name,
     String avatarUrl,
     Map<String, dynamic> extras,
@@ -133,7 +134,7 @@ class UserRepositoryImpl implements IUserRepository {
             avatar_url: avatarUrl,
             extras: extras,
           ),
-        )).attempt().leftMapToException().rightMap((String str) {
+        )).attempt().leftMapToQError().rightMap((String str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
       var userJson = json['results']['user'] as Map<String, dynamic>;
       return Account.fromJson(userJson);

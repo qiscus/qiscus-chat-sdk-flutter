@@ -16,7 +16,7 @@ class ClearRoomMessagesUseCase
   ClearRoomMessagesUseCase(RoomRepository repository) : super(repository);
 
   @override
-  Task<Either<Exception, Unit>> call(params) {
+  Task<Either<QError, Unit>> call(params) {
     return repository.clearMessages(uniqueIds: params.uniqueIds);
   }
 }

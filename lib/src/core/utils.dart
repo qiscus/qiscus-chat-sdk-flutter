@@ -1,6 +1,8 @@
 import 'dart:async';
 
-Future<void> futurify1(void Function(void Function(Exception)) fn) async {
+import 'errors.dart';
+
+Future<void> futurify1(void Function(void Function(QError)) fn) async {
   final completer = Completer<void>();
   fn((error) {
     if (error != null) return completer.completeError(error);
@@ -9,7 +11,7 @@ Future<void> futurify1(void Function(void Function(Exception)) fn) async {
   return completer.future;
 }
 
-Future<T> futurify2<T>(void Function(void Function(T, Exception)) fn) async {
+Future<T> futurify2<T>(void Function(void Function(T, QError)) fn) async {
   final completer = Completer<T>();
 
   fn((data, error) {

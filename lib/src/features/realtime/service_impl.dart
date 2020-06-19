@@ -1,6 +1,7 @@
 import 'package:async/async.dart';
 import 'package:dartz/dartz.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/mqtt_service_impl.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
@@ -16,15 +17,15 @@ class RealtimeServiceImpl implements RealtimeService {
   bool get isConnected => _mqttService.isConnected;
 
   @override
-  Task<Either<Exception, void>> subscribe(String topic) =>
+  Task<Either<QError, void>> subscribe(String topic) =>
       _mqttService.subscribe(topic);
 
   @override
-  Task<Either<Exception, void>> unsubscribe(String topic) =>
+  Task<Either<QError, void>> unsubscribe(String topic) =>
       _mqttService.unsubscribe(topic);
 
   @override
-  Either<Exception, void> publishPresence({
+  Either<QError, void> publishPresence({
     bool isOnline,
     DateTime lastSeen,
     String userId,
@@ -37,7 +38,7 @@ class RealtimeServiceImpl implements RealtimeService {
   }
 
   @override
-  Either<Exception, void> publishTyping({
+  Either<QError, void> publishTyping({
     bool isTyping,
     String userId,
     int roomId,
@@ -108,7 +109,7 @@ class RealtimeServiceImpl implements RealtimeService {
   }
 
   @override
-  Either<Exception, void> end() {
+  Either<QError, void> end() {
     return right(null);
   }
 
@@ -130,7 +131,7 @@ class RealtimeServiceImpl implements RealtimeService {
       _mqttService.subscribeCustomEvent(roomId: roomId);
 
   @override
-  Either<Exception, void> publishCustomEvent({
+  Either<QError, void> publishCustomEvent({
     int roomId,
     Map<String, dynamic> payload,
   }) {
@@ -138,12 +139,12 @@ class RealtimeServiceImpl implements RealtimeService {
   }
 
   @override
-  Task<Either<Exception, Unit>> synchronize([int lastMessageId]) {
+  Task<Either<QError, Unit>> synchronize([int lastMessageId]) {
     return _syncService.synchronize(lastMessageId);
   }
 
   @override
-  Task<Either<Exception, Unit>> synchronizeEvent([String lastEventId]) {
+  Task<Either<QError, Unit>> synchronizeEvent([String lastEventId]) {
     return _syncService.synchronizeEvent(lastEventId);
   }
 }

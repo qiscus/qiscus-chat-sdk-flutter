@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/core/storage.dart';
 import 'package:qiscus_chat_sdk/src/core/usecases.dart';
@@ -25,7 +26,7 @@ class UpdateUserUseCase
       : super(repository);
 
   @override
-  Task<Either<Exception, Account>> call(UpdateUserParams p) {
+  Task<Either<QError, Account>> call(UpdateUserParams p) {
     return repository
         .updateUser(
           name: p.name,

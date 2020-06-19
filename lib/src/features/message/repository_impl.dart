@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/features/message/repository.dart';
 
@@ -14,7 +15,7 @@ class MessageRepositoryImpl implements MessageRepository {
   final MessageApi _api;
 
   @override
-  Task<Either<Exception, GetMessageListResponse>> getMessages(
+  Task<Either<QError, GetMessageListResponse>> getMessages(
     int roomId,
     int lastMessageId, {
     bool after = false,
@@ -27,7 +28,7 @@ class MessageRepositoryImpl implements MessageRepository {
         limit: limit,
         after: after,
       ),
-    ).attempt().leftMapToException().rightMap((str) {
+    ).attempt().leftMapToQError().rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
       var messages = (json['results']['comments'] as List) //
           .cast<Map<String, dynamic>>();
@@ -36,7 +37,7 @@ class MessageRepositoryImpl implements MessageRepository {
   }
 
   @override
-  Task<Either<Exception, SendMessageResponse>> sendMessage(
+  Task<Either<QError, SendMessageResponse>> sendMessage(
     int roomId,
     String message, {
     String type = 'text',
@@ -53,7 +54,7 @@ class MessageRepositoryImpl implements MessageRepository {
         extras: extras,
         payload: payload,
       )),
-    ).attempt().leftMapToException().rightMap((str) {
+    ).attempt().leftMapToQError().rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
       var comment = json['results']['comment'] as Map<String, dynamic>;
       return SendMessageResponse(comment);
@@ -61,7 +62,7 @@ class MessageRepositoryImpl implements MessageRepository {
   }
 
   @override
-  Task<Either<Exception, Unit>> updateStatus({
+  Task<Either<QError, Unit>> updateStatus({
     @required int roomId,
     int readId = 0,
     int deliveredId = 0,
@@ -70,18 +71,18 @@ class MessageRepositoryImpl implements MessageRepository {
           roomId: roomId.toString(),
           lastDeliveredId: deliveredId.toString(),
           lastReadId: readId.toString(),
-        ))).attempt().leftMapToException().rightMap((_) => unit);
+        ))).attempt().leftMapToQError().rightMap((_) => unit);
   }
 
   @override
-  Task<Either<Exception, List<Message>>> deleteMessages({
+  Task<Either<QError, List<Message>>> deleteMessages({
     @required List<String> uniqueIds,
     bool isForEveryone = true,
     bool isHard = true,
   }) {
     return Task(() => _api.deleteMessages(uniqueIds, isForEveryone, isHard))
         .attempt()
-        .leftMapToException()
+        .leftMapToQError()
         .rightMap((res) {
       var json = jsonDecode(res) as Map<String, dynamic>;
       var messages = (json['results']['comments'] as List)

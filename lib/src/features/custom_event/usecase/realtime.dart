@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
+import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/usecases.dart';
 import 'package:qiscus_chat_sdk/src/features/message/message.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
@@ -22,11 +23,11 @@ class CustomEventUseCase extends UseCase<RealtimeService, void, CustomEvent>
       _instance ??= CustomEventUseCase._(s);
 
   @override
-  Task<Either<Exception, void>> call(p) {
+  Task<Either<QError, void>> call(p) {
     return Task.delay(() => catching<void>(() => repository.publishCustomEvent(
           roomId: p.roomId,
           payload: p.payload,
-        )) as Either<Exception, void>);
+        )) as Either<QError, void>);
   }
 
   @override

@@ -18,7 +18,7 @@ class DeleteMessageUseCase
   DeleteMessageUseCase(MessageRepository repository) : super(repository);
 
   @override
-  Task<Either<Exception, List<Message>>> call(DeleteMessageParams params) {
+  Task<Either<QError, List<Message>>> call(DeleteMessageParams params) {
     return repository.deleteMessages(
       uniqueIds: params.uniqueIds,
       isForEveryone: params.isForEveryone,

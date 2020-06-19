@@ -9,7 +9,7 @@ class GetRoomInfoUseCase
   GetRoomInfoUseCase(RoomRepository repository) : super(repository);
 
   @override
-  Task<Either<Exception, List<ChatRoom>>> call(p) {
+  Task<Either<QError, List<ChatRoom>>> call(p) {
     return repository.getRoomInfo(
       roomIds: p.roomIds,
       uniqueIds: p.uniqueIds,
