@@ -134,7 +134,7 @@ Map<String, dynamic> _$GetAllRoomsRequestToJson(GetAllRoomsRequest instance) =>
 
 ParticipantRequest _$ParticipantRequestFromJson(Map<String, dynamic> json) {
   return ParticipantRequest(
-    json['room_id'] as int,
+    json['room_id'] as String,
     (json['emails'] as List)?.map((e) => e as String)?.toList(),
   );
 }

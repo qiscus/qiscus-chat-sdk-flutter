@@ -88,28 +88,28 @@ class Injector {
 
     // user
     singleton(() => UserApi(resolve<Dio>()));
-    singleton<UserRepository>(() => UserRepositoryImpl(resolve<UserApi>()));
+    singleton<IUserRepository>(() => UserRepositoryImpl(resolve<UserApi>()));
     factory_(() =>
         AuthenticateUserUseCase(
-          resolve<UserRepository>(),
+          resolve<IUserRepository>(),
           resolve<Storage>(),
         ));
     factory_(() =>
         AuthenticateUserWithTokenUseCase(
-          resolve<UserRepository>(),
+          resolve<IUserRepository>(),
           resolve<Storage>(),
         ));
-    factory_(() => BlockUserUseCase(resolve<UserRepository>()));
-    factory_(() => UnblockUserUseCase(resolve<UserRepository>()));
-    factory_(() => GetBlockedUserUseCase(resolve<UserRepository>()));
-    factory_(() => GetNonceUseCase(resolve<UserRepository>()));
-    factory_(() => GetUserDataUseCase(resolve<UserRepository>()));
-    factory_(() => GetUsersUseCase(resolve<UserRepository>()));
-    factory_(() => RegisterDeviceTokenUseCase(resolve<UserRepository>()));
-    factory_(() => UnregisterDeviceTokenUseCase(resolve<UserRepository>()));
+    factory_(() => BlockUserUseCase(resolve<IUserRepository>()));
+    factory_(() => UnblockUserUseCase(resolve<IUserRepository>()));
+    factory_(() => GetBlockedUserUseCase(resolve<IUserRepository>()));
+    factory_(() => GetNonceUseCase(resolve<IUserRepository>()));
+    factory_(() => GetUserDataUseCase(resolve<IUserRepository>()));
+    factory_(() => GetUsersUseCase(resolve<IUserRepository>()));
+    factory_(() => RegisterDeviceTokenUseCase(resolve<IUserRepository>()));
+    factory_(() => UnregisterDeviceTokenUseCase(resolve<IUserRepository>()));
     factory_(() =>
         UpdateUserUseCase(
-          resolve<UserRepository>(),
+          resolve<IUserRepository>(),
           resolve<Storage>(),
         ));
     singleton(() => TypingUseCase(resolve<RealtimeService>()));

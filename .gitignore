@@ -12,3 +12,4 @@ doc/api/
 
 /.idea
 /qiscus_chat_sdk.iml
+/coverage/html

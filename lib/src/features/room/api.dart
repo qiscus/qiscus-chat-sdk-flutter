@@ -231,7 +231,7 @@ class ParticipantRequest {
   const ParticipantRequest(this.roomId, this.participantIds);
 
   @JsonKey(name: 'room_id')
-  final int roomId;
+  final String roomId;
   @JsonKey(name: 'emails')
   final List<String> participantIds;
 

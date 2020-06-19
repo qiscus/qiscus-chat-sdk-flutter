@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
+import 'package:qiscus_chat_sdk/extension.dart';
 import 'package:test/test.dart';
 
 void main() async {
@@ -15,7 +16,7 @@ void main() async {
       await qiscus.setup$('sdksample');
       expect(qiscus.appId, 'sdksample');
     });
-  });
+  }, skip: true);
 
   group('Bug', () {
     QiscusSDK qiscus;
@@ -25,14 +26,10 @@ void main() async {
     });
 
     test('generate custom message', () async {
-      print('setup');
       await qiscus.setup$('sdksample');
-      print('after setup');
-      qiscus.enableDebugMode(enable: true, level: QLogLevel.verbose);
+      // qiscus.enableDebugMode(enable: true, level: QLogLevel.verbose);
       await qiscus.setUser$(userId: 'guest-1001', userKey: 'passkey');
-      print('after set user');
       var room = await qiscus.chatUser$(userId: 'guest-101');
-      print('after chat user');
       var message0 = qiscus.generateCustomMessage(
         chatRoomId: room.id,
         text: 'text message ini',
@@ -89,6 +86,6 @@ void main() async {
           callback: expectAsync1((err) {
             throwIf(err != null, err);
           }, reason: 'marking as read'));
-    }, timeout: Timeout.factor(1));
-  });
+    }, timeout: Timeout.factor(1.2));
+  }, skip: true);
 }

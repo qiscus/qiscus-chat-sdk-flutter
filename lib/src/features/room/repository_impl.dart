@@ -46,7 +46,7 @@ class RoomRepositoryImpl implements RoomRepository {
     List<String> participantIds,
   ) {
     return Task(() =>
-            _api.addParticipant(ParticipantRequest(roomId, participantIds)))
+            _api.addParticipant(ParticipantRequest(roomId.toString(), participantIds)))
         .attempt()
         .leftMapToException()
         .rightMap((str) {
@@ -64,7 +64,7 @@ class RoomRepositoryImpl implements RoomRepository {
   Task<Either<Exception, RemoveParticipantResponse>> removeParticipant(
       int roomId, List<String> participantIds) {
     return Task(() =>
-            _api.removeParticipant(ParticipantRequest(roomId, participantIds)))
+            _api.removeParticipant(ParticipantRequest(roomId.toString(), participantIds)))
         .attempt()
         .leftMapToException()
         .rightMap((str) {

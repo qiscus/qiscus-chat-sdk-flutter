@@ -11,8 +11,8 @@ class DeviceTokenParams {
 }
 
 class RegisterDeviceTokenUseCase
-    extends UseCase<UserRepository, bool, DeviceTokenParams> {
-  RegisterDeviceTokenUseCase(UserRepository repository) : super(repository);
+    extends UseCase<IUserRepository, bool, DeviceTokenParams> {
+  RegisterDeviceTokenUseCase(IUserRepository repository) : super(repository);
 
   @override
   Task<Either<Exception, bool>> call(DeviceTokenParams p) {
@@ -24,8 +24,8 @@ class RegisterDeviceTokenUseCase
 }
 
 class UnregisterDeviceTokenUseCase
-    extends UseCase<UserRepository, bool, DeviceTokenParams> {
-  UnregisterDeviceTokenUseCase(UserRepository repository) : super(repository);
+    extends UseCase<IUserRepository, bool, DeviceTokenParams> {
+  UnregisterDeviceTokenUseCase(IUserRepository repository) : super(repository);
 
   @override
   Task<Either<Exception, bool>> call(DeviceTokenParams p) {

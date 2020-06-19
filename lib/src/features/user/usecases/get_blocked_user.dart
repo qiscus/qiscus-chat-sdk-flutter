@@ -11,8 +11,8 @@ class GetBlockedUserParams {
 }
 
 class GetBlockedUserUseCase
-    extends UseCase<UserRepository, List<User>, GetBlockedUserParams> {
-  const GetBlockedUserUseCase(UserRepository repository) : super(repository);
+    extends UseCase<IUserRepository, List<User>, GetBlockedUserParams> {
+  const GetBlockedUserUseCase(IUserRepository repository) : super(repository);
 
   @override
   Task<Either<Exception, List<User>>> call(GetBlockedUserParams params) {

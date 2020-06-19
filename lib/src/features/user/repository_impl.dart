@@ -7,7 +7,7 @@ import 'package:qiscus_chat_sdk/src/features/user/entity/user.dart';
 import 'package:qiscus_chat_sdk/src/features/user/repository.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user_api.dart';
 
-class UserRepositoryImpl implements UserRepository {
+class UserRepositoryImpl implements IUserRepository {
   final UserApi _api;
 
   UserRepositoryImpl(this._api);

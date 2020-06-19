@@ -46,10 +46,10 @@ class OnMessageDeleted
   Stream<Message> mapStream(_) => repository //
       .subscribeMessageDeleted()
       .asyncMap((res) => Message(
-    id: -1,
-    uniqueId: optionOf(res.messageUniqueId),
-    chatRoomId: optionOf(res.messageRoomId),
-  ));
+            id: -1,
+            uniqueId: optionOf(res.messageUniqueId),
+            chatRoomId: optionOf(res.messageRoomId),
+          ));
 
   @override
   RealtimeService get repository => _service;
@@ -70,10 +70,10 @@ class OnMessageRead with Subscription<RealtimeService, RoomIdParams, Message> {
   Stream<Message> mapStream(p) => repository
       .subscribeMessageRead(roomId: p.roomId)
       .asyncMap((res) => Message(
-    id: int.parse(res.commentId),
-    chatRoomId: optionOf(res.roomId),
-    uniqueId: optionOf(res.commentUniqueId),
-  ));
+            id: int.parse(res.commentId),
+            chatRoomId: optionOf(res.roomId),
+            uniqueId: optionOf(res.commentUniqueId),
+          ));
 
   @override
   Option<String> topic(p) =>
@@ -97,7 +97,26 @@ class TokenParams extends Equatable {
 
 class OnMessageReceived
     with Subscription<RealtimeService, TokenParams, Message> {
-  OnMessageReceived._(this._service, this._updateMessageStatus);
+  OnMessageReceived._(this._service, this._updateMessageStatus) {
+    _receiveMessage = StreamTransformer //
+        .fromHandlers(
+      handleData: (message, sink) async {
+        sink.add(message);
+
+        var roomId = message.chatRoomId;
+        var messageId = message.id;
+        var status = QMessageStatus.delivered;
+        var res = roomId.fold<Task<Either<Exception, Unit>>>(
+            () => Task.delay(() => right(unit)),
+            (roomId) => _updateMessageStatus.call(UpdateStatusParams(
+                  roomId,
+                  messageId,
+                  status,
+                )));
+        await res.run();
+      },
+    );
+  }
 
   final RealtimeService _service;
   final UpdateMessageStatusUseCase _updateMessageStatus;
@@ -116,28 +135,12 @@ class OnMessageReceived
     return super.unsubscribe(params);
   }
 
-  @override
-  Stream<Message> mapStream(p) =>
-      repository.subscribeMessageReceived() //
-          .transform(StreamTransformer.fromHandlers(
-        handleData: (message, sink) async {
-          sink.add(message);
+  StreamTransformer<Message, Message> _receiveMessage;
 
-          var roomId = message.chatRoomId;
-          var messageId = message.id;
-          var status = QMessageStatus.delivered;
-          var res = roomId.fold<Task<Either<Exception, Unit>>>(
-                  () => Task.delay(() => right(unit)),
-                  (roomId) =>
-                  _updateMessageStatus.call(UpdateStatusParams(
-                    roomId,
-                    messageId,
-                    status,
-                  )));
-          await res.run();
-        },
-      )) //
-      ;
+  @override
+  Stream<Message> mapStream(p) => repository //
+      .subscribeMessageReceived()
+      .transform(_receiveMessage);
 
   @override
   RealtimeService get repository => _service;

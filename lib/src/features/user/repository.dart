@@ -6,7 +6,7 @@ import 'package:qiscus_chat_sdk/src/features/user/entity/account.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/user.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user_api.dart';
 
-abstract class UserRepository {
+abstract class IUserRepository {
   Task<Either<Exception, AuthenticateResponse>> authenticate({
     @required String userId,
     @required String userKey,

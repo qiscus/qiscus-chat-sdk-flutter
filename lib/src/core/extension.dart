@@ -59,6 +59,7 @@ extension CEither<L, R> on Either<L, R> {
           json =
               jsonDecode(err.response.data as String) as Map<String, dynamic>;
         }
+        print('json: $json');
         if (message != null) {
           return Exception(message);
         } else {
@@ -122,6 +123,49 @@ extension COption<T01> on Option<T01> {
     return fold(
       () => null,
       (it) => it,
+    );
+  }
+}
+
+extension TaskX<L1, R1> on Task<Either<L1, R1>> {
+  void toCallback_(void Function(R1, L1) callback) {
+    toCallback(callback).run();
+  }
+
+  Task<Either<void, void>> toCallback(void Function(R1, L1) callback) {
+    return leftMap((err) {
+      callback(null, err);
+    }).rightMap((val) {
+      callback(val, null);
+    });
+  }
+
+  Task<Either<void, void>> toCallback1(void Function(L1) callback) {
+    return leftMap((err) {
+      callback(err);
+    });
+  }
+
+  Future<R1> toFuture() {
+    return run().then((either) => either.fold(
+          (err) => Future<R1>.error(err),
+          (data) => Future.value(data),
+        ));
+  }
+}
+
+extension FutureX<T> on Future<T> {
+  void toCallback1(void Function(Exception) callback) {
+    this.then(
+      (_) => callback(null),
+      onError: (Object error) => callback(error as Exception),
+    );
+  }
+
+  void toCallback2(void Function(T, Exception) callback) {
+    this.then(
+      (value) => callback(value, null),
+      onError: (Object error) => callback(null, error as Exception),
     );
   }
 }

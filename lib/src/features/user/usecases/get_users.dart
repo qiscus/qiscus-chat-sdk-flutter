@@ -12,8 +12,8 @@ class GetUserParams {
 }
 
 class GetUsersUseCase
-    extends UseCase<UserRepository, List<User>, GetUserParams> {
-  const GetUsersUseCase(UserRepository repository) : super(repository);
+    extends UseCase<IUserRepository, List<User>, GetUserParams> {
+  const GetUsersUseCase(IUserRepository repository) : super(repository);
 
   @override
   Task<Either<Exception, List<User>>> call(GetUserParams p) {

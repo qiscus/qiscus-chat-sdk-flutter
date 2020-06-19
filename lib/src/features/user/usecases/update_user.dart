@@ -19,9 +19,9 @@ class UpdateUserParams {
 }
 
 class UpdateUserUseCase
-    extends UseCase<UserRepository, Account, UpdateUserParams> {
+    extends UseCase<IUserRepository, Account, UpdateUserParams> {
   final Storage _storage;
-  const UpdateUserUseCase(UserRepository repository, this._storage)
+  const UpdateUserUseCase(IUserRepository repository, this._storage)
       : super(repository);
 
   @override

@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
@@ -113,12 +112,12 @@ class ChatRoom {
 }
 
 class QChatRoom {
-  final int id, unreadCount, totalParticipants;
-  final String name, uniqueId, avatarUrl;
-  final Map<String, dynamic> extras;
-  final QMessage lastMessage;
-  final QRoomType type;
-  final List<QParticipant> participants;
+  int id, unreadCount, totalParticipants;
+  String name, uniqueId, avatarUrl;
+  Map<String, dynamic> extras;
+  QMessage lastMessage;
+  QRoomType type;
+  List<QParticipant> participants;
 
   QChatRoom({
     @required this.id,
