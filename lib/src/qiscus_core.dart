@@ -179,8 +179,8 @@ class QiscusSDK {
     _authenticated
         .andThen(Task.delay(() {
           _get<Storage>().clear();
-          _get<RealtimeService>('mqtt-service').end();
-          _get<RealtimeService>('sync-service').end();
+          _get<MqttServiceImpl>('mqtt-service').end();
+          _get<SyncServiceImpl>('sync-service').end();
         }))
         .toCallback1((dynamic _) => callback(null))
         .run();
@@ -678,8 +678,6 @@ class QiscusSDK {
     _get<Storage>().syncInterval = interval.ceil();
   }
 
-  Future<void> setup$(String appId) async {}
-
   void setup(
     String appId, {
     @required Function1<QError, void> callback,
@@ -714,16 +712,9 @@ class QiscusSDK {
       ..syncInterval = syncInterval
       ..syncIntervalWhenConnected = syncIntervalWhenConnected;
 
-    _get<AppConfigUseCase>()(noParams).tap((_) {
-      // override server value with user provided value
-      storage
-        ..appId = appId
-        ..baseUrl = baseUrl
-        ..brokerUrl = brokerUrl
-        ..brokerLbUrl = brokerLbUrl
-        ..syncInterval = syncInterval
-        ..syncIntervalWhenConnected = syncIntervalWhenConnected;
-    }).toCallback_((_, e) => callback(e));
+    _get<AppConfigUseCase>() //
+        .call(noParams)
+        .toCallback_((_, e) => callback(e));
   }
 
   Task<Either<QError, void>> _subscribes(String token) {

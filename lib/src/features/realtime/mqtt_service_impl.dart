@@ -9,9 +9,12 @@ import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/core/storage.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
+import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:sealed_unions/factories/doublet_factory.dart';
 import 'package:sealed_unions/implementations/union_2_impl.dart';
 import 'package:sealed_unions/union_2.dart';
+
+import 'mqtt_events.dart';
 
 class MqttServiceImpl implements RealtimeService {
   MqttServiceImpl(this._getClient, this._s, this._logger, this._dio) {
@@ -26,11 +29,14 @@ class MqttServiceImpl implements RealtimeService {
     };
     _mqtt.onUnsubscribed = (topic) => log('on mqtt unsubscribed: $topic');
 
-    _mqtt
-        .connect()
-        .then((status) => log('connected to mqtt: $status'))
-        .catchError((dynamic error) => log('cannot connect to mqtt: $error'));
-    _mqtt.updates.expand((it) => it).listen((event) {
+    if (_s.isRealtimeEnabled) {
+      _mqtt
+          .connect()
+          .then((status) => log('connected to mqtt: $status'))
+          .catchError((dynamic error) => log('cannot connect to mqtt: $error'));
+    }
+
+    _mqtt.updates?.expand((it) => it)?.listen((event) {
       var p = event.payload as MqttPublishMessage;
       var payload = MqttPublishPayload.bytesToStringAsString(p.payload.message);
       var topic = event.topic;
@@ -72,11 +78,17 @@ class MqttServiceImpl implements RealtimeService {
 
   MqttClient get _mqtt => __mqtt ??= _getClient();
 
-  Future<bool> get _isConnected => Stream<bool>.periodic(
-          const Duration(milliseconds: 300))
-      .map((_) => _mqtt.connectionStatus.state == MqttConnectionState.connected)
-      .distinct()
-      .firstWhere((it) => it == true);
+  Future<bool> get _isConnected {
+    if (_s.isRealtimeEnabled) {
+      return Stream<bool>.periodic(const Duration(milliseconds: 300))
+          .map((_) =>
+              _mqtt.connectionStatus.state == MqttConnectionState.connected)
+          .distinct()
+          .firstWhere((it) => it == true);
+    } else {
+      return Future<bool>.value(false);
+    }
+  }
 
   Task<Either<QError, void>> _connected() =>
       Task<bool>(() => _isConnected).attempt().leftMapToQError();
@@ -169,11 +181,11 @@ class MqttServiceImpl implements RealtimeService {
     String userId,
     int roomId,
   }) {
-    var payload = isTyping ? '1' : '0';
-    return _mqtt?.publish(
-      TopicBuilder.typing(roomId.toString(), userId),
-      payload,
-    );
+    return _mqtt?.publishEvent(MqttTypingEvent(
+      roomId: roomId.toString(),
+      userId: userId,
+      isTyping: isTyping,
+    ));
   }
 
   @override
@@ -224,29 +236,19 @@ class MqttServiceImpl implements RealtimeService {
   @override
   Stream<MessageDeliveryResponse> subscribeMessageRead({int roomId}) {
     return _mqtt
-        ?.forTopic(TopicBuilder.messageRead(roomId.toString()))
-        ?.where((it) => int.parse(it.topic.split('/')[1]) == roomId)
-        ?.asyncMap((msg) {
-      // r/{roomId}/{roomId}/{userId}/r
-      // {commentId}:{commentUniqueId}
-      var payload = msg.payload.toString().split(':');
-      var commentId = optionOf(payload[0]);
-      var commentUniqueId = optionOf(payload[1]);
-      return MessageDeliveryResponse(
-        roomId: roomId,
-        commentId: commentId.unwrap('commentId are null'),
-        commentUniqueId: commentUniqueId.unwrap('commentUniqueId are null'),
-      );
-    });
+        ?.subscribeEvent(MqttMessageReadEvent(
+          roomId: roomId.toString(),
+        ))
+        ?.map((data) => MessageDeliveryResponse(
+              commentId: data.id.toString(),
+              roomId: data.chatRoomId.toNullable(),
+              commentUniqueId: data.uniqueId.toNullable(),
+            ));
   }
 
   @override
-  Stream<Message> subscribeMessageReceived() {
-    var decode = (String str) => jsonDecode(str) as Map<String, dynamic>;
-    return _mqtt
-        .forTopic(TopicBuilder.messageNew(_s.token))
-        .asyncMap((CMqttMessage it) => decode(it.payload.toString()))
-        .asyncMap((json) => Message.fromJson(json));
+  Stream<Message> subscribeMessageReceived() async* {
+    yield* _mqtt.subscribeEvent(MqttMessageReceivedEvent(token: _s.token));
   }
 
   @override
@@ -262,52 +264,34 @@ class MqttServiceImpl implements RealtimeService {
   }
 
   @override
-  Stream<UserPresenceResponse> subscribeUserPresence({String userId}) {
-    return _mqtt.forTopic(TopicBuilder.presence(userId)).asyncMap((msg) {
-      // u/{userId}/s
-      // 1:{timestamp}
-      // 0:{timestamp}
-      var payload = msg.payload.toString().split(':');
-      var userId_ = msg.topic.split('/')[1];
-      var onlineStatus =
-          optionOf(payload[0]).map((str) => str == '1' ? true : false);
-      var timestamp = optionOf(payload[1])
-          .map((str) => DateTime.fromMillisecondsSinceEpoch(int.parse(str)));
-      return UserPresenceResponse(
-        userId: userId_,
-        isOnline: onlineStatus.unwrap('onlineStatus are null'),
-        lastSeen: timestamp.unwrap('lastSeen are null'),
-      );
-    });
+  Stream<UserPresenceResponse> subscribeUserPresence({
+    @required String userId,
+  }) async* {
+    yield* _mqtt
+        .subscribeEvent(MqttPresenceEvent(
+          userId: userId,
+        ))
+        .map((data) => UserPresenceResponse(
+              userId: data.userId,
+              lastSeen: data.lastSeen,
+              isOnline: data.isOnline,
+            ));
   }
 
   @override
-  Stream<UserTypingResponse> subscribeUserTyping({int roomId}) {
+  Stream<UserTypingResponse> subscribeUserTyping({int roomId}) async* {
     // r/{roomId}/{roomId}/{userId}/t
     // 1
-    return _mqtt
-        .forTopic(TopicBuilder.typing(roomId.toString(), '+'))
-        .asyncMap((msg) {
-      var payload = msg.payload.toString();
-      var topic = msg.topic.split('/');
-      var roomId_ = optionOf(topic[1]).map((id) => int.parse(id));
-      var userId_ = optionOf(topic[3]);
-      return UserTypingResponse(
-        roomId: roomId_.unwrap('roomId are null'),
-        userId: userId_.unwrap('userId are null'),
-        isTyping: payload == '1',
-      );
-    });
-  }
-
-  @override
-  Stream<CustomEventResponse> subscribeCustomEvent({int roomId}) {
-    // r/{roomId}/{roomId}/c
-    return _mqtt.forTopic(TopicBuilder.customEvent(roomId)).asyncMap((msg) {
-      var _payload = msg.payload.toString();
-      var payload = jsonDecode(_payload) as Map<String, dynamic>;
-      return CustomEventResponse(roomId, payload);
-    });
+    yield* _mqtt
+        .subscribeEvent(MqttTypingEvent(
+          roomId: roomId.toString(),
+          userId: '+',
+        ))
+        .map((data) => UserTypingResponse(
+              roomId: data.roomId,
+              userId: data.userId,
+              isTyping: data.isTyping,
+            ));
   }
 
   @override
@@ -349,14 +333,6 @@ class MqttServiceImpl implements RealtimeService {
           .where((it) => it == true);
 
   @override
-  Either<QError, void> publishCustomEvent({
-    int roomId,
-    Map<String, dynamic> payload,
-  }) {
-    return _mqtt.publish(TopicBuilder.customEvent(roomId), jsonEncode(payload));
-  }
-
-  @override
   Task<Either<QError, Unit>> synchronize([int lastMessageId]) {
     return Task.delay(() => left(QError('Not implemented')));
   }
@@ -364,6 +340,20 @@ class MqttServiceImpl implements RealtimeService {
   @override
   Task<Either<QError, Unit>> synchronizeEvent([String lastEventId]) {
     return Task.delay(() => left(QError('Not implemented')));
+  }
+
+  @override
+  Either<QError, void> publishCustomEvent({
+    int roomId,
+    Map<String, dynamic> payload,
+  }) {
+    return _mqtt
+        .publishEvent(MqttCustomEvent(roomId: roomId, payload: payload));
+  }
+
+  @override
+  Stream<CustomEventResponse> subscribeCustomEvent({int roomId}) async* {
+    yield* _mqtt.subscribeEvent(MqttCustomEvent(roomId: roomId));
   }
 }
 

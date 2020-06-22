@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
@@ -5,9 +6,11 @@ import 'package:dio/dio.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
 import 'errors.dart';
+import 'mqtt.dart';
 
 class CMqttMessage {
   const CMqttMessage(this.topic, this.payload);
+
   final String topic;
   final String payload;
 }
@@ -19,6 +22,22 @@ extension OptionDo<T> on Option<T> {
 }
 
 extension CMqttClient on MqttClient {
+  Either<QError, void> publishEvent(MqttEventHandler event) {
+    var topic = event.topic;
+    var message = event.publish();
+    return publish(topic, message);
+  }
+
+  Stream<Output> subscribeEvent<Input, Output>(
+    MqttEventHandler<Input, Output> event,
+  ) async* {
+    var topic = event.topic;
+
+    await for (var data in forTopic(topic)) {
+      yield* event.receive(data);
+    }
+  }
+
   Either<QError, void> publish(String topic, String message) {
     return catching<void>(() {
       var payload = MqttClientPayloadBuilder()..addString(message);
@@ -26,16 +45,20 @@ extension CMqttClient on MqttClient {
     }).leftMapToQError();
   }
 
-  Stream<CMqttMessage> forTopic(String topic) {
-    return MqttClientTopicFilter(topic, updates)
-        .updates
-        .expand((events) => events)
-        .asyncMap((event) {
-      var _payload = event.payload as MqttPublishMessage;
-      var payload =
-          MqttPublishPayload.bytesToStringAsString(_payload.payload.message);
-      return CMqttMessage(event.topic, payload);
-    });
+  Stream<CMqttMessage> forTopic(String topic) async* {
+    if (updates == null) {
+      yield* Stream.empty();
+    } else {
+      yield* MqttClientTopicFilter(topic, updates)
+          .updates
+          ?.expand((events) => events)
+          ?.asyncMap((event) {
+        var _payload = event.payload as MqttPublishMessage;
+        var payload =
+            MqttPublishPayload.bytesToStringAsString(_payload.payload.message);
+        return CMqttMessage(event.topic, payload);
+      });
+    }
   }
 }
 

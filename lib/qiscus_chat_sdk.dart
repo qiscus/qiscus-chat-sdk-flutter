@@ -11,3 +11,5 @@ export 'package:qiscus_chat_sdk/src/features/user/entity/participant.dart'
     show QParticipant;
 export 'package:qiscus_chat_sdk/src/features/user/entity/user.dart' show QUser;
 export 'package:qiscus_chat_sdk/src/qiscus_core.dart' show QiscusSDK;
+export 'package:qiscus_chat_sdk/src/core/errors.dart' show QError;
+export 'package:qiscus_chat_sdk/extension.dart' show XQiscusSDK;

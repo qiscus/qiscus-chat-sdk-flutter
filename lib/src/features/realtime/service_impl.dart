@@ -16,13 +16,27 @@ class RealtimeServiceImpl implements RealtimeService {
   @override
   bool get isConnected => _mqttService.isConnected;
 
-  @override
-  Task<Either<QError, void>> subscribe(String topic) =>
-      _mqttService.subscribe(topic);
+  Task<Either<QError, void>> _subscribe(String topic) {
+    if (_mqttService.isConnected) {
+      return _mqttService.subscribe(topic);
+    } else {
+      return _syncService.subscribe(topic);
+    }
+  }
+
+  Task<Either<QError, void>> _unsubscribe(String topic) {
+    if (_mqttService.isConnected) {
+      return _mqttService.subscribe(topic);
+    } else {
+      return _syncService.subscribe(topic);
+    }
+  }
 
   @override
-  Task<Either<QError, void>> unsubscribe(String topic) =>
-      _mqttService.unsubscribe(topic);
+  Task<Either<QError, void>> subscribe(String topic) => _subscribe(topic);
+
+  @override
+  Task<Either<QError, void>> unsubscribe(String topic) => _unsubscribe(topic);
 
   @override
   Either<QError, void> publishPresence({
