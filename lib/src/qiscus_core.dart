@@ -177,13 +177,10 @@ class QiscusSDK {
     @required void Function(QError) callback,
   }) {
     _authenticated
-        .andThen(Task.delay(() {
-          _get<Storage>().clear();
-          _get<MqttServiceImpl>('mqtt-service').end();
-          _get<SyncServiceImpl>('sync-service').end();
-        }))
-        .toCallback1((dynamic _) => callback(null))
-        .run();
+        .andThen(Task.delay(() => _get<Storage>().clear()))
+        .andThen(Task.delay(() => _get<MqttServiceImpl>().end()))
+        .andThen(Task.delay(() => _get<SyncServiceImpl>().end()))
+        .toCallback_((_, error) => callback(error));
   }
 
   void createChannel({
