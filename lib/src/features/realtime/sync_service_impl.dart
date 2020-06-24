@@ -172,7 +172,8 @@ class SyncServiceImpl implements RealtimeService {
 
   @override
   Either<QError, void> end() {
-    return left(QError('Not available for this service'));
+    _interval.stop();
+    return right(null);
   }
 
   @override
