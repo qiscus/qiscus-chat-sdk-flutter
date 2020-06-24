@@ -9,7 +9,6 @@ import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/core/storage.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
-import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:sealed_unions/factories/doublet_factory.dart';
 import 'package:sealed_unions/implementations/union_2_impl.dart';
 import 'package:sealed_unions/union_2.dart';
@@ -430,7 +429,7 @@ abstract class TopicBuilder {
 class Notification extends Union2Impl<MessageDeleted, RoomCleared> {
   Notification._(Union2<MessageDeleted, RoomCleared> union) : super(union);
 
-  static final Doublet<MessageDeleted, RoomCleared> factory =
+  static final Doublet<MessageDeleted, RoomCleared> _factory =
       const Doublet<MessageDeleted, RoomCleared>();
 
   factory Notification.message_deleted({
@@ -439,14 +438,15 @@ class Notification extends Union2Impl<MessageDeleted, RoomCleared> {
     String actorName,
     int roomId,
     String messageUniqueId,
-  }) =>
-      Notification._(factory.first(MessageDeleted(
-        actorId: actorId,
-        actorName: actorName,
-        actorEmail: actorEmail,
-        roomId: roomId,
-        messageUniqueId: messageUniqueId,
-      )));
+  }) {
+    return Notification._(_factory.first(MessageDeleted(
+      actorId: actorId,
+      actorName: actorName,
+      actorEmail: actorEmail,
+      roomId: roomId,
+      messageUniqueId: messageUniqueId,
+    )));
+  }
 
   factory Notification.room_cleared({
     String actorId,
@@ -454,7 +454,7 @@ class Notification extends Union2Impl<MessageDeleted, RoomCleared> {
     String actorName,
     int roomId,
   }) =>
-      Notification._(factory.second(RoomCleared(
+      Notification._(_factory.second(RoomCleared(
         actorId: actorId,
         actorEmail: actorEmail,
         actorName: actorName,

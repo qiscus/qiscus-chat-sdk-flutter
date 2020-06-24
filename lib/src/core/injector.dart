@@ -62,10 +62,9 @@ class Injector {
           resolve<Storage>(),
           resolve<SyncApi>(),
           resolve<Interval>(),
-      resolve<Logger>(),
-    ));
-    singleton<RealtimeService>(() =>
-        RealtimeServiceImpl(
+          resolve<Logger>(),
+        ));
+    singleton<RealtimeService>(() => RealtimeServiceImpl(
           resolve<MqttServiceImpl>(),
           resolve<SyncServiceImpl>(),
         ));
@@ -89,13 +88,11 @@ class Injector {
     // user
     singleton(() => UserApi(resolve<Dio>()));
     singleton<IUserRepository>(() => UserRepositoryImpl(resolve<UserApi>()));
-    factory_(() =>
-        AuthenticateUserUseCase(
+    factory_(() => AuthenticateUserUseCase(
           resolve<IUserRepository>(),
           resolve<Storage>(),
         ));
-    factory_(() =>
-        AuthenticateUserWithTokenUseCase(
+    factory_(() => AuthenticateUserWithTokenUseCase(
           resolve<IUserRepository>(),
           resolve<Storage>(),
         ));
@@ -107,8 +104,7 @@ class Injector {
     factory_(() => GetUsersUseCase(resolve<IUserRepository>()));
     factory_(() => RegisterDeviceTokenUseCase(resolve<IUserRepository>()));
     factory_(() => UnregisterDeviceTokenUseCase(resolve<IUserRepository>()));
-    factory_(() =>
-        UpdateUserUseCase(
+    factory_(() => UpdateUserUseCase(
           resolve<IUserRepository>(),
           resolve<Storage>(),
         ));
@@ -118,13 +114,12 @@ class Injector {
     // message
     singleton(() => MessageApi(resolve<Dio>()));
     singleton<MessageRepository>(
-            () => MessageRepositoryImpl(resolve<MessageApi>()));
+        () => MessageRepositoryImpl(resolve<MessageApi>()));
     factory_(() => DeleteMessageUseCase(resolve<MessageRepository>()));
     factory_(() => GetMessageListUseCase(resolve<MessageRepository>()));
     factory_(() => SendMessageUseCase(resolve<MessageRepository>()));
     factory_(() => UpdateMessageStatusUseCase(resolve<MessageRepository>()));
-    singleton(() =>
-        OnMessageReceived(
+    singleton(() => OnMessageReceived(
           resolve<RealtimeService>(),
           resolve<UpdateMessageStatusUseCase>(),
         ));
