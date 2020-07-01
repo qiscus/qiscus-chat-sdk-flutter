@@ -1,5 +1,5 @@
 name: qiscus_chat_sdk
-description: A starting point for Dart libraries or applications.
+description: The Scalable In-App Chat SDK for Mobile & Web
 version: 1.0.0+beta2
 homepage: https://sdk.qiscus.com
 repository: https://github.com/qiscus/qiscus-chat-sdk-flutter
