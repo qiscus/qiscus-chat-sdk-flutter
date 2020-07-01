@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
@@ -157,7 +158,6 @@ extension XQiscusSDK on QiscusSDK {
     @required List<String> userIds,
     String avatarUrl,
     Map<String, dynamic> extras,
-    @required void Function(QChatRoom, QError) callback,
   }) async {
     return futurify2((cb) {
       createGroupChat(
@@ -408,6 +408,18 @@ extension XQiscusSDK on QiscusSDK {
             ..isTyping = isTyping,
         );
       });
+    });
+  }
+
+  Future<String> upload$(File file) async {
+    return futurify2((cb) {
+      upload(
+          file: file,
+          callback: (error, _, url) {
+            if (url != null) {
+              cb(url, error);
+            }
+          });
     });
   }
 }
