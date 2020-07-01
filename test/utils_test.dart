@@ -75,5 +75,5 @@ void main() {
           'should throw',
           'some error',
         )));
-  });
+  }, skip: true);
 }

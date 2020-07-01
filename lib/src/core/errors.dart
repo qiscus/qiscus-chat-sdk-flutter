@@ -5,6 +5,6 @@ class QError extends Error {
 
   @override
   String toString() {
-    return 'QError($message)';
+    return 'QError: $message';
   }
 }
