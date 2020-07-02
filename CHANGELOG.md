@@ -1,3 +1,8 @@
+## 1.0.0+beta3
+
+- fix not getting extras data for `QChatRoom`
+- fix not using the right version number in ajax request headers
+
 ## 1.0.0+beta2
 
 - fix cannot connect to broker server after
