@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
@@ -67,10 +69,19 @@ class UpdateRoomRequest {
   final String name;
   @JsonKey(name: 'avatar_url', nullable: true)
   final String avatarUrl;
-  @JsonKey(nullable: true, name: 'options')
+  @JsonKey(
+    nullable: true,
+    name: 'options',
+    toJson: UpdateRoomRequest.extrasToJson,
+  )
   final Map<String, dynamic> extras;
 
   Map<String, dynamic> toJson() => _$UpdateRoomRequestToJson(this);
+
+  static String extrasToJson(Map<String, dynamic> extras) {
+    if (extras == null) return null;
+    return jsonEncode(extras);
+  }
 }
 
 @immutable
@@ -105,15 +116,26 @@ class CreateGroupRequest {
     this.avatarUrl,
     this.extras,
   });
+
   final String name;
   @JsonKey(name: 'participants')
   final List<String> userIds;
   @JsonKey(name: 'avatar_url')
   final String avatarUrl;
-  @JsonKey(name: 'options')
+
+  @JsonKey(
+    name: 'options',
+    nullable: true,
+    toJson: CreateGroupRequest.extrasToJson,
+  )
   final Map<String, dynamic> extras;
 
   Map<String, dynamic> toJson() => _$CreateGroupRequestToJson(this);
+
+  static String extrasToJson(Map<String, dynamic> extras) {
+    if (extras == null) return null;
+    return jsonEncode(extras);
+  }
 }
 
 @immutable

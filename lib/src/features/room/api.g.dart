@@ -22,7 +22,7 @@ Map<String, dynamic> _$UpdateRoomRequestToJson(UpdateRoomRequest instance) =>
       'id': instance.roomId,
       'name': instance.name,
       'avatar_url': instance.avatarUrl,
-      'options': instance.extras,
+      'options': UpdateRoomRequest.extrasToJson(instance.extras),
     };
 
 GetRoomInfoRequest _$GetRoomInfoRequestFromJson(Map<String, dynamic> json) {
@@ -59,7 +59,7 @@ Map<String, dynamic> _$CreateGroupRequestToJson(CreateGroupRequest instance) =>
       'name': instance.name,
       'participants': instance.userIds,
       'avatar_url': instance.avatarUrl,
-      'options': instance.extras,
+      'options': CreateGroupRequest.extrasToJson(instance.extras),
     };
 
 GetOrCreateChannelRequest _$GetOrCreateChannelRequestFromJson(
