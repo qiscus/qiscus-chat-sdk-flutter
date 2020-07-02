@@ -85,7 +85,7 @@ class ChatRoom {
       unreadCount: optionOf(json['unread_count'] as int),
       avatarUrl: optionOf(json['avatar_url'] as String),
       totalParticipants: optionOf(json['room_total_participants'] as int),
-      extras: optionOf(json['extras'] as Map<String, dynamic>).map(imap),
+      extras: optionOf(json['options'] as Map<String, dynamic>).map(imap),
       participants: participants,
       type: _type,
       sender: none<User>(),

@@ -67,7 +67,7 @@ class UpdateRoomRequest {
   final String name;
   @JsonKey(name: 'avatar_url', nullable: true)
   final String avatarUrl;
-  @JsonKey(nullable: true)
+  @JsonKey(nullable: true, name: 'options')
   final Map<String, dynamic> extras;
 
   Map<String, dynamic> toJson() => _$UpdateRoomRequestToJson(this);
@@ -110,6 +110,7 @@ class CreateGroupRequest {
   final List<String> userIds;
   @JsonKey(name: 'avatar_url')
   final String avatarUrl;
+  @JsonKey(name: 'options')
   final Map<String, dynamic> extras;
 
   Map<String, dynamic> toJson() => _$CreateGroupRequestToJson(this);
@@ -164,7 +165,7 @@ class ChatTargetRequest {
 
   final List<String> emails;
 
-  @JsonKey(nullable: true)
+  @JsonKey(nullable: true, name: 'options')
   final Map<String, dynamic> extras;
 
   Map<String, dynamic> toJson() => _$ChatTargetRequestToJson(this);
