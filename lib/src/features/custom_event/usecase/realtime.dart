@@ -13,13 +13,13 @@ class CustomEvent {
   final Map<String, dynamic> payload;
 }
 
-class CustomEventUseCase extends UseCase<RealtimeService, void, CustomEvent>
-    with Subscription<RealtimeService, RoomIdParams, CustomEvent> {
-  CustomEventUseCase._(RealtimeService s) : super(s);
+class CustomEventUseCase extends UseCase<IRealtimeService, void, CustomEvent>
+    with Subscription<IRealtimeService, RoomIdParams, CustomEvent> {
+  CustomEventUseCase._(IRealtimeService s) : super(s);
 
   static CustomEventUseCase _instance;
 
-  factory CustomEventUseCase(RealtimeService s) =>
+  factory CustomEventUseCase(IRealtimeService s) =>
       _instance ??= CustomEventUseCase._(s);
 
   @override

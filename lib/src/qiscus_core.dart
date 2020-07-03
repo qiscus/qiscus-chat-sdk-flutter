@@ -716,7 +716,7 @@ class QiscusSDK {
 
   Task<Either<QError, void>> _subscribes(String token) {
     final onMessageReceived = _get<OnMessageReceived>();
-    final realtimeService = _get<RealtimeService>();
+    final realtimeService = _get<IRealtimeService>();
 
     return onMessageReceived
         .subscribe(TokenParams(token))
@@ -804,14 +804,14 @@ class QiscusSDK {
 
   void synchronize({String lastMessageId}) {
     _authenticated
-        .andThen(_get<RealtimeService>().synchronize(int.parse(lastMessageId)))
+        .andThen(_get<IRealtimeService>().synchronize(int.parse(lastMessageId)))
         .run()
         .catchError((dynamic _) {});
   }
 
   void synchronizeEvent({String lastEventId}) {
     _authenticated
-        .andThen(_get<RealtimeService>().synchronizeEvent(lastEventId))
+        .andThen(_get<IRealtimeService>().synchronizeEvent(lastEventId))
         .run()
         .catchError((dynamic _) {});
   }

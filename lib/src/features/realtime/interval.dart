@@ -9,7 +9,7 @@ class Interval {
   );
 
   final Storage _storage;
-  final RealtimeService _mqttClient;
+  final IRealtimeService _mqttClient;
   bool _stopped = false;
 
   int get _interval => _mqttClient.isConnected

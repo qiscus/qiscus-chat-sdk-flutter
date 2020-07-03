@@ -39,5 +39,10 @@ void main() {
       (l) => fail(l.message),
       (r) => expect(r.name, account.name),
     );
+
+    verify(repo.updateUser(
+      name: 'name',
+    )).called(1);
+    verifyNoMoreInteractions(repo);
   });
 }

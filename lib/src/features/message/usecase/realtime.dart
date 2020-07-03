@@ -33,12 +33,12 @@ class RoomUniqueIdsParams extends Equatable {
 }
 
 class OnMessageDeleted
-    with Subscription<RealtimeService, TokenParams, Message> {
+    with Subscription<IRealtimeService, TokenParams, Message> {
   OnMessageDeleted._(this._service);
 
-  final RealtimeService _service;
+  final IRealtimeService _service;
 
-  factory OnMessageDeleted(RealtimeService s) =>
+  factory OnMessageDeleted(IRealtimeService s) =>
       _instance ??= OnMessageDeleted._(s);
   static OnMessageDeleted _instance;
 
@@ -52,18 +52,18 @@ class OnMessageDeleted
           ));
 
   @override
-  RealtimeService get repository => _service;
+  IRealtimeService get repository => _service;
 
   @override
   Option<String> topic(p) => some(TopicBuilder.notification(p.token));
 }
 
-class OnMessageRead with Subscription<RealtimeService, RoomIdParams, Message> {
+class OnMessageRead with Subscription<IRealtimeService, RoomIdParams, Message> {
   OnMessageRead._(this._service);
 
-  final RealtimeService _service;
+  final IRealtimeService _service;
 
-  factory OnMessageRead(RealtimeService s) => _instance ??= OnMessageRead._(s);
+  factory OnMessageRead(IRealtimeService s) => _instance ??= OnMessageRead._(s);
   static OnMessageRead _instance;
 
   @override
@@ -80,7 +80,7 @@ class OnMessageRead with Subscription<RealtimeService, RoomIdParams, Message> {
       some(TopicBuilder.messageRead(p.roomId.toString()));
 
   @override
-  RealtimeService get repository => _service;
+  IRealtimeService get repository => _service;
 }
 
 class TokenParams extends Equatable {
@@ -96,7 +96,7 @@ class TokenParams extends Equatable {
 }
 
 class OnMessageReceived
-    with Subscription<RealtimeService, TokenParams, Message> {
+    with Subscription<IRealtimeService, TokenParams, Message> {
   OnMessageReceived._(this._service, this._updateMessageStatus) {
     _receiveMessage = StreamTransformer //
         .fromHandlers(
@@ -118,10 +118,11 @@ class OnMessageReceived
     );
   }
 
-  final RealtimeService _service;
+  final IRealtimeService _service;
   final UpdateMessageStatusUseCase _updateMessageStatus;
 
-  factory OnMessageReceived(RealtimeService s, UpdateMessageStatusUseCase us) =>
+  factory OnMessageReceived(
+          IRealtimeService s, UpdateMessageStatusUseCase us) =>
       _instance ??= OnMessageReceived._(s, us);
   static OnMessageReceived _instance;
 
@@ -143,19 +144,19 @@ class OnMessageReceived
       .transform(_receiveMessage);
 
   @override
-  RealtimeService get repository => _service;
+  IRealtimeService get repository => _service;
 
   @override
   Option<String> topic(TokenParams p) => some(TopicBuilder.messageNew(p.token));
 }
 
 class OnMessageDelivered
-    with Subscription<RealtimeService, RoomIdParams, Message> {
+    with Subscription<IRealtimeService, RoomIdParams, Message> {
   OnMessageDelivered._(this._service);
 
-  final RealtimeService _service;
+  final IRealtimeService _service;
 
-  factory OnMessageDelivered(RealtimeService s) =>
+  factory OnMessageDelivered(IRealtimeService s) =>
       _instance ??= OnMessageDelivered._(s);
   static OnMessageDelivered _instance;
 
@@ -170,7 +171,7 @@ class OnMessageDelivered
       });
 
   @override
-  RealtimeService get repository => _service;
+  IRealtimeService get repository => _service;
 
   @override
   Option<String> topic(p) =>
