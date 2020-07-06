@@ -16,12 +16,12 @@ class QParticipant {
 
   @override
   String toString() => 'QParticipant('
-      'id=$id,'
-      'name=$name,'
-      'avatarUrl=$avatarUrl,'
-      'lastReadMessageId=$lastReadMessageId,'
-      'lastReceivedMessageId=$lastReceivedMessageId,'
-      'extras=$extras'
+      ' id=$id,'
+      ' name=$name,'
+      ' avatarUrl=$avatarUrl,'
+      ' lastReadMessageId=$lastReadMessageId,'
+      ' lastReceivedMessageId=$lastReceivedMessageId,'
+      ' extras=$extras'
       ')';
 }
 

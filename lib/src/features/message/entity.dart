@@ -110,17 +110,17 @@ class QMessage {
 
   @override
   String toString() => 'QMessage('
-      'id=$id,'
-      'text=$text,'
-      'chatRoomId=$chatRoomId,'
-      'sender=$sender,'
-      'uniqueId=$uniqueId,'
-      'type=$type,'
-      'status=$status,'
-      'extras=$extras,'
-      'payload=$payload,'
-      'timestamp=$timestamp,'
-      'previousMessageId=$previousMessageId'
+      ' id=$id,'
+      ' text=$text,'
+      ' chatRoomId=$chatRoomId,'
+      ' sender=$sender,'
+      ' uniqueId=$uniqueId,'
+      ' type=$type,'
+      ' status=$status,'
+      ' extras=$extras,'
+      ' payload=$payload,'
+      ' timestamp=$timestamp,'
+      ' previousMessageId=$previousMessageId'
       ')';
 
   @override
