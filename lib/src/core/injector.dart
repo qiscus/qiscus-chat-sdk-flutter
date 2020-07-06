@@ -68,6 +68,9 @@ class Injector {
           resolve<MqttServiceImpl>(),
           resolve<SyncServiceImpl>(),
         ));
+    singleton(() => OnConnected(resolve()));
+    singleton(() => OnDisconnected(resolve()));
+    singleton(() => OnReconnecting(resolve()));
 
     // room
     singleton(() => RoomApi(resolve<Dio>()));
