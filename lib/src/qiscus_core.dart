@@ -470,7 +470,7 @@ class QiscusSDK {
 
   Subscription onConnected(void Function() handler) {
     var ret = _authenticated
-        .andThen(_get<OnConnected>().subscribe(NoParams()))
+        .andThen(_get<OnConnected>().subscribe(noParams))
         .bind((stream) => Task.delay(() => stream.listen((_) => handler())))
         .run();
     return () => ret.then<void>((s) => s.cancel());
@@ -507,8 +507,11 @@ class QiscusSDK {
   }
 
   Subscription onMessageReceived(void Function(QMessage) callback) {
-    var listenable = _get<OnMessageReceived>() //
-        .listen((m) => callback(m.toModel()));
+    var token = _get<Storage>().token;
+    var listenable = _get<OnMessageReceived>()
+        .subscribe(TokenParams(token))
+        .bind<StreamSubscription<Message>>((stream) =>
+            Task.delay(() => stream.listen((m) => callback(m.toModel()))));
 
     var subs = _authenticated.andThen(listenable).run();
     return () => subs.then<void>((s) => s.cancel());
@@ -740,12 +743,22 @@ class QiscusSDK {
       extras: extras,
     );
     authenticate(params)
-        .bind((either) => either.fold(
-              (e) => Task.delay(() => left<QError, Tuple2<String, Account>>(e)),
-              (tuple) => _subscribes(tuple.value1).andThen(Task.delay(
-                () => right<QError, Tuple2<String, Account>>(tuple),
-              )),
-            ))
+        .bind((either) {
+          return either.fold(
+            (e) {
+              return Task.delay(() {
+                return left<QError, Tuple2<String, Account>>(e);
+              });
+            },
+            (tuple) {
+              return _subscribes(tuple.value1).andThen(Task.delay(
+                () {
+                  return right<QError, Tuple2<String, Account>>(tuple);
+                },
+              ));
+            },
+          );
+        })
         .rightMap((it) => it.value2.toModel())
         .toCallback_(callback);
   }
