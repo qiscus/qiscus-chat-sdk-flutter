@@ -1,3 +1,11 @@
+## 1.0.0+beta4
+
+- fix missing injected library (internal)
+- fix missing `lastMessage` on `getRoomWithMessages` response
+- QoL remove some unneeded method
+- Improve some `toString` method for easier log reading
+- Make a workaround for not subscribing to mqtt after successfully login
+
 ## 1.0.0+beta3
 
 - fix not getting extras data for `QChatRoom`
