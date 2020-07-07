@@ -126,16 +126,6 @@ class OnMessageReceived
       _instance ??= OnMessageReceived._(s, us);
   static OnMessageReceived _instance;
 
-//  @override
-//  Task<Stream<Message>> subscribe(p) => repository
-//      .subscribe(TopicBuilder.messageNew(p.token))
-//      .andThen(super.subscribe(p));
-//
-//  @override
-//  Task<void> unsubscribe(TokenParams params) {
-//    return super.unsubscribe(params);
-//  }
-
   StreamTransformer<Message, Message> _receiveMessage;
 
   @override
