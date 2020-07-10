@@ -11,7 +11,7 @@ import 'api.dart';
 import 'interval.dart';
 import 'service.dart';
 
-class SyncServiceImpl implements RealtimeService {
+class SyncServiceImpl implements IRealtimeService {
   SyncServiceImpl(
     this._s,
     this._api,

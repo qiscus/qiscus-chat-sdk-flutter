@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/account.dart';
@@ -9,7 +10,7 @@ part 'user_api.g.dart';
 
 @immutable
 @JsonSerializable()
-class AuthenticateRequest {
+class AuthenticateRequest extends Equatable {
   final String email, password, username, avatar_url;
   final Map<String, dynamic> extras;
   AuthenticateRequest(
@@ -24,6 +25,9 @@ class AuthenticateRequest {
       _$AuthenticateRequestFromJson(json);
 
   Map<String, dynamic> toJson() => _$AuthenticateRequestToJson(this);
+
+  @override
+  List<Object> get props => [email, password];
 }
 
 @immutable
@@ -35,33 +39,39 @@ class AuthenticateResponse {
     var user = Account.fromJson(
       json['results']['user'] as Map<String, dynamic>,
     );
-    return AuthenticateResponse._(token, user);
+    return AuthenticateResponse(token, user);
   }
-  AuthenticateResponse._(this.token, this.user);
+  AuthenticateResponse(this.token, this.user);
 }
 
 @immutable
 @JsonSerializable()
-class AuthenticateWithTokenRequest {
-  final String identity_token;
-  const AuthenticateWithTokenRequest(this.identity_token);
+class AuthenticateWithTokenRequest extends Equatable {
+  @JsonKey(name: 'identity_token')
+  final String identityToken;
+  const AuthenticateWithTokenRequest(this.identityToken);
 
   Map<String, dynamic> toJson() => _$AuthenticateWithTokenRequestToJson(this);
+
+  @override
+  List<Object> get props => [identityToken];
 }
 
 @immutable
 @JsonSerializable()
-class BlockUserRequest {
+class BlockUserRequest extends Equatable {
   @JsonKey(name: 'user_email')
-  final String user_id;
-  const BlockUserRequest(this.user_id);
+  final String userId;
+  const BlockUserRequest(this.userId);
 
   Map<String, dynamic> toJson() => _$BlockUserRequestToJson(this);
+  @override
+  List<Object> get props => [userId];
 }
 
 @immutable
 @JsonSerializable()
-class DeviceTokenRequest {
+class DeviceTokenRequest extends Equatable {
   @JsonKey(name: 'device_token')
   final String token;
 
@@ -78,6 +88,9 @@ class DeviceTokenRequest {
   ]);
 
   Map<String, dynamic> toJson() => _$DeviceTokenRequestToJson(this);
+
+  @override
+  List<Object> get props => [token, platform];
 }
 
 @immutable
@@ -85,9 +98,9 @@ class GetNonceResponse {
   final String nonce;
   factory GetNonceResponse.fromJson(Map<String, dynamic> json) {
     var nonce = json['results']['nonce'] as String;
-    return GetNonceResponse._(nonce);
+    return GetNonceResponse(nonce);
   }
-  GetNonceResponse._(this.nonce);
+  GetNonceResponse(this.nonce);
 }
 
 @immutable
@@ -97,20 +110,23 @@ class GetUserResponse {
     var user = Account.fromJson(
       json['results']['user'] as Map<String, dynamic>,
     );
-    return GetUserResponse._(user);
+    return GetUserResponse(user);
   }
-  GetUserResponse._(this.user);
+  GetUserResponse(this.user);
 }
 
 @immutable
 @JsonSerializable()
-class UpdateUserRequest {
+class UpdateUserRequest extends Equatable {
   final String name;
-  final String avatar_url;
+  @JsonKey(name: 'avatar_url')
+  final String avatarUrl;
   final Map<String, dynamic> extras;
-  const UpdateUserRequest({this.name, this.avatar_url, this.extras});
+  const UpdateUserRequest({this.name, this.avatarUrl, this.extras});
 
   Map<String, dynamic> toJson() => _$UpdateUserRequestToJson(this);
+  @override
+  List<Object> get props => [name, avatarUrl, extras];
 }
 
 @RestApi()
@@ -174,8 +190,8 @@ class UsersResponse {
     var users_ = users.cast<Map<String, dynamic>>().map((it) {
       return User.fromJson(it);
     }).toList(growable: false);
-    return UsersResponse._(users_);
+    return UsersResponse(users_);
   }
 
-  UsersResponse._(this.users);
+  UsersResponse(this.users);
 }

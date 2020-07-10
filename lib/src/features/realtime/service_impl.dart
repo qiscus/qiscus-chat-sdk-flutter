@@ -7,7 +7,7 @@ import 'package:qiscus_chat_sdk/src/features/realtime/mqtt_service_impl.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/sync_service_impl.dart';
 
-class RealtimeServiceImpl implements RealtimeService {
+class RealtimeServiceImpl implements IRealtimeService {
   const RealtimeServiceImpl(this._mqttService, this._syncService);
 
   final MqttServiceImpl _mqttService;

@@ -7,7 +7,7 @@ import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
 
 part 'service.g.dart';
 
-abstract class RealtimeService {
+abstract class IRealtimeService {
   MqttClientConnectionStatus get connectionState;
 
   bool get isConnected;

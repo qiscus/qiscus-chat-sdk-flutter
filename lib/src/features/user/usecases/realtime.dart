@@ -43,11 +43,11 @@ class Presence with EquatableMixin {
   List<Object> get props => [userId];
 }
 
-class TypingUseCase extends UseCase<RealtimeService, void, Typing>
-    with Subscription<RealtimeService, Typing, Typing> {
-  TypingUseCase._(RealtimeService repository) : super(repository);
+class TypingUseCase extends UseCase<IRealtimeService, void, Typing>
+    with Subscription<IRealtimeService, Typing, Typing> {
+  TypingUseCase._(IRealtimeService repository) : super(repository);
 
-  factory TypingUseCase(RealtimeService repo) =>
+  factory TypingUseCase(IRealtimeService repo) =>
       _instance ??= TypingUseCase._(repo);
   static TypingUseCase _instance;
 
@@ -60,11 +60,6 @@ class TypingUseCase extends UseCase<RealtimeService, void, Typing>
           ));
 
   @override
-  Task<Stream<Typing>> subscribe(Typing params) => repository
-      .subscribe(TopicBuilder.typing(params.roomId.toString(), params.userId))
-      .andThen(super.subscribe(params));
-
-  @override
   Stream<Typing> mapStream(params) => repository
       .subscribeUserTyping(roomId: params.roomId)
       .asyncMap((res) => Typing(
@@ -74,28 +69,18 @@ class TypingUseCase extends UseCase<RealtimeService, void, Typing>
           ));
 
   @override
-  Task<void> unsubscribe(Typing params) {
-    return super.unsubscribe(params);
-  }
-
-  @override
   Option<String> topic(Typing p) =>
       some(TopicBuilder.typing(p.roomId.toString(), p.userId));
 }
 
 @immutable
-class PresenceUseCase extends UseCase<RealtimeService, void, Presence>
-    with Subscription<RealtimeService, Presence, Presence> {
-  PresenceUseCase._(RealtimeService service) : super(service);
+class PresenceUseCase extends UseCase<IRealtimeService, void, Presence>
+    with Subscription<IRealtimeService, Presence, Presence> {
+  PresenceUseCase._(IRealtimeService service) : super(service);
   static PresenceUseCase _instance;
 
-  factory PresenceUseCase(RealtimeService service) =>
+  factory PresenceUseCase(IRealtimeService service) =>
       _instance ??= PresenceUseCase._(service);
-
-  @override
-  Task<Stream<Presence>> subscribe(Presence params) => repository
-      .subscribe(TopicBuilder.presence(params.userId))
-      .andThen(super.subscribe(params));
 
   @override
   Task<Either<QError, void>> call(params) =>

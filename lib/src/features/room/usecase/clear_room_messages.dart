@@ -21,15 +21,15 @@ class ClearRoomMessagesUseCase
   }
 }
 
-class OnRoomMessagesCleared with Subscription<RealtimeService, NoParams, int> {
+class OnRoomMessagesCleared with Subscription<IRealtimeService, NoParams, int> {
   OnRoomMessagesCleared._(this._service);
-  factory OnRoomMessagesCleared(RealtimeService s) =>
+  factory OnRoomMessagesCleared(IRealtimeService s) =>
       _instance ??= OnRoomMessagesCleared._(s);
   static OnRoomMessagesCleared _instance;
-  final RealtimeService _service;
+  final IRealtimeService _service;
 
   @override
-  RealtimeService get repository => _service;
+  IRealtimeService get repository => _service;
 
   @override
   Stream<int> mapStream(_) => repository //

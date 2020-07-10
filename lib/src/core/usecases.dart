@@ -41,19 +41,20 @@ abstract class SubscriptionUseCase<Repository, ReturnType, Params> {
 /// A helper mixin for handling subscription based
 /// usecase, please ensure [params] implement
 /// both == equality method and hashCode method.
-mixin Subscription<Repository extends RealtimeService, Params, Response> {
-  final _controller = StreamController<Response>.broadcast();
+mixin Subscription<Repository extends IRealtimeService, Params, Response> {
+  final _controller = StreamController<Response>();
   final _subscriptions = HashMap<Params, StreamSubscription<Response>>();
 
   Stream<Response> get stream => _controller.stream;
 
-  Task<Stream<Response>> subscribe(Params params) => //
-      Task.delay(() => topic(params))
-          .bind((topic) => topic.fold(
-              () => Task.delay(() {}), (topic) => repository.subscribe(topic)))
-          .andThen(Task.delay(() => _subscriptions.putIfAbsent(params,
-              () => mapStream(params).listen((res) => _controller.add(res)))))
-          .andThen(Task.delay(() => _controller.stream));
+  Task<Stream<Response>> subscribe(Params params) {
+    return Task.delay(() => topic(params))
+        .bind((topic) => topic.fold(
+            () => Task.delay(() {}), (topic) => repository.subscribe(topic)))
+        .andThen(Task.delay(() => _subscriptions.putIfAbsent(params,
+            () => mapStream(params).listen((res) => _controller.add(res)))))
+        .andThen(Task.delay(() => _controller.stream));
+  }
 
   Task<void> unsubscribe(Params params) {
     if (!_subscriptions.containsKey(params)) return Task.delay(() {});

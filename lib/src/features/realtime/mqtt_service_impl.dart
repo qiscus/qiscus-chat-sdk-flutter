@@ -15,7 +15,7 @@ import 'package:sealed_unions/union_2.dart';
 
 import 'mqtt_events.dart';
 
-class MqttServiceImpl implements RealtimeService {
+class MqttServiceImpl implements IRealtimeService {
   MqttServiceImpl(this._getClient, this._s, this._logger, this._dio) {
     _mqtt.onConnected = () => log('on mqtt connected');
     _mqtt.onDisconnected = () {

@@ -64,10 +64,13 @@ class Injector {
           resolve<Interval>(),
           resolve<Logger>(),
         ));
-    singleton<RealtimeService>(() => RealtimeServiceImpl(
+    singleton<IRealtimeService>(() => RealtimeServiceImpl(
           resolve<MqttServiceImpl>(),
           resolve<SyncServiceImpl>(),
         ));
+    singleton(() => OnConnected(resolve()));
+    singleton(() => OnDisconnected(resolve()));
+    singleton(() => OnReconnecting(resolve()));
 
     // room
     singleton(() => RoomApi(resolve<Dio>()));
@@ -108,8 +111,8 @@ class Injector {
           resolve<IUserRepository>(),
           resolve<Storage>(),
         ));
-    singleton(() => TypingUseCase(resolve<RealtimeService>()));
-    singleton(() => PresenceUseCase(resolve<RealtimeService>()));
+    singleton(() => TypingUseCase(resolve<IRealtimeService>()));
+    singleton(() => PresenceUseCase(resolve<IRealtimeService>()));
 
     // message
     singleton(() => MessageApi(resolve<Dio>()));
@@ -120,11 +123,11 @@ class Injector {
     factory_(() => SendMessageUseCase(resolve<MessageRepository>()));
     factory_(() => UpdateMessageStatusUseCase(resolve<MessageRepository>()));
     singleton(() => OnMessageReceived(
-          resolve<RealtimeService>(),
+          resolve<IRealtimeService>(),
           resolve<UpdateMessageStatusUseCase>(),
         ));
-    singleton(() => OnMessageDelivered(resolve<RealtimeService>()));
-    singleton(() => OnMessageRead(resolve<RealtimeService>()));
-    singleton(() => OnMessageDeleted(resolve<RealtimeService>()));
+    singleton(() => OnMessageDelivered(resolve<IRealtimeService>()));
+    singleton(() => OnMessageRead(resolve<IRealtimeService>()));
+    singleton(() => OnMessageDeleted(resolve<IRealtimeService>()));
   }
 }

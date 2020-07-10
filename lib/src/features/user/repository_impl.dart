@@ -118,7 +118,7 @@ class UserRepositoryImpl implements IUserRepository {
         ))).attempt().leftMapToQError().rightMap((str) {
       var json = jsonDecode(str) as Map<String, dynamic>;
       var changed = json['results']['changed'] as bool;
-      return changed;
+      return changed ?? true;
     });
   }
 
@@ -131,7 +131,7 @@ class UserRepositoryImpl implements IUserRepository {
     return Task(() => _api.updateUser(
           UpdateUserRequest(
             name: name,
-            avatar_url: avatarUrl,
+            avatarUrl: avatarUrl,
             extras: extras,
           ),
         )).attempt().leftMapToQError().rightMap((String str) {

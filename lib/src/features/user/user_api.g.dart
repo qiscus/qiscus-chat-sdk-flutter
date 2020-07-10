@@ -38,7 +38,7 @@ AuthenticateWithTokenRequest _$AuthenticateWithTokenRequestFromJson(
 Map<String, dynamic> _$AuthenticateWithTokenRequestToJson(
         AuthenticateWithTokenRequest instance) =>
     <String, dynamic>{
-      'identity_token': instance.identity_token,
+      'identity_token': instance.identityToken,
     };
 
 BlockUserRequest _$BlockUserRequestFromJson(Map<String, dynamic> json) {
@@ -49,7 +49,7 @@ BlockUserRequest _$BlockUserRequestFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$BlockUserRequestToJson(BlockUserRequest instance) =>
     <String, dynamic>{
-      'user_email': instance.user_id,
+      'user_email': instance.userId,
     };
 
 DeviceTokenRequest _$DeviceTokenRequestFromJson(Map<String, dynamic> json) {
@@ -70,7 +70,7 @@ Map<String, dynamic> _$DeviceTokenRequestToJson(DeviceTokenRequest instance) =>
 UpdateUserRequest _$UpdateUserRequestFromJson(Map<String, dynamic> json) {
   return UpdateUserRequest(
     name: json['name'] as String,
-    avatar_url: json['avatar_url'] as String,
+    avatarUrl: json['avatar_url'] as String,
     extras: json['extras'] as Map<String, dynamic>,
   );
 }
@@ -78,7 +78,7 @@ UpdateUserRequest _$UpdateUserRequestFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$UpdateUserRequestToJson(UpdateUserRequest instance) =>
     <String, dynamic>{
       'name': instance.name,
-      'avatar_url': instance.avatar_url,
+      'avatar_url': instance.avatarUrl,
       'extras': instance.extras,
     };
 

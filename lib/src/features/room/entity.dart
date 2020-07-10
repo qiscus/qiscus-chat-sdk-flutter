@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
@@ -6,14 +8,14 @@ import 'package:qiscus_chat_sdk/src/features/user/entity/participant.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/user.dart';
 
 class ChatRoom {
-  final String uniqueId;
-  final QRoomType type;
-  final Option<String> name, avatarUrl;
-  final Option<int> totalParticipants, unreadCount, id;
-  final Option<IMap<String, dynamic>> extras;
-  final Option<ISet<Participant>> participants;
-  final Option<Message> lastMessage;
-  final Option<User> sender;
+  String uniqueId;
+  QRoomType type;
+  Option<String> name, avatarUrl;
+  Option<int> totalParticipants, unreadCount, id;
+  Option<IMap<String, dynamic>> extras;
+  Option<ISet<Participant>> participants;
+  Option<Message> lastMessage;
+  Option<User> sender;
 
   ChatRoom._({
     @required this.uniqueId,
@@ -41,20 +43,21 @@ class ChatRoom {
     @required Option<ISet<Participant>> participants,
     @required Option<Message> lastMessage,
     @required Option<User> sender,
-  }) =>
-      ChatRoom._(
-        uniqueId: uniqueId,
-        type: type,
-        id: id ?? none(),
-        name: name ?? none(),
-        unreadCount: unreadCount ?? none(),
-        avatarUrl: avatarUrl ?? none(),
-        totalParticipants: totalParticipants ?? none(),
-        extras: extras ?? none(),
-        participants: participants ?? none(),
-        lastMessage: lastMessage ?? none(),
-        sender: sender ?? none(),
-      );
+  }) {
+    return ChatRoom._(
+      uniqueId: uniqueId,
+      type: type,
+      id: id ?? none(),
+      name: name ?? none(),
+      unreadCount: unreadCount ?? none(),
+      avatarUrl: avatarUrl ?? none(),
+      totalParticipants: totalParticipants ?? none(),
+      extras: extras ?? none(),
+      participants: participants ?? none(),
+      lastMessage: lastMessage ?? none(),
+      sender: sender ?? none(),
+    );
+  }
 
   factory ChatRoom.fromJson(Map<String, dynamic> json) {
     var participants = optionOf((json['participants'] as List))
@@ -85,7 +88,9 @@ class ChatRoom {
       unreadCount: optionOf(json['unread_count'] as int),
       avatarUrl: optionOf(json['avatar_url'] as String),
       totalParticipants: optionOf(json['room_total_participants'] as int),
-      extras: optionOf(json['extras'] as Map<String, dynamic>).map(imap),
+      extras: optionOf(json['options'] as String)
+          .map((it) => jsonDecode(it) as Map<String, dynamic>)
+          .map(imap),
       participants: participants,
       type: _type,
       sender: none<User>(),
@@ -134,16 +139,16 @@ class QChatRoom {
 
   @override
   String toString() => 'QChatRoom('
-      'id=$id,'
-      'name=$name,'
-      'uniqueId=$uniqueId,'
-      'unreadCount=$unreadCount,'
-      'avatarUrl=$avatarUrl,'
-      'totalParticipants=$totalParticipants,'
-      'extras=$extras,'
-      'participants=$participants,'
-      'lastMessage=$lastMessage,'
-      'type=$type'
+      ' id=$id,'
+      ' name=$name,'
+      ' uniqueId=$uniqueId,'
+      ' unreadCount=$unreadCount,'
+      ' avatarUrl=$avatarUrl,'
+      ' totalParticipants=$totalParticipants,'
+      ' extras=$extras,'
+      ' participants=$participants,'
+      ' lastMessage=$lastMessage,'
+      ' type=$type'
       ')';
 }
 

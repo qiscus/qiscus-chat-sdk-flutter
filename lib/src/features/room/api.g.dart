@@ -13,7 +13,7 @@ UpdateRoomRequest _$UpdateRoomRequestFromJson(Map<String, dynamic> json) {
     roomId: json['id'] as String,
     name: json['name'] as String,
     avatarUrl: json['avatar_url'] as String,
-    extras: json['extras'] as Map<String, dynamic>,
+    extras: json['options'] as Map<String, dynamic>,
   );
 }
 
@@ -22,7 +22,7 @@ Map<String, dynamic> _$UpdateRoomRequestToJson(UpdateRoomRequest instance) =>
       'id': instance.roomId,
       'name': instance.name,
       'avatar_url': instance.avatarUrl,
-      'extras': instance.extras,
+      'options': UpdateRoomRequest.extrasToJson(instance.extras),
     };
 
 GetRoomInfoRequest _$GetRoomInfoRequestFromJson(Map<String, dynamic> json) {
@@ -50,7 +50,7 @@ CreateGroupRequest _$CreateGroupRequestFromJson(Map<String, dynamic> json) {
     name: json['name'] as String,
     userIds: (json['participants'] as List)?.map((e) => e as String)?.toList(),
     avatarUrl: json['avatar_url'] as String,
-    extras: json['extras'] as Map<String, dynamic>,
+    extras: json['options'] as Map<String, dynamic>,
   );
 }
 
@@ -59,7 +59,7 @@ Map<String, dynamic> _$CreateGroupRequestToJson(CreateGroupRequest instance) =>
       'name': instance.name,
       'participants': instance.userIds,
       'avatar_url': instance.avatarUrl,
-      'extras': instance.extras,
+      'options': CreateGroupRequest.extrasToJson(instance.extras),
     };
 
 GetOrCreateChannelRequest _$GetOrCreateChannelRequestFromJson(
@@ -103,14 +103,14 @@ Map<String, dynamic> _$GetParticipantsRequestToJson(
 ChatTargetRequest _$ChatTargetRequestFromJson(Map<String, dynamic> json) {
   return ChatTargetRequest(
     (json['emails'] as List)?.map((e) => e as String)?.toList(),
-    json['extras'] as Map<String, dynamic>,
+    json['options'] as Map<String, dynamic>,
   );
 }
 
 Map<String, dynamic> _$ChatTargetRequestToJson(ChatTargetRequest instance) =>
     <String, dynamic>{
       'emails': instance.emails,
-      'extras': instance.extras,
+      'options': instance.extras,
     };
 
 GetAllRoomsRequest _$GetAllRoomsRequestFromJson(Map<String, dynamic> json) {

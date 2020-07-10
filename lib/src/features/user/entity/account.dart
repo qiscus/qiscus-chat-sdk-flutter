@@ -21,12 +21,12 @@ class QAccount {
 
   @override
   String toString() => 'QAccount('
-      'id=$id,'
-      'name=$name,'
-      'avatarUrl=$avatarUrl,'
-      'lastMessageId=$lastMessageId,'
-      'lastEventId=$lastEventId,'
-      'extras=$extras'
+      ' id=$id,'
+      ' name=$name,'
+      ' avatarUrl=$avatarUrl,'
+      ' lastMessageId=$lastMessageId,'
+      ' lastEventId=$lastEventId,'
+      ' extras=$extras'
       ')';
 
   QUser asUser() => QUser(
