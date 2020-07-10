@@ -12,8 +12,8 @@ class GetRoomParams {
   const GetRoomParams(this.userId);
 }
 
-class GetRoomUseCase extends UseCase<RoomRepository, ChatRoom, GetRoomParams> {
-  GetRoomUseCase(RoomRepository repository) : super(repository);
+class GetRoomUseCase extends UseCase<IRoomRepository, ChatRoom, GetRoomParams> {
+  GetRoomUseCase(IRoomRepository repository) : super(repository);
 
   @override
   Task<Either<QError, ChatRoom>> call(p) {

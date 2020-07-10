@@ -74,19 +74,19 @@ class Injector {
 
     // room
     singleton(() => RoomApi(resolve<Dio>()));
-    singleton<RoomRepository>(() => RoomRepositoryImpl(resolve<RoomApi>()));
-    factory_(() => ClearRoomMessagesUseCase(resolve<RoomRepository>()));
-    factory_(() => CreateGroupChatUseCase(resolve<RoomRepository>()));
-    factory_(() => GetRoomUseCase(resolve<RoomRepository>()));
-    factory_(() => GetRoomByUserIdUseCase(resolve<RoomRepository>()));
-    factory_(() => GetRoomInfoUseCase(resolve<RoomRepository>()));
-    factory_(() => GetRoomWithMessagesUseCase(resolve<RoomRepository>()));
-    factory_(() => GetAllRoomsUseCase(resolve<RoomRepository>()));
-    factory_(() => GetTotalUnreadCountUseCase(resolve<RoomRepository>()));
-    factory_(() => AddParticipantUseCase(resolve<RoomRepository>()));
-    factory_(() => GetParticipantsUseCase(resolve<RoomRepository>()));
-    factory_(() => RemoveParticipantUseCase(resolve<RoomRepository>()));
-    factory_(() => UpdateRoomUseCase(resolve<RoomRepository>()));
+    singleton<IRoomRepository>(() => RoomRepositoryImpl(resolve<RoomApi>()));
+    factory_(() => ClearRoomMessagesUseCase(resolve<IRoomRepository>()));
+    factory_(() => CreateGroupChatUseCase(resolve<IRoomRepository>()));
+    factory_(() => GetRoomUseCase(resolve<IRoomRepository>()));
+    factory_(() => GetRoomByUserIdUseCase(resolve<IRoomRepository>()));
+    factory_(() => GetRoomInfoUseCase(resolve<IRoomRepository>()));
+    factory_(() => GetRoomWithMessagesUseCase(resolve<IRoomRepository>()));
+    factory_(() => GetAllRoomsUseCase(resolve<IRoomRepository>()));
+    factory_(() => GetTotalUnreadCountUseCase(resolve<IRoomRepository>()));
+    factory_(() => AddParticipantUseCase(resolve<IRoomRepository>()));
+    factory_(() => GetParticipantsUseCase(resolve<IRoomRepository>()));
+    factory_(() => RemoveParticipantUseCase(resolve<IRoomRepository>()));
+    factory_(() => UpdateRoomUseCase(resolve<IRoomRepository>()));
 
     // user
     singleton(() => UserApi(resolve<Dio>()));

@@ -19,8 +19,8 @@ class GetOrCreateChannelParams {
 }
 
 class GetOrCreateChannelUseCase
-    extends UseCase<RoomRepository, ChatRoom, GetOrCreateChannelParams> {
-  GetOrCreateChannelUseCase(RoomRepository repository) : super(repository);
+    extends UseCase<IRoomRepository, ChatRoom, GetOrCreateChannelParams> {
+  GetOrCreateChannelUseCase(IRoomRepository repository) : super(repository);
 
   @override
   Task<Either<QError, ChatRoom>> call(p) {

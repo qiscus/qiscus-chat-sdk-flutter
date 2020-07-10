@@ -10,7 +10,7 @@ import 'package:qiscus_chat_sdk/src/features/user/entity/participant.dart';
 
 import 'entity.dart';
 
-class RoomRepositoryImpl implements RoomRepository {
+class RoomRepositoryImpl implements IRoomRepository {
   final RoomApi _api;
 
   const RoomRepositoryImpl(this._api);

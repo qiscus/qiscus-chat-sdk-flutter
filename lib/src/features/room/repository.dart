@@ -6,7 +6,7 @@ import 'package:qiscus_chat_sdk/src/features/room/repository_impl.dart';
 import 'api.dart';
 import 'entity.dart';
 
-abstract class RoomRepository {
+abstract class IRoomRepository {
   Task<Either<QError, GetRoomResponse>> getRoomWithUserId(String userId);
 
   Task<Either<QError, GetRoomWithMessagesResponse>> getRoomWithId(int roomId);

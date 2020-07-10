@@ -11,8 +11,8 @@ class UserIdParams {
 }
 
 class GetRoomByUserIdUseCase
-    extends UseCase<RoomRepository, ChatRoom, UserIdParams> {
-  GetRoomByUserIdUseCase(RoomRepository repository) : super(repository);
+    extends UseCase<IRoomRepository, ChatRoom, UserIdParams> {
+  GetRoomByUserIdUseCase(IRoomRepository repository) : super(repository);
 
   @override
   Task<Either<QError, ChatRoom>> call(UserIdParams params) {

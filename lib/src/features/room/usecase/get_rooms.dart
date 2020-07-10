@@ -23,8 +23,8 @@ class GetAllRoomsParams {
 }
 
 class GetAllRoomsUseCase
-    extends UseCase<RoomRepository, List<ChatRoom>, GetAllRoomsParams> {
-  GetAllRoomsUseCase(RoomRepository repository) : super(repository);
+    extends UseCase<IRoomRepository, List<ChatRoom>, GetAllRoomsParams> {
+  GetAllRoomsUseCase(IRoomRepository repository) : super(repository);
 
   @override
   Task<Either<QError, List<ChatRoom>>> call(GetAllRoomsParams params) {
