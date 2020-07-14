@@ -5,8 +5,8 @@ import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
 import 'package:qiscus_chat_sdk/src/features/room/room.dart';
 
 class GetRoomInfoUseCase
-    extends UseCase<RoomRepository, List<ChatRoom>, GetRoomInfoParams> {
-  GetRoomInfoUseCase(RoomRepository repository) : super(repository);
+    extends UseCase<IRoomRepository, List<ChatRoom>, GetRoomInfoParams> {
+  GetRoomInfoUseCase(IRoomRepository repository) : super(repository);
 
   @override
   Task<Either<QError, List<ChatRoom>>> call(p) {

@@ -5,8 +5,8 @@ import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
 import 'package:qiscus_chat_sdk/src/features/room/room.dart';
 
 class UpdateRoomUseCase
-    extends UseCase<RoomRepository, ChatRoom, UpdateRoomParams> {
-  UpdateRoomUseCase(RoomRepository repository) : super(repository);
+    extends UseCase<IRoomRepository, ChatRoom, UpdateRoomParams> {
+  UpdateRoomUseCase(IRoomRepository repository) : super(repository);
 
   @override
   Task<Either<QError, ChatRoom>> call(p) {

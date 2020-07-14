@@ -21,7 +21,7 @@ class QAccount {
 
   @override
   String toString() => 'QAccount('
-      ' id=$id,'
+      'id=$id,'
       ' name=$name,'
       ' avatarUrl=$avatarUrl,'
       ' lastMessageId=$lastMessageId,'

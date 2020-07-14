@@ -12,8 +12,8 @@ class ClearRoomMessagesParams {
 }
 
 class ClearRoomMessagesUseCase
-    extends UseCase<RoomRepository, Unit, ClearRoomMessagesParams> {
-  ClearRoomMessagesUseCase(RoomRepository repository) : super(repository);
+    extends UseCase<IRoomRepository, Unit, ClearRoomMessagesParams> {
+  ClearRoomMessagesUseCase(IRoomRepository repository) : super(repository);
 
   @override
   Task<Either<QError, Unit>> call(params) {

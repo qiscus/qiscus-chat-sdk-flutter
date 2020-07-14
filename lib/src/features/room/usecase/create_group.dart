@@ -17,8 +17,8 @@ class CreateGroupChatParams {
 }
 
 class CreateGroupChatUseCase
-    extends UseCase<RoomRepository, ChatRoom, CreateGroupChatParams> {
-  CreateGroupChatUseCase(RoomRepository repository) : super(repository);
+    extends UseCase<IRoomRepository, ChatRoom, CreateGroupChatParams> {
+  CreateGroupChatUseCase(IRoomRepository repository) : super(repository);
 
   @override
   Task<Either<QError, ChatRoom>> call(p) {

@@ -2,8 +2,11 @@ import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
 
+import '../user.dart';
+
 class QParticipant {
-  final String id, name, avatarUrl, lastReadMessageId, lastReceivedMessageId;
+  final String id, name, avatarUrl;
+  final int lastReadMessageId, lastReceivedMessageId;
   final Map<String, dynamic> extras;
   QParticipant({
     @required this.id,
@@ -16,21 +19,26 @@ class QParticipant {
 
   @override
   String toString() => 'QParticipant('
-      ' id=$id,'
-      ' name=$name,'
-      ' avatarUrl=$avatarUrl,'
-      ' lastReadMessageId=$lastReadMessageId,'
-      ' lastReceivedMessageId=$lastReceivedMessageId,'
-      ' extras=$extras'
+      'id=$id, '
+      'name=$name, '
+      'avatarUrl=$avatarUrl, '
+      'lastReadMessageId=$lastReadMessageId, '
+      'lastReceivedMessageId=$lastReceivedMessageId, '
+      'extras=$extras'
       ')';
+
+  QUser asUser() => QUser(
+        id: id,
+        name: name,
+        avatarUrl: avatarUrl,
+        extras: extras,
+      );
 }
 
 class Participant {
   final String id;
-  final Option<String> name,
-      avatarUrl,
-      lastReadMessageId,
-      lastReceivedMessageId;
+  final Option<String> name, avatarUrl;
+  final Option<int> lastReadMessageId, lastReceivedMessageId;
   final Option<IMap<String, dynamic>> extras;
   Participant._({
     @required this.id,
@@ -45,8 +53,8 @@ class Participant {
     String id,
     Option<String> name,
     Option<String> avatarUrl,
-    Option<String> lastReadMessageId,
-    Option<String> lastReceivedMessageId,
+    Option<int> lastReadMessageId,
+    Option<int> lastReceivedMessageId,
     Option<IMap<String, dynamic>> extras,
   }) {
     return Participant._(
@@ -66,8 +74,9 @@ class Participant {
       avatarUrl: optionOf(json['avatar_url'] as String),
       lastReceivedMessageId: optionOf(
         json['last_received_comment_id'] as String,
-      ),
-      lastReadMessageId: optionOf(json['last_read_comment_id'] as String),
+      ).map((it) => int.tryParse(it)),
+      lastReadMessageId: optionOf(json['last_read_comment_id'] as String)
+          .map((it) => int.tryParse(it)),
       extras: optionOf(
         json['extras'] as Map<String, dynamic>,
       ).map((it) => imap<String, dynamic>(it)),

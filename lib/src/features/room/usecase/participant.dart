@@ -13,8 +13,8 @@ class ParticipantParams {
 }
 
 class AddParticipantUseCase
-    extends UseCase<RoomRepository, List<Participant>, ParticipantParams> {
-  AddParticipantUseCase(RoomRepository repository) : super(repository);
+    extends UseCase<IRoomRepository, List<Participant>, ParticipantParams> {
+  AddParticipantUseCase(IRoomRepository repository) : super(repository);
 
   @override
   Task<Either<QError, List<Participant>>> call(params) {
@@ -25,8 +25,8 @@ class AddParticipantUseCase
 }
 
 class RemoveParticipantUseCase
-    extends UseCase<RoomRepository, List<String>, ParticipantParams> {
-  RemoveParticipantUseCase(RoomRepository repository) : super(repository);
+    extends UseCase<IRoomRepository, List<String>, ParticipantParams> {
+  RemoveParticipantUseCase(IRoomRepository repository) : super(repository);
 
   @override
   Task<Either<QError, List<String>>> call(ParticipantParams params) {
@@ -37,8 +37,8 @@ class RemoveParticipantUseCase
 }
 
 class GetParticipantsUseCase
-    extends UseCase<RoomRepository, List<Participant>, RoomUniqueIdsParams> {
-  GetParticipantsUseCase(RoomRepository repository) : super(repository);
+    extends UseCase<IRoomRepository, List<Participant>, RoomUniqueIdsParams> {
+  GetParticipantsUseCase(IRoomRepository repository) : super(repository);
 
   @override
   Task<Either<QError, List<Participant>>> call(RoomUniqueIdsParams params) {
