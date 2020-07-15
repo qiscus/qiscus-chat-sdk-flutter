@@ -143,7 +143,7 @@ class MqttServiceImpl implements IRealtimeService {
                 messageUniqueId: tuple.value2,
               ),
             )
-            .toList(growable: false);
+            .toList();
       }
 
       if (actionType == 'clear_room') {
@@ -156,7 +156,7 @@ class MqttServiceImpl implements IRealtimeService {
             actorName: actorName,
             roomId: r['id'] as int,
           );
-        }).toList(growable: false);
+        }).toList();
       }
 
       return [];

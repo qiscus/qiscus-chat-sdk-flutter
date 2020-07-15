@@ -43,7 +43,7 @@ class SynchronizeResponse {
         .map(
           (it) => Message.fromJson(it),
         )
-        .toList(growable: false);
+        .toList();
     return SynchronizeResponse._(lastMessageId, messages_);
   }
 }

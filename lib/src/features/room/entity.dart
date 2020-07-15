@@ -109,7 +109,7 @@ class ChatRoom {
             .getOrElse(() => emptySet())
             .toIterable()
             .map((p) => p.toModel())
-            .toList(growable: false),
+            .toList(),
         totalParticipants: participants.length(),
         type: type,
         unreadCount: unreadCount.toNullable(),

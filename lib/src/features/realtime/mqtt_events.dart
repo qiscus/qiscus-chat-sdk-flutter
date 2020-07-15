@@ -94,8 +94,6 @@ class MqttPresenceEvent extends MqttEventHandler<Presence, Presence> {
       isOnline: onlineStatus.unwrap('onlineStatus are null'),
       lastSeen: timestamp.unwrap('lastSeen are null'),
     );
-
-    throw UnimplementedError();
   }
 
   @override
@@ -112,7 +110,7 @@ class MqttMessageReceivedEvent extends MqttEventHandler<void, Message> {
 
   @override
   String publish() {
-    throw UnimplementedError();
+    return '';
   }
 
   @override

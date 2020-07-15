@@ -189,7 +189,7 @@ class UsersResponse {
     var users = json['results']['users'] as List;
     var users_ = users.cast<Map<String, dynamic>>().map((it) {
       return User.fromJson(it);
-    }).toList(growable: false);
+    }).toList();
     return UsersResponse(users_);
   }
 

@@ -87,6 +87,7 @@ class Injector {
     factory_(() => GetParticipantsUseCase(resolve<IRoomRepository>()));
     factory_(() => RemoveParticipantUseCase(resolve<IRoomRepository>()));
     factory_(() => UpdateRoomUseCase(resolve<IRoomRepository>()));
+    factory_(() => OnRoomMessagesCleared(resolve()));
 
     // user
     singleton(() => UserApi(resolve<Dio>()));
