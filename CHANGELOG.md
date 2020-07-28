@@ -1,3 +1,8 @@
+## 1.0.0+beta5
+
+- refactor some code
+- other small improvement
+
 ## 1.0.0+beta4
 
 - fix missing injected library (internal)
