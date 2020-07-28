@@ -73,8 +73,9 @@ class Injector {
     singleton(() => OnReconnecting(resolve()));
 
     // room
-    singleton(() => RoomApi(resolve<Dio>()));
-    singleton<IRoomRepository>(() => RoomRepositoryImpl(resolve<RoomApi>()));
+    singleton<IRoomRepository>(() => RoomRepositoryImpl(
+          dio: resolve(),
+        ));
     factory_(() => ClearRoomMessagesUseCase(resolve<IRoomRepository>()));
     factory_(() => CreateGroupChatUseCase(resolve<IRoomRepository>()));
     factory_(() => GetRoomUseCase(resolve<IRoomRepository>()));
@@ -90,8 +91,7 @@ class Injector {
     factory_(() => OnRoomMessagesCleared(resolve()));
 
     // user
-    singleton(() => UserApi(resolve<Dio>()));
-    singleton<IUserRepository>(() => UserRepositoryImpl(resolve<UserApi>()));
+    singleton<IUserRepository>(() => UserRepositoryImpl(resolve()));
     factory_(() => AuthenticateUserUseCase(
           resolve<IUserRepository>(),
           resolve<Storage>(),

@@ -18,9 +18,13 @@ class AuthenticateUserWithTokenUseCase
   Task<Either<QError, Account>> call(AuthenticateWithTokenParams p) {
     return repository
         .authenticateWithToken(identityToken: p.identityToken)
-        .tap((res) => _s.currentUser = res.user)
-        .tap((res) => _s.token = res.token)
-        .rightMap((res) => res.user);
+        .tap((res) => _s.currentUser = res.value2)
+        .tap((res) => _s.token = res.value1)
+        .tap((res) => res.value2.lastEventId.do_((id) => _s.lastEventId = id))
+        .tap((res) => res.value2.lastMessageId.do_(
+              (id) => _s.lastMessageId = id,
+            ))
+        .rightMap((res) => res.value2);
   }
 }
 

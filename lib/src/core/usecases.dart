@@ -42,7 +42,7 @@ abstract class SubscriptionUseCase<Repository, ReturnType, Params> {
 /// usecase, please ensure [params] implement
 /// both == equality method and hashCode method.
 mixin Subscription<Repository extends IRealtimeService, Params, Response> {
-  final _controller = StreamController<Response>.broadcast();
+  final _controller = StreamController<Response>();
   final _subscriptions = HashMap<Params, StreamSubscription<Response>>();
 
   Stream<Response> get stream => _controller.stream;

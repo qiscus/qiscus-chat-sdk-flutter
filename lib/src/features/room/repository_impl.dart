@@ -1,198 +1,164 @@
-import 'dart:convert';
-
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
+import 'package:qiscus_chat_sdk/src/core/api_request.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/core/extension.dart';
-import 'package:qiscus_chat_sdk/src/features/room/api.dart';
+import 'package:qiscus_chat_sdk/src/core/utils.dart';
 import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
-import 'package:qiscus_chat_sdk/src/features/user/entity/participant.dart';
 
 import 'entity.dart';
+import 'room_api_request.dart' as req;
 
 class RoomRepositoryImpl implements IRoomRepository {
-  final RoomApi _api;
+  final Dio dio;
 
-  const RoomRepositoryImpl(this._api);
+  const RoomRepositoryImpl({
+    @required this.dio,
+  });
 
   @override
-  Task<Either<QError, GetRoomResponse>> getRoomWithUserId(String userId) {
-    return Task(() => _api.chatTarget(ChatTargetRequest([userId])))
-        .attempt()
-        .leftMapToQError()
-        .rightMap((res) {
-      var json = jsonDecode(res) as Map<String, dynamic>;
-      return GetRoomResponse(json['results']['room'] as Map<String, dynamic>);
+  getRoomWithUserId(String userId) {
+    return task(() async {
+      var request = req.ChatTargetRequest(userId: userId);
+      return dio.sendApiRequest(request).then(request.format);
     });
   }
 
   @override
-  Task<Either<QError, GetRoomWithMessagesResponse>> getRoomWithId(int roomId) {
-    return Task(() => _api.getRoomById(roomId))
-        .attempt()
-        .leftMapToQError()
-        .rightMap((str) {
-      var json = jsonDecode(str) as Map<String, dynamic>;
-      var room = json['results']['room'] as Map<String, dynamic>;
-      var comments = (json['results']['comments'] as List) //
-          .cast<Map<String, dynamic>>();
-      return GetRoomWithMessagesResponse(room, comments);
+  getRoomWithId(int roomId) {
+    return task(() async {
+      var request = req.GetRoomByIdRequest(roomId: roomId);
+      return dio.sendApiRequest(request).then(request.format);
     });
   }
 
   @override
-  Task<Either<QError, AddParticipantResponse>> addParticipant(
+  addParticipant(
     int roomId,
     List<String> participantIds,
   ) {
-    return Task(() => _api.addParticipant(
-            ParticipantRequest(roomId.toString(), participantIds)))
-        .attempt()
-        .leftMapToQError()
-        .rightMap((str) {
-      var json = jsonDecode(str) as Map<String, dynamic>;
-      var _participants = (json['results']['participants_added'] as List)
-          .cast<Map<String, dynamic>>();
-      var participants = _participants //
-          .map((json) => Participant.fromJson(json))
-          .toList();
-      return AddParticipantResponse(roomId, participants);
+    return task(() async {
+      var request = req.AddParticipantRequest(
+        roomId: roomId,
+        userIds: participantIds,
+      );
+      return dio.sendApiRequest(request).then(request.format);
     });
   }
 
   @override
-  Task<Either<QError, RemoveParticipantResponse>> removeParticipant(
-      int roomId, List<String> participantIds) {
-    return Task(() => _api.removeParticipant(
-            ParticipantRequest(roomId.toString(), participantIds)))
-        .attempt()
-        .leftMapToQError()
-        .rightMap((str) {
-      var json = jsonDecode(str) as Map<String, dynamic>;
-      var ids = (json['results']['participants_removed'] as List) //
-          .cast<String>();
-      return RemoveParticipantResponse(roomId, ids);
+  removeParticipant(
+    int roomId,
+    List<String> participantIds,
+  ) {
+    return task(() async {
+      var request = req.RemoveParticipantRequest(
+        roomId: roomId,
+        userIds: participantIds,
+      );
+      return dio.sendApiRequest(request).then(request.format);
     });
   }
 
   @override
-  Task<Either<QError, GetParticipantsResponse>> getParticipants(
-      String uniqueId) {
-    return Task(() => _api.getParticipants(GetParticipantsRequest(uniqueId)))
-        .attempt()
-        .leftMapToQError()
-        .rightMap((str) {
-      var json = jsonDecode(str) as Map<String, dynamic>;
-      var participants_ = (json['results']['participants'] as List)
-          .cast<Map<String, dynamic>>();
-      var participants = participants_ //
-          .map((json) => Participant.fromJson(json))
-          .toList();
-      return GetParticipantsResponse(uniqueId, participants);
+  getParticipants(String uniqueId) {
+    return task(() async {
+      var request = req.GetParticipantRequest(roomUniqueId: uniqueId);
+      return dio.sendApiRequest(request).then(request.format);
     });
   }
 
   @override
-  Task<Either<QError, GetAllRoomsResponse>> getAllRooms({
+  Task<Either<QError, List<ChatRoom>>> getAllRooms({
     bool withParticipants,
     bool withEmptyRoom,
     bool withRemovedRoom,
     int limit,
     int page,
   }) {
-    return Task(() => _api.getAllRooms(GetAllRoomsRequest(
-          withEmptyRoom: withEmptyRoom,
-          withParticipants: withParticipants,
-          withRemovedRoom: withParticipants,
-          limit: limit,
-          page: page,
-        ))).attempt().leftMapToQError().rightMap((str) {
-      var json = jsonDecode(str) as Map<String, dynamic>;
-      var rooms_ = (json['results']['rooms_info'] as List) //
-          .cast<Map<String, dynamic>>();
-      var rooms = rooms_.map((json) => ChatRoom.fromJson(json)).toList();
-      return GetAllRoomsResponse(rooms);
+    return task(() async {
+      var request = req.GetAllRoomRequest(
+        withParticipants: withParticipants,
+        withEmptyRoom: withEmptyRoom,
+        withRemovedRoom: withRemovedRoom,
+        limit: limit,
+        page: page,
+      );
+      return dio.sendApiRequest(request).then(request.format);
     });
   }
 
   @override
-  Task<Either<QError, ChatRoom>> getOrCreateChannel({
+  getOrCreateChannel({
     String uniqueId,
     String name,
     String avatarUrl,
     Map<String, dynamic> options,
   }) {
-    return Task(() => _api.getOrCreateChannel(GetOrCreateChannelRequest(
-          uniqueId: uniqueId,
-          name: name,
-          avatarUrl: avatarUrl,
-          options: options,
-        ))).attempt().leftMapToQError().rightMap((res) {
-      var json = jsonDecode(res) as Map<String, dynamic>;
-      return ChatRoom.fromJson(json['results']['room'] as Map<String, dynamic>);
+    return task(() async {
+      var request = req.GetOrCreateChannelRequest(
+        uniqueId: uniqueId,
+        name: name,
+        avatarUrl: avatarUrl,
+        extras: options,
+      );
+      return dio.sendApiRequest(request).then(request.format);
     });
   }
 
   @override
-  Task<Either<QError, ChatRoom>> createGroup({
+  createGroup({
     String name,
     List<String> userIds,
     String avatarUrl,
     Map<String, dynamic> extras,
   }) {
-    return Task(() => _api.createGroup(CreateGroupRequest(
-          name: name,
-          userIds: userIds,
-          avatarUrl: avatarUrl,
-          extras: extras,
-        ))).attempt().leftMapToQError().rightMap((resp) {
-      var json = jsonDecode(resp) as Map<String, dynamic>;
-      return ChatRoom.fromJson(json['results']['room'] as Map<String, dynamic>);
+    return task(() async {
+      var request = req.CreateGroupRequest(
+        name: name,
+        userIds: userIds,
+        avatarUrl: avatarUrl,
+        extras: extras,
+      );
+      return dio.sendApiRequest(request).then(request.format);
     });
   }
 
   @override
-  Task<Either<QError, Unit>> clearMessages({
+  clearMessages({
     @required List<String> uniqueIds,
   }) {
-    return Task(() => _api.clearMessages(uniqueIds))
-        .attempt()
-        .leftMapToQError()
-        .rightMap((_) => unit);
+    return task(() async {
+      var request = req.ClearMessagesRequest(roomUniqueIds: uniqueIds);
+      return dio.sendApiRequest(request).then(request.format);
+    });
   }
 
   @override
-  Task<Either<QError, List<ChatRoom>>> getRoomInfo({
+  getRoomInfo({
     List<int> roomIds,
     List<String> uniqueIds,
     bool withParticipants,
     bool withRemoved,
     int page,
   }) {
-    return Task(() => _api.getRoomInfo(GetRoomInfoRequest(
-          roomIds: roomIds.map((it) => it.toString()).toList(),
-          uniqueIds: uniqueIds,
-          withParticipants: withParticipants,
-          withRemoved: withRemoved,
-          page: page,
-        ))).attempt().leftMapToQError().rightMap((str) {
-      var json = jsonDecode(str) as Map<String, dynamic>;
-      var roomsInfo = json['results']['rooms_info'] as List;
-      return roomsInfo
-          .cast<Map<String, dynamic>>()
-          .map((json) => ChatRoom.fromJson(json))
-          .toList();
+    return task(() async {
+      var r = req.GetRoomInfoRequest(
+        roomIds: roomIds,
+        uniqueIds: uniqueIds,
+        withParticipants: withParticipants,
+        withRemoved: withRemoved,
+        page: page,
+      );
+      return dio.sendApiRequest(r).then(r.format);
     });
   }
 
   @override
-  Task<Either<QError, int>> getTotalUnreadCount() {
-    return Task(() => _api.getTotalUnreadCount())
-        .attempt()
-        .leftMapToQError()
-        .rightMap((str) {
-      var json = jsonDecode(str) as Map<String, dynamic>;
-      return json['results']['total_unread_count'] as int;
+  getTotalUnreadCount() {
+    return task(() async {
+      var r = req.GetTotalUnreadCountRequest();
+      return dio.sendApiRequest(r).then(r.format);
     });
   }
 
@@ -203,29 +169,15 @@ class RoomRepositoryImpl implements IRoomRepository {
     String avatarUrl,
     Map<String, dynamic> extras,
   }) {
-    return Task(() => _api.updateRoom(UpdateRoomRequest(
-          roomId: roomId.toString(),
-          name: name,
-          avatarUrl: avatarUrl,
-          extras: extras,
-        ))).attempt().leftMapToQError().rightMap((str) {
-      var json = jsonDecode(str) as Map<String, dynamic>;
-      return ChatRoom.fromJson(json['results']['room'] as Map<String, dynamic>);
+    return task(() async {
+      var r = req.UpdateRoomRequest(
+        roomId: roomId.toString(),
+        name: name,
+        avatarUrl: avatarUrl,
+        extras: extras,
+      );
+
+      return dio.sendApiRequest(r).then(r.format);
     });
   }
-}
-
-@immutable
-class GetRoomWithMessagesResponse {
-  const GetRoomWithMessagesResponse(this.room, this.messages);
-
-  final List<Map<String, dynamic>> messages;
-  final Map<String, dynamic> room;
-}
-
-@immutable
-class GetRoomResponse {
-  const GetRoomResponse(this.room);
-
-  final Map<String, dynamic> room;
 }

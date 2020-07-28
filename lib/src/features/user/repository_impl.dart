@@ -1,73 +1,83 @@
-import 'dart:convert';
-
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
+import 'package:meta/meta.dart';
+import 'package:qiscus_chat_sdk/src/core/api_request.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/core/extension.dart';
+import 'package:qiscus_chat_sdk/src/core/utils.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/account.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/user.dart';
 import 'package:qiscus_chat_sdk/src/features/user/repository.dart';
-import 'package:qiscus_chat_sdk/src/features/user/user_api.dart';
+
+import 'user_api_request.dart' as r;
 
 class UserRepositoryImpl implements IUserRepository {
-  final UserApi _api;
+  final Dio dio;
 
-  UserRepositoryImpl(this._api);
+  UserRepositoryImpl(this.dio);
 
   @override
-  Task<Either<QError, AuthenticateResponse>> authenticate({
+  Task<Either<QError, Tuple2<String, Account>>> authenticate({
     String userId,
     String userKey,
     String name,
     String avatarUrl,
     Map<String, dynamic> extras,
   }) {
-    return Task(() => _api.authenticate(
-          AuthenticateRequest(
-            userId,
-            userKey,
-            username: name,
-            avatar_url: avatarUrl,
-            extras: extras,
-          ),
-        )).attempt().leftMapToQError();
+    return task(() async {
+      var request = r.AuthenticateRequest(
+        userId: userId,
+        userKey: userKey,
+        name: name,
+        avatarUrl: avatarUrl,
+        extras: extras,
+      );
+
+      return dio.sendApiRequest(request).then(request.format);
+    });
   }
 
   @override
-  Task<Either<QError, AuthenticateResponse>> authenticateWithToken({
+  Task<Either<QError, Tuple2<String, Account>>> authenticateWithToken({
     String identityToken,
   }) {
-    return Task(() => _api.authenticateWithToken(
-          AuthenticateWithTokenRequest(identityToken),
-        )).attempt().leftMapToQError().rightMap((res) => res);
+    return task(() async {
+      var request = r.AuthenticateWithTokenRequest(
+        identityToken: identityToken,
+      );
+      return dio.sendApiRequest(request).then(request.format);
+    });
   }
 
   @override
-  Task<Either<QError, User>> blockUser({String userId}) {
-    return Task(() => _api.blockUser(BlockUserRequest(userId)))
-        .attempt()
-        .leftMapToQError();
+  Task<Either<QError, User>> blockUser({@required String userId}) {
+    return task(() async {
+      var request = r.BlockUserRequest(userId: userId);
+      return dio.sendApiRequest(request).then(request.format);
+    });
   }
 
   @override
   Task<Either<QError, List<User>>> getBlockedUser({int page, int limit}) {
-    return Task(() => _api.getBlockedUsers(page: page, limit: limit))
-        .attempt()
-        .leftMapToQError();
+    return task(() async {
+      var request = r.GetBlockedUsersRequest(page: page, limit: limit);
+      return dio.sendApiRequest(request).then(request.format);
+    });
   }
 
   @override
   Task<Either<QError, String>> getNonce() {
-    return Task(_api.getNonce).attempt().leftMapToQError().rightMap((res) {
-      return res.nonce;
+    return task(() async {
+      var request = r.GetNonceRequest();
+      return dio.sendApiRequest(request).then(request.format);
     });
   }
 
   @override
   Task<Either<QError, Account>> getUserData() {
-    return Task(_api.getUserData)
-        .attempt()
-        .leftMapToQError()
-        .rightMap((res) => res.user);
+    return task(() async {
+      var request = r.GetUserDataRequest();
+      return dio.sendApiRequest(request).then(request.format);
+    });
   }
 
   @override
@@ -76,10 +86,14 @@ class UserRepositoryImpl implements IUserRepository {
     int page,
     int limit,
   }) {
-    return Task(() => _api.getUsers(query: query, page: page, limit: limit))
-        .attempt()
-        .leftMapToQError()
-        .rightMap((resp) => resp.users);
+    return task(() async {
+      var request = r.GetUserListRequest(
+        query: query,
+        page: page,
+        limit: limit,
+      );
+      return dio.sendApiRequest(request).then(request.format);
+    });
   }
 
   @override
@@ -87,24 +101,21 @@ class UserRepositoryImpl implements IUserRepository {
     String token,
     bool isDevelopment,
   }) {
-    return Task(() => _api.registerDeviceToken(
-          DeviceTokenRequest(
-            token,
-            isDevelopment,
-          ),
-        )).attempt().leftMapToQError().rightMap((str) {
-      if (str.isEmpty) return true;
-      var json = jsonDecode(str) as Map<String, dynamic>;
-      var changed = json['results']['changed'] as bool;
-      return changed;
+    return task(() async {
+      var request = r.SetDeviceTokenRequest(
+        token: token,
+        isDevelopment: isDevelopment,
+      );
+      return dio.sendApiRequest(request).then(request.format);
     });
   }
 
   @override
   Task<Either<QError, User>> unblockUser({String userId}) {
-    return Task(() => _api.unblockUser(BlockUserRequest(userId)))
-        .attempt()
-        .leftMapToQError();
+    return task(() async {
+      var request = r.UnblockUserRequest(userId: userId);
+      return dio.sendApiRequest(request).then(request.format);
+    });
   }
 
   @override
@@ -112,13 +123,12 @@ class UserRepositoryImpl implements IUserRepository {
     String token,
     bool isDevelopment,
   }) {
-    return Task(() => _api.unregisterDeviceToken(DeviceTokenRequest(
-          token,
-          isDevelopment,
-        ))).attempt().leftMapToQError().rightMap((str) {
-      var json = jsonDecode(str) as Map<String, dynamic>;
-      var changed = json['results']['changed'] as bool;
-      return changed ?? true;
+    return task(() async {
+      var request = r.UnsetDeviceTokenRequest(
+        token: token,
+        isDevelopment: isDevelopment,
+      );
+      return dio.sendApiRequest(request).then(request.format);
     });
   }
 
@@ -128,16 +138,14 @@ class UserRepositoryImpl implements IUserRepository {
     String avatarUrl,
     Map<String, dynamic> extras,
   }) {
-    return Task(() => _api.updateUser(
-          UpdateUserRequest(
-            name: name,
-            avatarUrl: avatarUrl,
-            extras: extras,
-          ),
-        )).attempt().leftMapToQError().rightMap((String str) {
-      var json = jsonDecode(str) as Map<String, dynamic>;
-      var userJson = json['results']['user'] as Map<String, dynamic>;
-      return Account.fromJson(userJson);
+    return task(() async {
+      var request = r.UpdateUserDataRequest(
+        name: name,
+        avatarUrl: avatarUrl,
+        extras: extras,
+      );
+
+      return dio.sendApiRequest(request).then(request.format);
     });
   }
 }

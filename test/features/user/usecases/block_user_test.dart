@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/user.dart';
 import 'package:qiscus_chat_sdk/src/features/user/repository.dart';

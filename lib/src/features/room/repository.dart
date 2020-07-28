@@ -1,31 +1,32 @@
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/features/room/repository_impl.dart';
+import 'package:qiscus_chat_sdk/src/features/message/message.dart';
+import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 
-import 'api.dart';
 import 'entity.dart';
 
 abstract class IRoomRepository {
-  Task<Either<QError, GetRoomResponse>> getRoomWithUserId(String userId);
+  Task<Either<QError, ChatRoom>> getRoomWithUserId(String userId);
 
-  Task<Either<QError, GetRoomWithMessagesResponse>> getRoomWithId(int roomId);
+  Task<Either<QError, Tuple2<ChatRoom, List<Message>>>> getRoomWithId(
+      int roomId);
 
-  Task<Either<QError, AddParticipantResponse>> addParticipant(
+  Task<Either<QError, List<Participant>>> addParticipant(
     int roomId,
     List<String> participantIds,
   );
 
-  Task<Either<QError, RemoveParticipantResponse>> removeParticipant(
+  Task<Either<QError, List<String>>> removeParticipant(
     int roomId,
     List<String> participantIds,
   );
 
-  Task<Either<QError, GetParticipantsResponse>> getParticipants(
+  Task<Either<QError, List<Participant>>> getParticipants(
     String uniqueId,
   );
 
-  Task<Either<QError, GetAllRoomsResponse>> getAllRooms({
+  Task<Either<QError, List<ChatRoom>>> getAllRooms({
     bool withParticipants,
     bool withEmptyRoom,
     bool withRemovedRoom,

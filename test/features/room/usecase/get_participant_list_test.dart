@@ -24,7 +24,7 @@ void main() {
 
     test('get participant list successfully', () async {
       when(repo.getParticipants(any)).thenReturn(Task(() async {
-        return right(GetParticipantsResponse('unique-id', <Participant>[
+        return right(<Participant>[
           Participant(
             id: 'id',
             name: some('name'),
@@ -33,7 +33,7 @@ void main() {
             lastReceivedMessageId: some(1),
             extras: none(),
           ),
-        ]));
+        ]);
       }));
 
       var resp = await useCase.call(RoomUniqueIdsParams('unique-id')).run();
@@ -57,9 +57,9 @@ void main() {
       var roomId = 123;
       var participantIds = <String>['123'];
       when(repo.addParticipant(any, any)).thenReturn(Task(() async {
-        return right(AddParticipantResponse(roomId, <Participant>[
+        return right(<Participant>[
           Participant(id: '123'),
-        ]));
+        ]);
       }));
 
       var resp =
@@ -83,7 +83,7 @@ void main() {
       var participantIds = <String>['123'];
       when(repo.removeParticipant(roomId, participantIds))
           .thenReturn(Task(() async {
-        return right(RemoveParticipantResponse(roomId, participantIds));
+        return right(participantIds);
       }));
 
       var params = ParticipantParams(roomId, participantIds);

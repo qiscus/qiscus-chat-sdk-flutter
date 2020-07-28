@@ -4,8 +4,6 @@ import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:dartz/dartz.dart';
 
-import 'jsons.dart';
-
 class MockRepo extends Mock implements IRoomRepository {}
 
 void main() {
@@ -21,7 +19,19 @@ void main() {
     var params = GetRoomParams('guest-101');
     when(repo.getRoomWithUserId(any)).thenAnswer((_) {
       return Task(() async {
-        return right(GetRoomResponse(jsonRoomWithUserId));
+        return right(ChatRoom(
+          id: some(123),
+          extras: some(imap<String, dynamic>(<String, dynamic>{})),
+          avatarUrl: some('avatar-url'),
+          name: some('guest-101'),
+          uniqueId: 'unique-id',
+          type: QRoomType.single,
+          lastMessage: none(),
+          participants: none(),
+          sender: none(),
+          totalParticipants: some(0),
+          unreadCount: some(0),
+        ));
       });
     });
 

@@ -27,15 +27,17 @@ class AuthenticateUserUseCase extends UseCase<IUserRepository,
     )
         .tap(
       (resp) {
+        var token = resp.value1;
+        var user = resp.value2;
         _storage
-          ..token = resp.token
-          ..currentUser = resp.user
-          ..lastMessageId = resp.user.lastMessageId //
+          ..token = token
+          ..currentUser = user
+          ..lastMessageId = user.lastMessageId //
               .getOrElse(() => _storage.lastMessageId)
-          ..lastEventId = resp.user.lastEventId //
+          ..lastEventId = user.lastEventId //
               .getOrElse(() => _storage.lastEventId);
       },
-    ).rightMap((resp) => Tuple2(resp.token, resp.user));
+    );
   }
 }
 

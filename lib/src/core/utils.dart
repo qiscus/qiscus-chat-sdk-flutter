@@ -1,6 +1,9 @@
 import 'dart:async';
 
+import 'package:dartz/dartz.dart';
+
 import 'errors.dart';
+import 'extension.dart';
 
 Future<void> futurify1(void Function(void Function(QError)) fn) async {
   final completer = Completer<void>();
@@ -34,4 +37,8 @@ Stream<Out> streamify<Out>(
 
   controller.onCancel = subscription;
   yield* controller.stream;
+}
+
+Task<Either<QError, T>> task<T>(Future<T> Function() cb) {
+  return Task(cb).attempt().leftMapToQError();
 }

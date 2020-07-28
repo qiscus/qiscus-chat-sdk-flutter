@@ -42,7 +42,7 @@ void main() async {
       expect(message1.type, QMessageType.custom);
       expect(message1.payload['type'], 'tipe-message');
       expect(message1.text, 'text message ini');
-    });
+    }, skip: true);
 
     test('not calling delivery event callback', () async {
       var qiscus1 = await QiscusSDK.withAppId$('sdksample');

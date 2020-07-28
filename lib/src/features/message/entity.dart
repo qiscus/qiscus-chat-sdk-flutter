@@ -1,6 +1,4 @@
-import 'dart:io'
-    if (dart.library.html) 'dart:html'
-    if (dart.library.io) 'dart:io';
+import 'dart:io' if (dart.library.html) 'dart:html';
 import 'dart:math';
 
 import 'package:dartz/dartz.dart';

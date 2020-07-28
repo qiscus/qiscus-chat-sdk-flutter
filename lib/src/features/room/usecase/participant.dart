@@ -18,9 +18,7 @@ class AddParticipantUseCase
 
   @override
   Task<Either<QError, List<Participant>>> call(params) {
-    return repository
-        .addParticipant(params.roomId, params.participantIds)
-        .rightMap((res) => res.participants);
+    return repository.addParticipant(params.roomId, params.participantIds);
   }
 }
 
@@ -30,9 +28,7 @@ class RemoveParticipantUseCase
 
   @override
   Task<Either<QError, List<String>>> call(ParticipantParams params) {
-    return repository
-        .removeParticipant(params.roomId, params.participantIds)
-        .rightMap((res) => res.participantIds);
+    return repository.removeParticipant(params.roomId, params.participantIds);
   }
 }
 
@@ -42,8 +38,6 @@ class GetParticipantsUseCase
 
   @override
   Task<Either<QError, List<Participant>>> call(RoomUniqueIdsParams params) {
-    return repository
-        .getParticipants(params.uniqueId)
-        .rightMap((res) => res.participants);
+    return repository.getParticipants(params.uniqueId);
   }
 }

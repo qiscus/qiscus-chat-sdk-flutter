@@ -23,7 +23,7 @@ void main() {
       limit: anyNamed('limit'),
       page: anyNamed('page'),
     )).thenReturn(Task(() async {
-      return right(GetAllRoomsResponse(<ChatRoom>[
+      return right(<ChatRoom>[
         ChatRoom(
           uniqueId: 'unique-id',
           type: QRoomType.single,
@@ -37,7 +37,7 @@ void main() {
           lastMessage: none(),
           sender: none(),
         ),
-      ]));
+      ]);
     }));
 
     var params = GetAllRoomsParams();

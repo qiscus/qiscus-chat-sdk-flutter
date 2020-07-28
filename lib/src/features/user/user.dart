@@ -15,4 +15,3 @@ export 'usecases/register_device_token.dart';
 export 'usecases/unblock_user.dart';
 export 'usecases/unregister_device_token.dart';
 export 'usecases/update_user.dart';
-export 'user_api.dart';

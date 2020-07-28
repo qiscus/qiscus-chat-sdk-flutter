@@ -1,10 +1,10 @@
 import 'package:dartz/dartz.dart';
+import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
 import 'package:qiscus_chat_sdk/src/features/room/room.dart';
 import 'package:test/test.dart';
-import 'package:mockito/mockito.dart';
 
 class MockRepo extends Mock implements IRoomRepository {}
 

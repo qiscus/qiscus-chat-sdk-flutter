@@ -1,7 +1,7 @@
 library qiscus_chat_sdk;
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'dart:html';
 import 'dart:math';
 
 import 'package:dartz/dartz.dart';

@@ -1,10 +1,10 @@
 import 'package:dartz/dartz.dart';
+import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/core/errors.dart';
 import 'package:qiscus_chat_sdk/src/features/custom_event/usecase/realtime.dart';
 import 'package:qiscus_chat_sdk/src/features/message/message.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 import 'package:test/test.dart';
-import 'package:mockito/mockito.dart';
 
 class MockService extends Mock implements IRealtimeService {}
 
@@ -55,10 +55,11 @@ void main() {
     var resp = await useCase.subscribe(RoomIdParams(roomId)).run();
 
     await expectLater(
-        resp,
-        emitsInOrder(<CustomEvent>[
-          CustomEvent(roomId, payload),
-        ]));
+      resp,
+      emitsInOrder(<CustomEvent>[
+        CustomEvent(roomId, payload),
+      ]),
+    );
 
     verify(service.subscribe(topic)).called(1);
     verify(service.subscribeCustomEvent(roomId: roomId)).called(1);

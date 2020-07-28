@@ -5,10 +5,9 @@ import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/account.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/user.dart';
-import 'package:qiscus_chat_sdk/src/features/user/user_api.dart';
 
 abstract class IUserRepository {
-  Task<Either<QError, AuthenticateResponse>> authenticate({
+  Task<Either<QError, Tuple2<String, Account>>> authenticate({
     @required String userId,
     @required String userKey,
     String name,
@@ -16,7 +15,7 @@ abstract class IUserRepository {
     Map<String, dynamic> extras,
   });
 
-  Task<Either<QError, AuthenticateResponse>> authenticateWithToken({
+  Task<Either<QError, Tuple2<String, Account>>> authenticateWithToken({
     @required String identityToken,
   });
 
