@@ -2,7 +2,7 @@
 
 > Qiscus Chat SDK for Flutter
 
-![Coverage](https://raw.githubusercontent.com/{you}/{repo}/master/coverage_badge.svg?sanitize=true)
+![Coverage](https://raw.githubusercontent.com/qiscus/qiscus-chat-sdk-flutter/master/coverage_badge.svg?sanitize=true)
 
 ## Introduction
 
