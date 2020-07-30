@@ -1,3 +1,10 @@
+# 1.0.1
+
+- Nothing new
+- No bugfix
+- No improvement
+- Just to make sure, the intended version are picked as latest by pub.dev
+
 # 1.0.0
 
 - Stable release
