@@ -17,10 +17,7 @@ class SyncServiceImpl implements IRealtimeService {
     this._api,
     this._interval,
     this._logger,
-  ) {
-    _syncController.addStream(_sync$);
-    _syncEventController.addStream(_syncEvent$);
-  }
+  );
 
   final Logger _logger;
   final SyncApi _api;
@@ -53,32 +50,24 @@ class SyncServiceImpl implements IRealtimeService {
       .asyncExpand((it) => it)
       .asBroadcastStream();
 
-  StreamController<SynchronizeResponseSingle> get _syncController =>
-      StreamController.broadcast();
-
-  StreamController<SynchronizeEventResponse> get _syncEventController =>
-      StreamController.broadcast();
-
   // endregion
 
   @override
   Stream<MessageDeliveryResponse> subscribeMessageRead({int roomId}) {
     return _synchronizeEvent(_s.lastEventId)
-        .tap((res) => print('read: :- $res'))
-        .where((res) {
-      return res.actionType == 'read' && res.roomId == roomId;
-    }).map((res) {
-      return MessageDeliveryResponse(
-        commentId: res.message.id.toString(),
-        commentUniqueId: res.message.uniqueId.toString(),
-        roomId: res.roomId,
-      );
-    });
+        .where((res) => res.actionType == 'read' && res.roomId == roomId)
+        .map((res) => MessageDeliveryResponse(
+              commentId: res.message.id.toString(),
+              commentUniqueId: res.message.uniqueId.toString(),
+              roomId: res.roomId,
+            ));
   }
 
   @override
   Stream<Message> subscribeMessageReceived({int roomId}) {
-    return _synchronize(() => _s.lastMessageId).asyncMap((it) => it.message);
+    return _synchronize(() => _s.lastMessageId).tap((data) {
+      print('got message: $data');
+    }).asyncMap((it) => it.message);
   }
 
   @override
@@ -106,11 +95,11 @@ class SyncServiceImpl implements IRealtimeService {
   Stream<SynchronizeResponseSingle> _synchronize([
     int Function() getMessageId,
   ]) {
-    return _syncController.stream;
+    return _sync$;
   }
 
   Stream<SynchronizeEventResponse> _synchronizeEvent([int eventId = 0]) {
-    return _syncEventController.stream;
+    return _syncEvent$;
   }
 
   @override
@@ -149,7 +138,7 @@ class SyncServiceImpl implements IRealtimeService {
 
   @override
   Stream<UserTypingResponse> subscribeUserTyping({String userId, int roomId}) {
-    return null;
+    return Stream.empty();
   }
 
   @override

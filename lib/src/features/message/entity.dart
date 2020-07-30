@@ -206,4 +206,19 @@ class Message {
         status: status.toNullable(),
         payload: payload.map((it) => it.toMap()).toNullable(),
       );
+
+  @override
+  String toString() => 'Message('
+      ' id=$id,'
+      ' text=$text,'
+      ' chatRoomId=$chatRoomId,'
+      ' sender=$sender,'
+      ' uniqueId=$uniqueId,'
+      ' type=$type,'
+      ' status=$status,'
+      ' extras=$extras,'
+      ' payload=$payload,'
+      ' timestamp=$timestamp,'
+      ' previousMessageId=$previousMessageId'
+      ')';
 }

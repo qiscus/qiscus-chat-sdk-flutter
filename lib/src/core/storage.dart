@@ -58,6 +58,8 @@ class Storage {
   set syncIntervalWhenConnected(int interval) =>
       _makeSetter(_storage, 'sync-interval-when-connected', interval);
 
+  // accumulator interval, interval for periodically running sync http
+  // request
   int get accSyncInterval =>
       _makeGetter(_storage, 'acc-sync-interval', defaultAccInterval);
 

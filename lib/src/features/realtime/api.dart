@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
 import 'package:retrofit/http.dart';
@@ -20,15 +21,21 @@ abstract class SyncApi {
   );
 }
 
-class SynchronizeResponseSingle {
+class SynchronizeResponseSingle extends Equatable {
   final int lastMessageId;
   final Message message;
 
   const SynchronizeResponseSingle(this.lastMessageId, this.message);
+
+  @override
+  List<Object> get props => [lastMessageId, message];
+
+  @override
+  bool get stringify => true;
 }
 
 @immutable
-class SynchronizeResponse {
+class SynchronizeResponse extends Equatable {
   final int lastMessageId;
   final List<Message> messages;
 
@@ -46,6 +53,12 @@ class SynchronizeResponse {
         .toList();
     return SynchronizeResponse._(lastMessageId, messages_);
   }
+
+  @override
+  List<Object> get props => [lastMessageId, messages];
+
+  @override
+  bool get stringify => true;
 }
 
 @immutable
