@@ -248,7 +248,7 @@ class GetRoomInfoRequest extends IApiRequest<List<ChatRoom>> {
   final bool withRemoved;
   final int page;
 
-  get url => 'room_info';
+  get url => 'rooms_info';
   get method => IRequestMethod.post;
   get body => <String, dynamic>{
         'room_id': roomIds.map((e) => e.toString()).toList(),

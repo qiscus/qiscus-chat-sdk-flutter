@@ -972,7 +972,7 @@ class QiscusSDK {
     @required String caption,
     @required String url,
     String filename,
-    String text,
+    String text = 'File attachment',
     int size,
     Map<String, dynamic> extras,
   }) {
@@ -985,7 +985,7 @@ class QiscusSDK {
       uniqueId: _generateUniqueId(),
       extras: extras,
       payload: <String, dynamic>{
-        'url': '',
+        'url': url,
         'file_name': filename,
         'size': size,
         'caption': caption,
