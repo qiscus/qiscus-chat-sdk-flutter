@@ -1,3 +1,11 @@
+# 1.0.0
+
+- Stable release
+- fix not getting new message through sync service
+  when mqtt are not connected
+- fix error when getting room info
+- fix error while listening to new message multiple times
+
 ## 1.0.0+beta5
 
 - refactor some code
