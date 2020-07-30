@@ -49,63 +49,6 @@ class QMessage {
     @required this.timestamp,
   });
 
-  factory QMessage.createAttachment({
-    @required String text,
-    @required int chatRoomId,
-    @required QUser sender,
-    @required File file,
-    String uniqueId,
-    QMessageStatus status = QMessageStatus.sending,
-    DateTime timestamp,
-    Map<String, dynamic> extras,
-    Map<String, dynamic> payload,
-  }) {
-    var filename = file.path.split('/').last;
-    var size = file.length();
-
-    return QMessage.create(
-      text: text,
-      chatRoomId: chatRoomId,
-      sender: sender,
-      uniqueId: uniqueId,
-      type: QMessageType.attachment,
-      status: status,
-      extras: extras,
-      timestamp: timestamp,
-      payload: <String, dynamic>{
-        'url': '',
-        'file_name': filename,
-        'size': size,
-        'caption': text,
-      },
-    );
-  }
-
-  factory QMessage.create({
-    @required String text,
-    @required int chatRoomId,
-    @required QUser sender,
-    QMessageType type = QMessageType.text,
-    QMessageStatus status = QMessageStatus.sending,
-    String uniqueId,
-    DateTime timestamp,
-    Map<String, dynamic> extras,
-    Map<String, dynamic> payload,
-  }) =>
-      QMessage(
-        id: Random().nextInt(100),
-        text: text,
-        chatRoomId: chatRoomId,
-        sender: sender,
-        uniqueId: uniqueId ?? 'uniqueId--${Random.secure().nextDouble()}',
-        type: type,
-        status: status,
-        extras: extras,
-        payload: payload,
-        timestamp: timestamp ?? DateTime.now(),
-        previousMessageId: -1,
-      );
-
   @override
   String toString() => 'QMessage('
       ' id=$id,'
