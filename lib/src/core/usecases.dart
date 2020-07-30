@@ -42,7 +42,7 @@ abstract class SubscriptionUseCase<Repository, ReturnType, Params> {
 /// usecase, please ensure [params] implement
 /// both == equality method and hashCode method.
 mixin Subscription<Repository extends IRealtimeService, Params, Response> {
-  final _controller = StreamController<Response>();
+  final _controller = StreamController<Response>.broadcast();
   final _subscriptions = HashMap<Params, StreamSubscription<Response>>();
 
   Stream<Response> get stream => _controller.stream;
@@ -50,7 +50,9 @@ mixin Subscription<Repository extends IRealtimeService, Params, Response> {
   Task<Stream<Response>> subscribe(Params params) {
     return Task.delay(() => topic(params))
         .bind((topic) => topic.fold(
-            () => Task.delay(() {}), (topic) => repository.subscribe(topic)))
+              () => Task.delay(() {}),
+              (topic) => repository.subscribe(topic),
+            ))
         .andThen(Task.delay(() => _subscriptions.putIfAbsent(params,
             () => mapStream(params).listen((res) => _controller.add(res)))))
         .andThen(Task.delay(() => _controller.stream));
