@@ -52,7 +52,7 @@ class _SyncApi implements SyncApi {
             extra: _extra,
             baseUrl: baseUrl),
         data: _data);
-    final value = SynchronizeEventResponse.fromJson(_result.data);
+    final value = SyncEventResponse.fromJson(_result.data);
     return Future.value(value);
   }
 }

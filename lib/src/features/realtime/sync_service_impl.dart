@@ -31,10 +31,13 @@ class SyncServiceImpl implements IRealtimeService {
   void log(String str) => _logger.log('SyncServiceImpl::- $str');
 
   // region Producer
-  Stream<SynchronizeEventResponse> get _syncEvent$ => _interval$
-      .map((_) => _api.synchronizeEvent(_eventId).asStream())
-      .flatten()
-      .tap((_) => log('QiscusSyncAdapter: synchronize-event'));
+  Stream<SyncEventResponseSingle> get _syncEvent$ => _interval$
+          .map((_) => _api.synchronizeEvent(_eventId).asStream())
+          .flatten()
+          .expand((event) => event.events)
+          .tap((_) => log('QiscusSyncAdapter: synchronize-event'))
+      //
+      ;
 
   Stream<SynchronizeResponseSingle> get _sync$ => _interval$
       .map((_) => _api.synchronize(_messageId).asStream())
@@ -55,7 +58,10 @@ class SyncServiceImpl implements IRealtimeService {
   @override
   Stream<MessageDeliveryResponse> subscribeMessageRead({int roomId}) {
     return _synchronizeEvent(_s.lastEventId)
-        .where((res) => res.actionType == 'read' && res.roomId == roomId)
+        .where((res) =>
+            res.actionType == SyncActionType.messageRead &&
+            res.roomId == roomId)
+        .tap((data) => print('message read: $data'))
         .map((res) => MessageDeliveryResponse(
               commentId: res.message.id.toString(),
               commentUniqueId: res.message.uniqueId.toString(),
@@ -65,9 +71,8 @@ class SyncServiceImpl implements IRealtimeService {
 
   @override
   Stream<Message> subscribeMessageReceived({int roomId}) {
-    return _synchronize(() => _s.lastMessageId).tap((data) {
-      print('got message: $data');
-    }).asyncMap((it) => it.message);
+    return _synchronize(() => _s.lastMessageId) //
+        .asyncMap((it) => it.message);
   }
 
   @override
@@ -98,7 +103,7 @@ class SyncServiceImpl implements IRealtimeService {
     return _sync$;
   }
 
-  Stream<SynchronizeEventResponse> _synchronizeEvent([int eventId = 0]) {
+  Stream<SyncEventResponseSingle> _synchronizeEvent([int eventId = 0]) {
     return _syncEvent$;
   }
 
