@@ -1,43 +1,39 @@
-import 'dart:convert';
-
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
+import 'package:qiscus_chat_sdk/src/core/api_request.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/core/extension.dart';
-import 'package:qiscus_chat_sdk/src/features/message/repository.dart';
+import 'package:qiscus_chat_sdk/src/core/utils.dart';
 
-import 'api.dart';
 import 'entity.dart';
+import 'message_api_request.dart';
+import 'repository.dart';
 
 class MessageRepositoryImpl implements MessageRepository {
-  MessageRepositoryImpl(this._api);
+  MessageRepositoryImpl(this._dio);
 
-  final MessageApi _api;
+  final Dio _dio;
 
   @override
-  Task<Either<QError, GetMessageListResponse>> getMessages(
+  Task<Either<QError, List<Message>>> getMessages(
     int roomId,
     int lastMessageId, {
     bool after = false,
     int limit = 20,
   }) {
-    return Task(
-      () => _api.loadComments(
-        roomId,
+    return task(() async {
+      var request = GetMessagesRequest(
+        roomId: roomId,
         lastMessageId: lastMessageId,
-        limit: limit,
         after: after,
-      ),
-    ).attempt().leftMapToQError().rightMap((str) {
-      var json = jsonDecode(str) as Map<String, dynamic>;
-      var messages = (json['results']['comments'] as List) //
-          .cast<Map<String, dynamic>>();
-      return GetMessageListResponse(messages);
+        limit: limit,
+      );
+      return _dio.sendApiRequest(request).then((r) => request.format(r));
     });
   }
 
   @override
-  Task<Either<QError, SendMessageResponse>> sendMessage(
+  Task<Either<QError, Message>> sendMessage(
     int roomId,
     String message, {
     String type = 'text',
@@ -45,19 +41,16 @@ class MessageRepositoryImpl implements MessageRepository {
     Map<String, dynamic> extras,
     Map<String, dynamic> payload,
   }) {
-    return Task(
-      () => _api.submitComment(PostCommentRequest(
-        roomId: roomId.toString(),
-        text: message,
+    return task(() async {
+      var request = SendMessageRequest(
+        roomId: roomId,
+        message: message,
         type: type,
         uniqueId: uniqueId,
         extras: extras,
         payload: payload,
-      )),
-    ).attempt().leftMapToQError().rightMap((str) {
-      var json = jsonDecode(str) as Map<String, dynamic>;
-      var comment = json['results']['comment'] as Map<String, dynamic>;
-      return SendMessageResponse(comment);
+      );
+      return _dio.sendApiRequest(request).then((r) => request.format(r));
     });
   }
 
@@ -67,11 +60,14 @@ class MessageRepositoryImpl implements MessageRepository {
     int readId = 0,
     int deliveredId = 0,
   }) {
-    return Task(() => _api.updateStatus(UpdateStatusRequest(
-          roomId: roomId.toString(),
-          lastDeliveredId: deliveredId.toString(),
-          lastReadId: readId.toString(),
-        ))).attempt().leftMapToQError().rightMap((_) => unit);
+    return task(() async {
+      var request = UpdateMessageStatusRequest(
+        roomId: roomId,
+        lastDeliveredId: deliveredId,
+        lastReadId: readId,
+      );
+      return _dio.sendApiRequest(request).then((r) => request.format(r));
+    });
   }
 
   @override
@@ -80,16 +76,13 @@ class MessageRepositoryImpl implements MessageRepository {
     bool isForEveryone = true,
     bool isHard = true,
   }) {
-    return Task(() => _api.deleteMessages(uniqueIds, isForEveryone, isHard))
-        .attempt()
-        .leftMapToQError()
-        .rightMap((res) {
-      var json = jsonDecode(res) as Map<String, dynamic>;
-      var messages = (json['results']['comments'] as List)
-          .cast<Map<String, dynamic>>()
-          .map((m) => Message.fromJson(m))
-          .toList();
-      return messages;
+    return task(() async {
+      var request = DeleteMessagesRequest(
+        uniqueIds: uniqueIds,
+        isForEveryone: isForEveryone,
+        isHardDelete: isHard,
+      );
+      return _dio.sendApiRequest(request).then((r) => request.format(r));
     });
   }
 }

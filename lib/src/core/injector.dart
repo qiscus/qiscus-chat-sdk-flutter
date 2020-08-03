@@ -116,9 +116,7 @@ class Injector {
     singleton(() => PresenceUseCase(resolve<IRealtimeService>()));
 
     // message
-    singleton(() => MessageApi(resolve<Dio>()));
-    singleton<MessageRepository>(
-        () => MessageRepositoryImpl(resolve<MessageApi>()));
+    singleton<MessageRepository>(() => MessageRepositoryImpl(resolve()));
     factory_(() => DeleteMessageUseCase(resolve<MessageRepository>()));
     factory_(() => GetMessageListUseCase(resolve<MessageRepository>()));
     factory_(() => SendMessageUseCase(resolve<MessageRepository>()));

@@ -23,17 +23,11 @@ class GetMessageListUseCase
 
   @override
   Task<Either<QError, List<Message>>> call(GetMessageListParams params) {
-    return repository
-        .getMessages(
-          params.roomId,
-          params.lastMessageId,
-          after: params.after,
-          limit: params.limit,
-        )
-        .rightMap(
-          (res) => res.messages //
-              .map((json) => Message.fromJson(json))
-              .toList(),
-        );
+    return repository.getMessages(
+      params.roomId,
+      params.lastMessageId,
+      after: params.after,
+      limit: params.limit,
+    );
   }
 }

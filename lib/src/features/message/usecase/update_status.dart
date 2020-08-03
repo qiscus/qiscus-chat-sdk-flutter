@@ -20,12 +20,18 @@ class UpdateMessageStatusUseCase
     switch (p.status) {
       case QMessageStatus.delivered:
         return repository.updateStatus(
-            roomId: p.roomId, deliveredId: p.messageId);
+          roomId: p.roomId,
+          deliveredId: p.messageId,
+        );
       case QMessageStatus.read:
-        return repository.updateStatus(roomId: p.roomId, readId: p.messageId);
+        return repository.updateStatus(
+          roomId: p.roomId,
+          readId: p.messageId,
+        );
       default:
         return Task.delay(() => left(QError(
-            'Can not update status for message with status: ${p.status}')));
+              'Can not update status for message with status: ${p.status}',
+            )));
     }
   }
 }

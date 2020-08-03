@@ -4,7 +4,7 @@ import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
 
 abstract class MessageRepository {
-  Task<Either<QError, SendMessageResponse>> sendMessage(
+  Task<Either<QError, Message>> sendMessage(
     int roomId,
     String message, {
     String type = 'text',
@@ -13,7 +13,7 @@ abstract class MessageRepository {
     Map<String, dynamic> payload,
   });
 
-  Task<Either<QError, GetMessageListResponse>> getMessages(
+  Task<Either<QError, List<Message>>> getMessages(
     int roomId,
     int lastMessageId, {
     bool after,
@@ -31,15 +31,4 @@ abstract class MessageRepository {
     bool isForEveryone = true,
     bool isHard = true,
   });
-}
-
-class GetMessageListResponse {
-  const GetMessageListResponse(this.messages);
-
-  final List<Map<String, dynamic>> messages;
-}
-
-class SendMessageResponse {
-  const SendMessageResponse(this.comment);
-  final Map<String, dynamic> comment;
 }

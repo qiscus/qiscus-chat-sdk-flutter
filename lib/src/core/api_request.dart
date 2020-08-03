@@ -34,7 +34,8 @@ extension on IRequestMethod {
 
 extension DioXRequest on Dio {
   Future<Output> sendApiRequest<Output extends Map<String, dynamic>>(
-      IApiRequest request) {
+    IApiRequest request,
+  ) {
     var body = (request.body ?? <String, dynamic>{})
       ..removeWhere((key, dynamic value) => value == null);
     var params = (request.params ?? <String, dynamic>{})

@@ -26,16 +26,13 @@ class SendMessageUseCase
       return Task(() async => left(QError('`type` can not be null')));
     }
 
-    return repository
-        .sendMessage(
-          params.message.chatRoomId,
-          params.message.text,
-          type: params.message.type.string,
-          uniqueId: params.message.uniqueId,
-          extras: params.message.extras,
-          payload: params.message.payload,
-        )
-        .leftMapToQError()
-        .rightMap((res) => Message.fromJson(res.comment));
+    return repository.sendMessage(
+      params.message.chatRoomId,
+      params.message.text,
+      type: params.message.type.string,
+      uniqueId: params.message.uniqueId,
+      extras: params.message.extras,
+      payload: params.message.payload,
+    );
   }
 }
