@@ -24,7 +24,7 @@ class SendMessageRequest extends IApiRequest<Message> {
   get url => 'post_comment';
   get method => IRequestMethod.post;
   get body => <String, dynamic>{
-        'topic_id': roomId,
+        'topic_id': roomId.toString(),
         'comment': message,
         'type': type,
         'unique_temp_id': uniqueId,
