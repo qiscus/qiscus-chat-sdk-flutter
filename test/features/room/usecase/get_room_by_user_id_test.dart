@@ -16,7 +16,10 @@ void main() {
   });
 
   test('get room by userId successfully', () async {
-    when(repo.getRoomWithUserId(any)).thenReturn(Task(() async {
+    when(repo.getRoomWithUserId(
+      userId: anyNamed('userId'),
+      extras: anyNamed('extras'),
+    )).thenReturn(Task(() async {
       return right(ChatRoom(
         id: some(123),
         extras: some(imap<String, dynamic>(<String, dynamic>{})),
@@ -32,14 +35,14 @@ void main() {
       ));
     }));
 
-    var params = UserIdParams('user-id');
+    var params = UserIdParams(userId: 'user-id');
     var resp = await useCase.call(params).run();
 
     resp.fold((l) => fail(l.message), (r) {
       expect(r.id, some<int>(123));
     });
 
-    verify(repo.getRoomWithUserId('user-id')).called(1);
+    verify(repo.getRoomWithUserId(userId: 'user-id')).called(1);
     verifyNoMoreInteractions(repo);
   });
 }

@@ -6,21 +6,16 @@ import 'package:qiscus_chat_sdk/src/core/usecases.dart';
 import 'package:qiscus_chat_sdk/src/features/room/entity.dart';
 import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
 
-class UserIdParams {
-  final String userId;
-  const UserIdParams(this.userId);
-}
-
-class GetRoomParams extends Equatable {
+class UserIdParams extends Equatable {
   final String userId;
   final Map<String, dynamic> extras;
-
-  const GetRoomParams({
+  const UserIdParams({
     @required this.userId,
     this.extras,
   });
 
   get props => [userId];
+  get stringify => true;
 }
 
 class GetRoomByUserIdUseCase
@@ -29,6 +24,9 @@ class GetRoomByUserIdUseCase
 
   @override
   Task<Either<QError, ChatRoom>> call(UserIdParams params) {
-    return repository.getRoomWithUserId(params.userId);
+    return repository.getRoomWithUserId(
+      userId: params.userId,
+      extras: params.extras,
+    );
   }
 }
