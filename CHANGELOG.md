@@ -1,3 +1,7 @@
+# 1.0.2
+
+- Fix not sending the correct format of extras data for some API
+
 # 1.0.1
 
 - Nothing new
