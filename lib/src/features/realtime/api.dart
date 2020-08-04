@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/room/room.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 import 'package:retrofit/http.dart';
 

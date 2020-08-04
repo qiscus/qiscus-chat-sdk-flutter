@@ -1,6 +1,3 @@
-import 'dart:io' if (dart.library.html) 'dart:html';
-import 'dart:math';
-
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/core/extension.dart';
