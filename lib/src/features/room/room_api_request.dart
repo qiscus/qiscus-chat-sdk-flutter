@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/core/api_request.dart';
@@ -9,13 +11,16 @@ import 'entity.dart';
 class ChatTargetRequest extends IApiRequest<ChatRoom> {
   ChatTargetRequest({
     @required this.userId,
+    this.extras,
   });
   final String userId;
+  final Map<String, dynamic> extras;
 
   get url => 'get_or_create_room_with_target';
   get method => IRequestMethod.post;
   get body => <String, dynamic>{
-        'emails': [userId]
+        'emails': [userId],
+        'options': jsonEncode(extras),
       };
 
   @override
@@ -179,7 +184,7 @@ class GetOrCreateChannelRequest extends IApiRequest<ChatRoom> {
         'unique_id': uniqueId,
         'name': name,
         'avatar_url': avatarUrl,
-        'options': extras,
+        'options': jsonEncode(extras),
       };
 
   @override
@@ -208,7 +213,7 @@ class CreateGroupRequest extends IApiRequest<ChatRoom> {
         'name': name,
         'participants': userIds,
         'avatar_url': avatarUrl,
-        'options': extras,
+        'options': jsonEncode(extras),
       };
 
   @override
@@ -296,7 +301,7 @@ class UpdateRoomRequest extends IApiRequest<ChatRoom> {
         'id': roomId,
         'name': name,
         'avatar_url': avatarUrl,
-        'options': extras,
+        'options': jsonEncode(extras),
       };
 
   @override
