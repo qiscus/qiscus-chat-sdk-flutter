@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/features/realtime/topic_builder.dart';
 
 import '../entity.dart';
 import '../message.dart';
@@ -44,12 +45,7 @@ class OnMessageDeleted
 
   @override
   Stream<Message> mapStream(_) => repository //
-      .subscribeMessageDeleted()
-      .asyncMap((res) => Message(
-            id: -1,
-            uniqueId: optionOf(res.messageUniqueId),
-            chatRoomId: optionOf(res.messageRoomId),
-          ));
+      .subscribeMessageDeleted();
 
   @override
   IRealtimeService get repository => _service;
@@ -67,13 +63,9 @@ class OnMessageRead with Subscription<IRealtimeService, RoomIdParams, Message> {
   static OnMessageRead _instance;
 
   @override
-  Stream<Message> mapStream(p) => repository
-      .subscribeMessageRead(roomId: p.roomId)
-      .asyncMap((res) => Message(
-            id: int.parse(res.commentId),
-            chatRoomId: optionOf(res.roomId),
-            uniqueId: optionOf(res.commentUniqueId),
-          ));
+  Stream<Message> mapStream(p) {
+    return repository.subscribeMessageRead(roomId: p.roomId);
+  }
 
   @override
   Option<String> topic(p) =>
@@ -110,7 +102,7 @@ class OnMessageReceived
             () => Task.delay(() => right(unit)),
             (roomId) => _updateMessageStatus.call(UpdateStatusParams(
                   roomId,
-                  messageId,
+                  messageId.toNullable(),
                   status,
                 )));
         await res.run();
@@ -151,19 +143,15 @@ class OnMessageDelivered
   static OnMessageDelivered _instance;
 
   @override
-  Stream<Message> mapStream(RoomIdParams p) =>
-      repository.subscribeMessageDelivered(roomId: p.roomId).asyncMap((res) {
-        return Message(
-          id: int.parse(res.commentId),
-          chatRoomId: optionOf(res.roomId),
-          uniqueId: optionOf(res.commentUniqueId),
-        );
-      });
+  Stream<Message> mapStream(p) {
+    return repository.subscribeMessageDelivered(roomId: p.roomId);
+  }
 
   @override
   IRealtimeService get repository => _service;
 
   @override
-  Option<String> topic(p) =>
-      some(TopicBuilder.messageDelivered(p.roomId.toString()));
+  Option<String> topic(p) {
+    return some(TopicBuilder.messageDelivered(p.roomId.toString()));
+  }
 }

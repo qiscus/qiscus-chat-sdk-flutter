@@ -2,14 +2,14 @@ import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/features/message/message.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
-import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+import '../custom_event/entity.dart';
 
-import 'mqtt_service_impl.dart';
+import '../../core/core.dart';
+import '../message/message.dart';
+import '../user/user.dart';
+import 'topic_builder.dart';
 
-class MqttTypingEvent extends MqttEventHandler<bool, Typing> {
+class MqttTypingEvent extends MqttEventHandler<bool, UserTyping> {
   const MqttTypingEvent({
     @required this.roomId,
     @required this.userId,
@@ -35,7 +35,7 @@ class MqttTypingEvent extends MqttEventHandler<bool, Typing> {
     var topic = message.topic.split('/');
     var roomId = optionOf(topic[1]).map((it) => int.tryParse(it));
     var userId = optionOf(topic[3]);
-    yield Typing(
+    yield UserTyping(
       isTyping: payload == '1',
       roomId: roomId.toNullable(),
       userId: userId.toNullable(),
@@ -44,7 +44,7 @@ class MqttTypingEvent extends MqttEventHandler<bool, Typing> {
 }
 
 class MqttCustomEvent
-    extends MqttEventHandler<Map<String, dynamic>, CustomEventResponse> {
+    extends MqttEventHandler<Map<String, dynamic>, CustomEvent> {
   const MqttCustomEvent({
     @required this.roomId,
     this.payload,
@@ -59,7 +59,10 @@ class MqttCustomEvent
   receive(message) async* {
     var payload = message.payload.toString();
     var data = jsonDecode(payload) as Map<String, dynamic>;
-    yield CustomEventResponse(roomId, data);
+    yield CustomEvent(
+      roomId: roomId,
+      payload: data,
+    );
   }
 
   @override
@@ -68,7 +71,7 @@ class MqttCustomEvent
   final Map<String, dynamic> payload;
 }
 
-class MqttPresenceEvent extends MqttEventHandler<Presence, Presence> {
+class MqttPresenceEvent extends MqttEventHandler<UserPresence, UserPresence> {
   const MqttPresenceEvent({
     @required this.userId,
     this.isOnline,
@@ -82,22 +85,21 @@ class MqttPresenceEvent extends MqttEventHandler<Presence, Presence> {
   }
 
   @override
-  Stream<Presence> receive(msg) async* {
+  receive(msg) async* {
     var payload = msg.payload.toString().split(':');
     var userId_ = msg.topic.split('/')[1];
     var onlineStatus = optionOf(payload[0]) //
         .map((str) => str == '1' ? true : false);
     var timestamp = optionOf(payload[1])
         .map((str) => DateTime.fromMillisecondsSinceEpoch(int.parse(str)));
-    yield Presence(
+    yield UserPresence(
       userId: userId_,
       isOnline: onlineStatus.unwrap('onlineStatus are null'),
       lastSeen: timestamp.unwrap('lastSeen are null'),
     );
   }
 
-  @override
-  String get topic => TopicBuilder.presence(userId);
+  get topic => TopicBuilder.presence(userId);
   final String userId;
   final bool isOnline;
   final DateTime lastSeen;
@@ -141,7 +143,7 @@ class MqttMessageReadEvent extends MqttEventHandler<Message, Message> {
     var commentId = optionOf(payload[0]).map((it) => int.parse(it));
     var commentUniqueId = optionOf(payload[1]);
     yield Message(
-      id: commentId.toNullable(),
+      id: commentId,
       uniqueId: commentUniqueId,
       chatRoomId: some(roomId).map((it) => int.parse(it)),
     );

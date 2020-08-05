@@ -4,6 +4,7 @@ import 'package:qiscus_chat_sdk/src/features/user/repository.dart';
 import 'package:qiscus_chat_sdk/src/features/user/usecases/get_users.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 import 'package:test/test.dart';
+import 'package:qiscus_chat_sdk/src/core/extension.dart';
 
 class MockUserRepo extends Mock implements IUserRepository {}
 
@@ -18,8 +19,8 @@ void main() {
 
   test('get users success', () async {
     var users = [
-      User(id: '1'),
-      User(id: '2'),
+      User(id: '1'.toOption()),
+      User(id: '2'.toOption()),
     ];
     when(userRepo.getUsers(
       query: anyNamed('query'),

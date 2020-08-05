@@ -14,9 +14,11 @@ import 'core/injector.dart';
 import 'core/utils.dart';
 import 'features/channel/channel.dart';
 import 'features/core/core.dart';
+import 'features/custom_event/entity.dart';
 import 'features/custom_event/usecase/realtime.dart';
 import 'features/message/message.dart';
 import 'features/realtime/realtime.dart';
+import 'features/realtime/topic_builder.dart';
 import 'features/room/room.dart';
 import 'features/user/user.dart';
 
@@ -463,7 +465,9 @@ class QiscusSDK {
   Subscription onChatRoomCleared(void Function(int) handler) {
     var ret = _authenticated
         .andThen(_get<OnRoomMessagesCleared>().subscribe(noParams))
-        .bind((s) => Task.delay(() => s.listen((it) => handler(it))))
+        .bind((s) => Task.delay(() => s //
+            .where((it) => it.isSome())
+            .listen((it) => handler(it.toNullable()))))
         .run();
     return () => ret.then<void>((s) => s.cancel());
   }
@@ -552,7 +556,10 @@ class QiscusSDK {
   }) {
     _authenticated
         .andThen(
-          _get<CustomEventUseCase>()(CustomEvent(roomId, payload)),
+          _get<CustomEventUseCase>()(CustomEvent(
+            roomId: roomId,
+            payload: payload,
+          )),
         )
         .map((either) => either.fold((e) => callback(e), (_) {}))
         .run();

@@ -1,5 +1,6 @@
 import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
 import 'package:qiscus_chat_sdk/src/features/room/room.dart';
+import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:dartz/dartz.dart';
@@ -24,8 +25,8 @@ void main() {
           extras: some(imap<String, dynamic>(<String, dynamic>{})),
           avatarUrl: some('avatar-url'),
           name: some('guest-101'),
-          uniqueId: 'unique-id',
-          type: QRoomType.single,
+          uniqueId: 'unique-id'.toOption(),
+          type: QRoomType.single.toOption(),
           lastMessage: none(),
           participants: none(),
           sender: none(),

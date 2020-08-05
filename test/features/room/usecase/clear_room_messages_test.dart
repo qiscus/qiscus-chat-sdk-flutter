@@ -3,6 +3,7 @@ import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
+import 'package:qiscus_chat_sdk/src/features/realtime/topic_builder.dart';
 import 'package:qiscus_chat_sdk/src/features/room/room.dart';
 import 'package:test/test.dart';
 
@@ -51,11 +52,11 @@ void main() {
         return Task(() async => right(null));
       });
       when(service.subscribeRoomCleared()).thenAnswer((_) {
-        return Stream.value(RoomClearedResponse(room_id: 1));
+        return Stream.value(ChatRoom(id: 1.toOption()));
       });
 
       var stream = await onRoomMessagesCleared.subscribe(noParams).run();
-      await expectLater(stream, emitsInOrder(<int>[1]));
+      await expectLater(stream, emitsInOrder(<Option<int>>[1.toOption()]));
     });
   });
 }

@@ -97,7 +97,7 @@ extension QMessageStatusStr on QMessageStatus {
 
 @sealed
 class Message {
-  final int id;
+  final Option<int> id;
   final Option<int> chatRoomId, previousMessageId;
   final Option<String> uniqueId, text;
   final Option<QMessageStatus> status;
@@ -121,7 +121,7 @@ class Message {
   });
 
   factory Message({
-    @required int id,
+    Option<int> id,
     Option<int> chatRoomId,
     Option<int> previousMessageId,
     Option<String> uniqueId,
@@ -149,7 +149,7 @@ class Message {
 
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
-      id: json['id'] as int,
+      id: optionOf(json['id'] as int),
       chatRoomId: optionOf(json['room_id'] as int),
       previousMessageId: optionOf(
         json['comment_before_id'] as int,
@@ -183,7 +183,7 @@ class Message {
       timestamp: optionOf(json['unix_nano_timestamp'] as int)
           .map((it) => DateTime.fromMillisecondsSinceEpoch((it / 1e6).ceil())),
       sender: optionOf(User(
-        id: json['email'] as String,
+        id: optionOf(json['email'] as String),
         name: optionOf(json['username'] as String),
         avatarUrl: optionOf(json['user_avatar_url'] as String),
       )),
@@ -191,7 +191,7 @@ class Message {
   }
 
   QMessage toModel() => QMessage(
-        id: id,
+        id: id.toNullable(),
         sender: sender.map((it) => it.toModel()).toNullable(),
         uniqueId: uniqueId.toNullable(),
         previousMessageId: previousMessageId.toNullable(),

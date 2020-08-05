@@ -1,110 +1,138 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
+import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/core/extension.dart';
-import 'package:qiscus_chat_sdk/src/core/storage.dart';
-import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
+import 'package:qiscus_chat_sdk/src/features/custom_event/entity.dart';
+import '../../core/core.dart';
+import '../../core/extension.dart';
+import '../../core/storage.dart';
+import '../../core/utils.dart';
+import '../message/entity.dart';
+import '../../core/api_request.dart';
+import '../room/room.dart';
+import '../user/user.dart';
 
-import 'api.dart';
 import 'interval.dart';
+import 'realtime_api_request.dart';
+import 'realtime_model.dart';
 import 'service.dart';
 
 class SyncServiceImpl implements IRealtimeService {
-  SyncServiceImpl(
-    this._s,
-    this._api,
-    this._interval,
-    this._logger,
-  );
+  SyncServiceImpl({
+    @required this.storage,
+    @required this.interval,
+    @required this.logger,
+    @required this.dio,
+  }) {
+    //
+  }
 
-  final Logger _logger;
-  final SyncApi _api;
-  final Storage _s;
-  final Interval _interval;
+  final Dio dio;
+  final Logger logger;
+  final Storage storage;
+  final Interval interval;
 
-  int get _messageId => _s.lastMessageId ?? 0;
+  int get _messageId => storage.lastMessageId ?? 0;
 
-  int get _eventId => _s.lastEventId ?? 0;
+  int get _eventId => storage.lastEventId ?? 0;
 
-  void log(String str) => _logger.log('SyncServiceImpl::- $str');
+  void log(String str) => logger.log('SyncServiceImpl::- $str');
 
   // region Producer
-  Stream<SyncEventResponseSingle> get _syncEvent$ => _interval$
-          .map((_) => _api.synchronizeEvent(_eventId).asStream())
-          .flatten()
-          .expand((event) => event.events)
-          .tap((_) => log('QiscusSyncAdapter: synchronize-event'))
-      //
-      ;
-
-  Stream<SynchronizeResponseSingle> get _sync$ => _interval$
-      .map((_) => _api.synchronize(_messageId).asStream())
-      .flatten()
-      .tap((res) {
-        if (res.lastMessageId > _s.lastMessageId) {
-          _s.lastMessageId = res.lastMessageId;
-        }
+  Stream<RealtimeEvent> get _syncEvent$ => _interval$
+      .map((_) {
+        var request = SynchronizeEventRequest(lastEventId: _eventId);
+        return dio
+            .sendApiRequest(request)
+            .then((r) => request.format(r))
+            .asStream();
       })
-      .asyncMap((res) => Stream.fromIterable(res.messages
-          .map((msg) => SynchronizeResponseSingle(res.lastMessageId, msg))))
-      .tap((_) => log('QiscusSyncAdapter: synchronize'))
-      .asyncExpand((it) => it)
+      .flatten()
+      .tap((_) => log('QiscusSyncAdapter: synchronize-event'))
+      .map((data) => data.value2)
+      .expand(id)
       .asBroadcastStream();
 
+  Stream<Message> get _sync$ => _interval$
+      .map((_) {
+        var request = SynchronizeRequest(lastMessageId: _messageId);
+        return dio
+            .sendApiRequest(request)
+            .then((r) => request.format(r))
+            .asStream();
+      })
+      .flatten()
+      .tap((res) {
+        if (res.value1 > storage.lastMessageId) {
+          storage.lastMessageId = res.value1;
+        }
+      })
+      .tap((_) => log('QiscusSyncAdapter: synchronize'))
+      .map((it) => it.value2)
+      .expand(id)
+      .asBroadcastStream();
+
+  Stream<MessageReadEvent> get _messageRead$ => _syncEvent$ //
+      .where((event) => event is MessageReadEvent)
+      .cast<MessageReadEvent>();
+  Stream<MessageDeliveredEvent> get _messageDelivered$ => _syncEvent$ //
+      .where((event) => event is MessageDeliveredEvent)
+      .cast<MessageDeliveredEvent>();
+  Stream<MessageDeletedEvent> get _messageDeleted$ => _syncEvent$ //
+      .where((event) => event is MessageDeletedEvent)
+      .cast<MessageDeletedEvent>();
+  Stream<RoomClearedEvent> get _roomCleared$ => _syncEvent$ //
+      .where((event) => event is RoomClearedEvent)
+      .cast<RoomClearedEvent>();
   // endregion
 
   @override
-  Stream<MessageDeliveryResponse> subscribeMessageRead({int roomId}) {
-    return _synchronizeEvent(_s.lastEventId)
-        .where((res) =>
-            res.actionType == SyncActionType.messageRead &&
-            res.roomId == roomId)
-        .tap((data) => print('message read: $data'))
-        .map((res) => MessageDeliveryResponse(
-              commentId: res.message.id.toString(),
-              commentUniqueId: res.message.uniqueId.toString(),
-              roomId: res.roomId,
-            ));
+  Stream<Message> subscribeMessageRead({int roomId}) {
+    return _messageRead$.asyncMap((event) => Message(
+          id: event.messageId.toOption(),
+          uniqueId: event.messageUniqueId.toOption(),
+          chatRoomId: event.roomId.toOption(),
+          sender: some(User(
+            id: event.userId.toOption(),
+          )),
+        ));
   }
 
   @override
   Stream<Message> subscribeMessageReceived({int roomId}) {
-    return _synchronize(() => _s.lastMessageId) //
-        .asyncMap((it) => it.message);
+    return _synchronize(() => storage.lastMessageId);
   }
 
   @override
-  Stream<RoomClearedResponse> subscribeRoomCleared() {
-    return _synchronizeEvent(_s.lastEventId)
-        .asyncMap((event) => RoomClearedResponse(room_id: event.roomId));
+  Stream<ChatRoom> subscribeRoomCleared() {
+    return _roomCleared$.map((event) => ChatRoom(
+          id: event.roomId.toOption(),
+        ));
   }
 
   @override
   Task<Either<QError, Unit>> synchronize([int lastMessageId]) {
-    return Task(() => _api.synchronize(lastMessageId))
-        .attempt()
-        .leftMapToQError()
-        .rightMap((_) => unit);
+    return task(() async {
+      var request = SynchronizeRequest(lastMessageId: lastMessageId);
+      return dio.sendApiRequest(request).then(request.format);
+    }).rightMap((_) => unit);
   }
 
   @override
   Task<Either<QError, Unit>> synchronizeEvent([String eventId]) {
-    return Task(() => _api.synchronizeEvent(int.parse(eventId)))
-        .attempt()
-        .leftMapToQError()
-        .rightMap((_) => unit);
+    return task(() async {
+      var request =
+          SynchronizeEventRequest(lastEventId: int.tryParse(eventId) ?? 0);
+      return dio.sendApiRequest(request).then(request.format);
+    }).rightMap((_) => unit);
   }
 
-  Stream<SynchronizeResponseSingle> _synchronize([
+  Stream<Message> _synchronize([
     int Function() getMessageId,
   ]) {
     return _sync$;
-  }
-
-  Stream<SyncEventResponseSingle> _synchronizeEvent([int eventId = 0]) {
-    return _syncEvent$;
   }
 
   @override
@@ -113,28 +141,38 @@ class SyncServiceImpl implements IRealtimeService {
   @override
   MqttClientConnectionStatus get connectionState => null;
 
-  Stream<Unit> get _interval$ => _interval.interval();
+  Stream<Unit> get _interval$ => interval.interval();
 
   // region Not implemented on sync adapter
 
   @override
-  Stream<MessageReceivedResponse> subscribeChannelMessage({String uniqueId}) {
+  Stream<Message> subscribeChannelMessage({String uniqueId}) {
     return Stream.empty();
   }
 
   @override
-  Stream<MessageDeletedResponse> subscribeMessageDeleted() {
-    return Stream.empty();
+  Stream<Message> subscribeMessageDeleted() {
+    return _messageDeleted$.map((event) => Message(
+          chatRoomId: event.roomId.toOption(),
+          uniqueId: event.messageUniqueId.toOption(),
+        ));
   }
 
   @override
-  Stream<MessageDeliveryResponse> subscribeMessageDelivered({int roomId}) {
-    return Stream.empty();
+  Stream<Message> subscribeMessageDelivered({int roomId}) {
+    return _messageDelivered$.map((event) {
+      return Message(
+        chatRoomId: event.roomId.toOption(),
+        id: event.messageId.toOption(),
+        uniqueId: event.messageUniqueId.toOption(),
+        sender: User(id: event.userId.toOption()).toOption(),
+      );
+    });
   }
 
   @override
-  Stream<UserPresenceResponse> subscribeUserPresence({String userId}) {
-    return null;
+  Stream<UserPresence> subscribeUserPresence({String userId}) {
+    return Stream.empty();
   }
 
   @override
@@ -142,7 +180,7 @@ class SyncServiceImpl implements IRealtimeService {
       Task.delay(() => left(QError('Not supported')));
 
   @override
-  Stream<UserTypingResponse> subscribeUserTyping({String userId, int roomId}) {
+  Stream<UserTyping> subscribeUserTyping({String userId, int roomId}) {
     return Stream.empty();
   }
 
@@ -166,7 +204,7 @@ class SyncServiceImpl implements IRealtimeService {
 
   @override
   Either<QError, void> end() {
-    _interval.stop();
+    interval.stop();
     return right(null);
   }
 
@@ -180,8 +218,7 @@ class SyncServiceImpl implements IRealtimeService {
   Stream<void> onReconnecting() => Stream.empty();
 
   @override
-  Stream<CustomEventResponse> subscribeCustomEvent({int roomId}) =>
-      Stream.empty();
+  Stream<CustomEvent> subscribeCustomEvent({int roomId}) => Stream.empty();
 
   @override
   Either<QError, void> publishCustomEvent({

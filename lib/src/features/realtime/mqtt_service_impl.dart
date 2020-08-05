@@ -4,16 +4,19 @@ import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/core/extension.dart';
-import 'package:qiscus_chat_sdk/src/core/storage.dart';
-import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
-import 'package:sealed_unions/factories/doublet_factory.dart';
-import 'package:sealed_unions/implementations/union_2_impl.dart';
-import 'package:sealed_unions/union_2.dart';
+import 'package:qiscus_chat_sdk/src/features/custom_event/entity.dart';
+import 'package:qiscus_chat_sdk/src/features/room/room.dart';
+import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+import 'package:sealed_unions/sealed_unions.dart';
 
+import '../../core/core.dart';
+import '../../core/extension.dart';
+import '../../core/storage.dart';
+import '../message/entity.dart';
 import 'mqtt_events.dart';
+import 'realtime_model.dart';
+import 'service.dart';
+import 'topic_builder.dart';
 
 class MqttServiceImpl implements IRealtimeService {
   MqttServiceImpl(this._getClient, this._s, this._logger, this._dio) {
@@ -118,9 +121,6 @@ class MqttServiceImpl implements IRealtimeService {
           jsonDecode(event.payload.toString()) as Map<String, dynamic>;
       var actionType = jsonPayload['action_topic'] as String;
       var payload = jsonPayload['payload'] as Map<String, dynamic>;
-      var actorId = payload['actor']['id'] as String;
-      var actorEmail = payload['actor']['email'] as String;
-      var actorName = payload['actor']['name'] as String;
 
       if (actionType == 'delete_message') {
         var mPayload =
@@ -128,7 +128,7 @@ class MqttServiceImpl implements IRealtimeService {
         return mPayload
             .map((m) {
               var roomId = m['room_id'] as String;
-              var uniqueIds = m['message_unique_ids'] as List<String>;
+              var uniqueIds = (m['message_unique_ids'] as List).cast<String>();
               return uniqueIds.map(
                 (uniqueId) => Tuple2(int.parse(roomId), uniqueId),
               );
@@ -136,9 +136,6 @@ class MqttServiceImpl implements IRealtimeService {
             .expand((it) => it)
             .map(
               (tuple) => Notification.message_deleted(
-                actorId: actorId,
-                actorEmail: actorEmail,
-                actorName: actorName,
                 roomId: tuple.value1,
                 messageUniqueId: tuple.value2,
               ),
@@ -151,16 +148,13 @@ class MqttServiceImpl implements IRealtimeService {
             payload['data']['deleted_rooms'] as List<Map<String, dynamic>>;
         return rooms_.map((r) {
           return Notification.room_cleared(
-            actorId: actorId,
-            actorEmail: actorEmail,
-            actorName: actorName,
             roomId: r['id'] as int,
           );
         }).toList();
       }
 
       return [];
-    })?.expand((it) => it);
+    })?.expand(id);
   }
 
   @override
@@ -188,33 +182,34 @@ class MqttServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<MessageReceivedResponse> subscribeChannelMessage({String uniqueId}) {
+  Stream<Message> subscribeChannelMessage({String uniqueId}) {
     return _mqtt
         ?.forTopic(TopicBuilder.channelMessageNew('', uniqueId))
         ?.asyncMap((event) {
       // appId/channelId/c;
       var messageData = event.payload.toString();
       var messageJson = jsonDecode(messageData) as Map<String, dynamic>;
-      var response = MessageReceivedResponse.fromJson(messageJson);
-
-      return response;
+      return Message.fromJson(messageJson);
     });
   }
 
   @override
-  Stream<MessageDeletedResponse> subscribeMessageDeleted() {
+  Stream<Message> subscribeMessageDeleted() {
     return _notification
         .asyncMap(
           (notification) => notification.join(
-            (message) => message.toResponse(),
-            (_) => MessageDeletedResponse(),
+            (message) => Message(
+              uniqueId: some(message.messageUniqueId),
+              chatRoomId: some(message.roomId),
+            ),
+            (_) => null,
           ),
         )
-        .where((it) => it.messageUniqueId != null);
+        .where((it) => it != null);
   }
 
   @override
-  Stream<MessageDeliveryResponse> subscribeMessageDelivered({int roomId}) {
+  Stream<Message> subscribeMessageDelivered({int roomId}) {
     return _mqtt
         ?.forTopic(TopicBuilder.messageDelivered(roomId.toString()))
         ?.where((it) => int.parse(it.topic.split('/')[1]) == roomId)
@@ -224,25 +219,25 @@ class MqttServiceImpl implements IRealtimeService {
       var payload = msg.payload.toString().split(':');
       var commentId = optionOf(payload[0]);
       var commentUniqueId = optionOf(payload[1]);
-      return MessageDeliveryResponse(
-        roomId: roomId,
-        commentId: commentId.unwrap('commentId are null'),
-        commentUniqueId: commentUniqueId.unwrap('commentUniqueId are null'),
+      var userId = optionOf(msg.topic.split('/')[3]);
+      var roomId = optionOf(msg.topic.split('/')[1]);
+
+      return Message(
+        id: commentId.map((a) => int.parse(a)),
+        uniqueId: commentUniqueId,
+        sender: some(User(
+          id: userId,
+        )),
+        chatRoomId: roomId.map(int.parse),
       );
     });
   }
 
   @override
-  Stream<MessageDeliveryResponse> subscribeMessageRead({int roomId}) {
-    return _mqtt
-        ?.subscribeEvent(MqttMessageReadEvent(
-          roomId: roomId.toString(),
-        ))
-        ?.map((data) => MessageDeliveryResponse(
-              commentId: data.id.toString(),
-              roomId: data.chatRoomId.toNullable(),
-              commentUniqueId: data.uniqueId.toNullable(),
-            ));
+  Stream<Message> subscribeMessageRead({int roomId}) {
+    return _mqtt?.subscribeEvent(MqttMessageReadEvent(
+      roomId: roomId.toString(),
+    ));
   }
 
   @override
@@ -251,46 +246,34 @@ class MqttServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<RoomClearedResponse> subscribeRoomCleared() {
+  Stream<ChatRoom> subscribeRoomCleared() {
     return _notification
         .asyncMap(
           (notification) => notification.join(
-            (message) => RoomClearedResponse(),
-            (room) => room.toResponse(),
+            (message) => null,
+            (room) => ChatRoom(
+              id: some(room.roomId),
+            ),
           ),
         )
-        .where((res) => res.room_id != null);
+        .where((it) => it != null);
   }
 
   @override
-  Stream<UserPresenceResponse> subscribeUserPresence({
+  Stream<UserPresence> subscribeUserPresence({
     @required String userId,
   }) async* {
-    yield* _mqtt
-        .subscribeEvent(MqttPresenceEvent(
-          userId: userId,
-        ))
-        .map((data) => UserPresenceResponse(
-              userId: data.userId,
-              lastSeen: data.lastSeen,
-              isOnline: data.isOnline,
-            ));
+    yield* _mqtt.subscribeEvent(MqttPresenceEvent(
+      userId: userId,
+    ));
   }
 
   @override
-  Stream<UserTypingResponse> subscribeUserTyping({int roomId}) async* {
-    // r/{roomId}/{roomId}/{userId}/t
-    // 1
-    yield* _mqtt
-        .subscribeEvent(MqttTypingEvent(
-          roomId: roomId.toString(),
-          userId: '+',
-        ))
-        .map((data) => UserTypingResponse(
-              roomId: data.roomId,
-              userId: data.userId,
-              isTyping: data.isTyping,
-            ));
+  Stream<UserTyping> subscribeUserTyping({int roomId}) async* {
+    yield* _mqtt.subscribeEvent(MqttTypingEvent(
+      roomId: roomId.toString(),
+      userId: '+',
+    ));
   }
 
   @override
@@ -313,7 +296,8 @@ class MqttServiceImpl implements IRealtimeService {
           .asyncMap((_) =>
               _mqtt.connectionStatus.state == MqttConnectionState.connected)
           .distinct()
-          .where((it) => it == true);
+          .where((it) => it == true)
+          .asBroadcastStream();
 
   @override
   Stream<void> onDisconnected() =>
@@ -321,7 +305,8 @@ class MqttServiceImpl implements IRealtimeService {
           .asyncMap((_) =>
               _mqtt.connectionStatus.state == MqttConnectionState.disconnected)
           .distinct()
-          .where((it) => it == true);
+          .where((it) => it == true)
+          .asBroadcastStream();
 
   @override
   Stream<void> onReconnecting() =>
@@ -329,7 +314,8 @@ class MqttServiceImpl implements IRealtimeService {
           .asyncMap((_) =>
               _mqtt.connectionStatus.state == MqttConnectionState.disconnecting)
           .distinct()
-          .where((it) => it == true);
+          .where((it) => it == true)
+          .asBroadcastStream();
 
   @override
   Task<Either<QError, Unit>> synchronize([int lastMessageId]) {
@@ -346,84 +332,17 @@ class MqttServiceImpl implements IRealtimeService {
     int roomId,
     Map<String, dynamic> payload,
   }) {
-    return _mqtt
-        .publishEvent(MqttCustomEvent(roomId: roomId, payload: payload));
+    return _mqtt.publishEvent(MqttCustomEvent(
+      roomId: roomId,
+      payload: payload,
+    ));
   }
 
   @override
-  Stream<CustomEventResponse> subscribeCustomEvent({int roomId}) async* {
-    yield* _mqtt.subscribeEvent(MqttCustomEvent(roomId: roomId));
+  Stream<CustomEvent> subscribeCustomEvent({int roomId}) async* {
+    yield* _mqtt.subscribeEvent(MqttCustomEvent(roomId: roomId, payload: null));
   }
 }
-
-abstract class TopicBuilder {
-  static String typing(String roomId, String userId) =>
-      'r/$roomId/$roomId/$userId/t';
-
-  static String presence(String userId) => 'u/$userId/s';
-
-  static String messageDelivered(String roomId) => 'r/$roomId/+/+/d';
-
-  static String notification(String token) => '$token/n';
-
-  static String messageRead(String roomId) => 'r/$roomId/+/+/r';
-
-  static String messageNew(String token) => '$token/c';
-
-  static String channelMessageNew(String appId, String channelId) =>
-      '$appId/$channelId/c';
-
-  static String customEvent(int roomId) => 'r/$roomId/$roomId/e';
-}
-
-// region Json payload for notification
-/*
-{
-  "action_topic": "delete_message",
-  "payload": {
-    "actor": {
-      "id": "user id",
-      "email": "user email",
-      "name": "user name"
-    },
-    "data": {
-      "is_hard_delete": true,
-      "deleted_messages": [
-        {
-          "room_id": "room id",
-          "message_unique_ids": ["abc", "hajjes"]
-        }
-      ]
-    }
-  }
-}
-{
-  "action_topic": "clear_room",
-  "payload": {
-    "actor": {
-      "id": "user id",
-      "email": "user email",
-      "name": "user name"
-    },
-    "data": {
-      "deleted_rooms": [
-        {
-           "avatar_url": "https://qiscuss3.s3.amazonaws.com/uploads/55c0c6ee486be6b686d52e5b9bbedbbf/2.png",
-           "chat_type": "single",
-           "id": 80,
-           "id_str": "80",
-           "options": {},
-           "raw_room_name": "asasmoyo@outlook.com kotak@outlook.com",
-           "room_name": "kotak",
-           "unique_id": "72058999c5d64c61bca7deed53963aa1",
-           "last_comment": null
-        }
-      ]
-    }
-  }
-}
-*/
-// endregion
 
 @sealed
 class Notification extends Union2Impl<MessageDeleted, RoomCleared> {
@@ -433,68 +352,46 @@ class Notification extends Union2Impl<MessageDeleted, RoomCleared> {
       const Doublet<MessageDeleted, RoomCleared>();
 
   factory Notification.message_deleted({
-    String actorId,
-    String actorEmail,
-    String actorName,
     int roomId,
     String messageUniqueId,
   }) {
     return Notification._(_factory.first(MessageDeleted(
-      actorId: actorId,
-      actorName: actorName,
-      actorEmail: actorEmail,
       roomId: roomId,
       messageUniqueId: messageUniqueId,
     )));
   }
 
   factory Notification.room_cleared({
-    String actorId,
-    String actorEmail,
-    String actorName,
     int roomId,
   }) =>
       Notification._(_factory.second(RoomCleared(
-        actorId: actorId,
-        actorEmail: actorEmail,
-        actorName: actorName,
         roomId: roomId,
       )));
 }
 
 @sealed
 class MessageDeleted {
-  final String actorId, actorEmail, actorName, messageUniqueId;
+  final String messageUniqueId;
   final int roomId;
 
   MessageDeleted({
-    this.actorId,
-    this.actorEmail,
-    this.actorName,
     this.messageUniqueId,
     this.roomId,
   });
 
-  MessageDeletedResponse toResponse() => MessageDeletedResponse(
-        actorId: actorId,
-        actorEmail: actorEmail,
-        actorName: actorName,
-        messageRoomId: roomId,
+  MessageDeletedEvent toResponse() => MessageDeletedEvent(
+        roomId: roomId,
         messageUniqueId: messageUniqueId,
       );
 }
 
 @sealed
 class RoomCleared {
-  final String actorId, actorEmail, actorName;
   final int roomId;
 
   RoomCleared({
-    this.actorId,
-    this.actorEmail,
-    this.actorName,
     this.roomId,
   });
 
-  RoomClearedResponse toResponse() => RoomClearedResponse(room_id: roomId);
+  ChatRoom toResponse() => ChatRoom(id: some(roomId));
 }

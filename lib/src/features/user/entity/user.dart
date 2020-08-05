@@ -24,8 +24,7 @@ class QUser {
 }
 
 class User {
-  final String id;
-  final Option<String> name, avatarUrl;
+  final Option<String> id, name, avatarUrl;
   final Option<IMap<String, dynamic>> extras;
   User._({
     @required this.id,
@@ -34,7 +33,7 @@ class User {
     this.extras,
   });
   factory User({
-    String id,
+    Option<String> id,
     Option<String> name,
     Option<String> avatarUrl,
     Option<IMap<String, dynamic>> extras,
@@ -49,7 +48,7 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['email'] as String,
+      id: optionOf(json['email'] as String),
       name: optionOf(json['username'] as String),
       avatarUrl: optionOf(json['avatar_url'] as String),
       extras: optionOf(json['extras'] as Map<String, dynamic>).map(imap),
@@ -57,7 +56,7 @@ class User {
   }
 
   QUser toModel() => QUser(
-        id: id,
+        id: id.toNullable(),
         name: name.toNullable(),
         avatarUrl: avatarUrl.toNullable(),
         extras: extras.map((it) => it.toMap()).toNullable(),

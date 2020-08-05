@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
 import 'package:qiscus_chat_sdk/src/features/room/room.dart';
 import 'package:test/test.dart';
@@ -26,7 +27,7 @@ void main() {
 
     // ignore: missing_required_param
     var room = ChatRoom(
-      uniqueId: 'unique-id',
+      uniqueId: 'unique-id'.toOption(),
       name: some('room-name'),
       id: some(123),
     );

@@ -21,7 +21,8 @@ class ClearRoomMessagesUseCase
   }
 }
 
-class OnRoomMessagesCleared with Subscription<IRealtimeService, NoParams, int> {
+class OnRoomMessagesCleared
+    with Subscription<IRealtimeService, NoParams, Option<int>> {
   OnRoomMessagesCleared._(this._service);
   factory OnRoomMessagesCleared(IRealtimeService s) =>
       _instance ??= OnRoomMessagesCleared._(s);
@@ -32,9 +33,9 @@ class OnRoomMessagesCleared with Subscription<IRealtimeService, NoParams, int> {
   IRealtimeService get repository => _service;
 
   @override
-  Stream<int> mapStream(_) => repository //
+  mapStream(_) => repository //
       .subscribeRoomCleared()
-      .asyncMap((it) => it.room_id);
+      .asyncMap((it) => it.id);
 
   @override
   Option<String> topic(_) => none();

@@ -1,11 +1,16 @@
 import 'package:async/async.dart';
 import 'package:dartz/dartz.dart';
+import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
+import 'package:qiscus_chat_sdk/src/features/custom_event/entity.dart';
 import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/mqtt_service_impl.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/sync_service_impl.dart';
+import 'package:qiscus_chat_sdk/src/features/room/room.dart';
+import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+
+import 'mqtt_service_impl.dart';
+import 'service.dart';
+import 'sync_service_impl.dart';
 
 class RealtimeServiceImpl implements IRealtimeService {
   const RealtimeServiceImpl(this._mqttService, this._syncService);
@@ -65,7 +70,7 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<MessageReceivedResponse> subscribeChannelMessage({String uniqueId}) {
+  Stream<Message> subscribeChannelMessage({String uniqueId}) {
     return StreamGroup.merge([
       _mqttService.subscribeChannelMessage(uniqueId: uniqueId),
       _syncService.subscribeChannelMessage(uniqueId: uniqueId),
@@ -73,7 +78,7 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<MessageDeletedResponse> subscribeMessageDeleted() {
+  Stream<Message> subscribeMessageDeleted() {
     return StreamGroup.merge([
       _mqttService.subscribeMessageDeleted(),
       _syncService.subscribeMessageDeleted(),
@@ -81,7 +86,7 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<MessageDeliveryResponse> subscribeMessageDelivered({int roomId}) {
+  Stream<Message> subscribeMessageDelivered({int roomId}) {
     return StreamGroup.merge([
       _mqttService.subscribeMessageDelivered(roomId: roomId),
       _syncService.subscribeMessageDelivered(roomId: roomId),
@@ -89,7 +94,7 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<MessageDeliveryResponse> subscribeMessageRead({int roomId}) {
+  Stream<Message> subscribeMessageRead({int roomId}) {
     return StreamGroup.merge([
       _mqttService.subscribeMessageRead(roomId: roomId),
       _syncService.subscribeMessageRead(roomId: roomId),
@@ -105,7 +110,7 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<RoomClearedResponse> subscribeRoomCleared() {
+  Stream<ChatRoom> subscribeRoomCleared() {
     return StreamGroup.merge([
       _mqttService.subscribeRoomCleared(),
       _syncService.subscribeRoomCleared(),
@@ -113,12 +118,12 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<UserPresenceResponse> subscribeUserPresence({String userId}) {
+  Stream<UserPresence> subscribeUserPresence({String userId}) {
     return _mqttService.subscribeUserPresence(userId: userId);
   }
 
   @override
-  Stream<UserTypingResponse> subscribeUserTyping({int roomId}) {
+  Stream<UserTyping> subscribeUserTyping({int roomId}) {
     return _mqttService.subscribeUserTyping(roomId: roomId);
   }
 
@@ -141,13 +146,13 @@ class RealtimeServiceImpl implements IRealtimeService {
   Stream<void> onReconnecting() => _mqttService.onReconnecting();
 
   @override
-  Stream<CustomEventResponse> subscribeCustomEvent({int roomId}) =>
+  Stream<CustomEvent> subscribeCustomEvent({int roomId}) =>
       _mqttService.subscribeCustomEvent(roomId: roomId);
 
   @override
   Either<QError, void> publishCustomEvent({
-    int roomId,
-    Map<String, dynamic> payload,
+    @required int roomId,
+    @required Map<String, dynamic> payload,
   }) {
     return _mqttService.publishCustomEvent(roomId: roomId, payload: payload);
   }

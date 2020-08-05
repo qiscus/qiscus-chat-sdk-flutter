@@ -194,3 +194,9 @@ extension FutureX<T> on Future<T> {
     );
   }
 }
+
+extension ObjectX on Object {
+  Option<T> toOption<T>() {
+    return optionOf<T>(this as T);
+  }
+}

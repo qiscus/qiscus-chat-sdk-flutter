@@ -4,6 +4,7 @@ import 'package:qiscus_chat_sdk/src/features/user/repository.dart';
 import 'package:qiscus_chat_sdk/src/features/user/usecases/unblock_user.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
+import 'package:qiscus_chat_sdk/src/core/extension.dart';
 
 class MockUserRepo extends Mock implements IUserRepository {}
 
@@ -19,7 +20,7 @@ void main() {
 
     test('unblock user successfully', () async {
       var user = User(
-        id: 'id',
+        id: 'id'.toOption(),
         name: some('name'),
       );
       when(repo.unblockUser(
@@ -28,7 +29,7 @@ void main() {
         return right(user);
       }));
 
-      var params = UnblockUserParams(user.id);
+      var params = UnblockUserParams(user.id.toNullable());
       var resp = await useCase.call(params).run();
 
       resp.fold((l) => fail(l.message), (r) {
@@ -36,7 +37,7 @@ void main() {
         expect(r.name, user.name);
       });
 
-      verify(repo.unblockUser(userId: user.id)).called(1);
+      verify(repo.unblockUser(userId: user.id.toNullable())).called(1);
       verifyNoMoreInteractions(repo);
     });
   });

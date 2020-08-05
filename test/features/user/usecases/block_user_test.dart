@@ -4,6 +4,7 @@ import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/user.dart';
 import 'package:qiscus_chat_sdk/src/features/user/repository.dart';
 import 'package:qiscus_chat_sdk/src/features/user/usecases/block_user.dart';
+import 'package:qiscus_chat_sdk/src/core/extension.dart';
 
 class MockUserRepository extends Mock implements IUserRepository {}
 
@@ -18,7 +19,7 @@ void main() {
 
   test('block user successfully', () async {
     var user = User(
-      id: 'user-id',
+      id: 'user-id'.toOption(),
       name: some('user'),
     );
     when(repo.blockUser(userId: anyNamed('userId')))

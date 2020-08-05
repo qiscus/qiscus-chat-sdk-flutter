@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/features/realtime/topic_builder.dart';
 import 'package:qiscus_chat_sdk/src/features/user/usecases/realtime.dart';
+import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 import 'package:test/test.dart';
 
 class MockRealtimeService extends Mock implements IRealtimeService {}
@@ -59,10 +61,10 @@ void main() {
 
         when(service.subscribeUserTyping(roomId: param.roomId)).thenAnswer((_) {
           return Stream.fromIterable([
-            UserTypingResponse(userId: 'user-id-1', roomId: 1, isTyping: true),
-            UserTypingResponse(userId: 'user-id-2', roomId: 1, isTyping: true),
-            UserTypingResponse(userId: 'user-id-3', roomId: 1, isTyping: true),
-            UserTypingResponse(userId: 'user-id-4', roomId: 1, isTyping: true),
+            UserTyping(userId: 'user-id-1', roomId: 1, isTyping: true),
+            UserTyping(userId: 'user-id-2', roomId: 1, isTyping: true),
+            UserTyping(userId: 'user-id-3', roomId: 1, isTyping: true),
+            UserTyping(userId: 'user-id-4', roomId: 1, isTyping: true),
           ]);
         });
 
@@ -129,12 +131,12 @@ void main() {
           userId: anyNamed('userId'),
         )).thenAnswer((_) {
           return Stream.fromIterable([
-            UserPresenceResponse(
+            UserPresence(
               userId: 'user-id-1',
               lastSeen: date,
               isOnline: true,
             ),
-            UserPresenceResponse(
+            UserPresence(
               userId: 'user-id-2',
               lastSeen: date,
               isOnline: true,

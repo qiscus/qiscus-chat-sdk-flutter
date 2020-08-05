@@ -15,3 +15,33 @@ export 'usecases/register_device_token.dart';
 export 'usecases/unblock_user.dart';
 export 'usecases/unregister_device_token.dart';
 export 'usecases/update_user.dart';
+
+import 'package:meta/meta.dart';
+
+@sealed
+@immutable
+class UserTyping {
+  UserTyping({
+    @required this.userId,
+    @required this.roomId,
+    @required this.isTyping,
+  });
+
+  final String userId;
+  final int roomId;
+  final bool isTyping;
+}
+
+@sealed
+@immutable
+class UserPresence {
+  UserPresence({
+    @required this.userId,
+    @required this.lastSeen,
+    @required this.isOnline,
+  });
+
+  final String userId;
+  final DateTime lastSeen;
+  final bool isOnline;
+}

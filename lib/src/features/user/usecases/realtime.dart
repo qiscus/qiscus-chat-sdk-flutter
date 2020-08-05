@@ -5,8 +5,8 @@ import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/core/usecases.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/mqtt_service_impl.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
+import 'package:qiscus_chat_sdk/src/features/realtime/topic_builder.dart';
 
 @sealed
 class Typing with EquatableMixin {

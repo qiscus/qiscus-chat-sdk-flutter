@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:qiscus_chat_sdk/src/core/extension.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 import 'package:test/test.dart';
 
@@ -16,7 +17,7 @@ void main() {
       },
     );
     user = User(
-      id: 'some-id',
+      id: 'some-id'.toOption(),
       name: some('name'),
       avatarUrl: some('avatar-url'),
       extras: some<IMap<String, dynamic>>(

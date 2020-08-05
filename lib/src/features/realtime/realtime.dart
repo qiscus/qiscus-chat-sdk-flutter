@@ -1,4 +1,3 @@
-export 'api.dart';
 export 'interval.dart';
 export 'local_mqtt_client.dart';
 export 'mqtt_service_impl.dart';

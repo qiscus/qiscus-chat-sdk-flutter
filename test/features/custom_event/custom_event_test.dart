@@ -1,9 +1,11 @@
 import 'package:dartz/dartz.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/core/errors.dart';
+import 'package:qiscus_chat_sdk/src/features/custom_event/entity.dart';
 import 'package:qiscus_chat_sdk/src/features/custom_event/usecase/realtime.dart';
 import 'package:qiscus_chat_sdk/src/features/message/message.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/features/realtime/topic_builder.dart';
 import 'package:test/test.dart';
 
 class MockService extends Mock implements IRealtimeService {}
@@ -27,7 +29,12 @@ void main() {
       payload: anyNamed('payload'),
     )).thenReturn(right<QError, void>(null));
 
-    var resp = await useCase.call(CustomEvent(roomId, payload)).run();
+    var resp = await useCase
+        .call(CustomEvent(
+          roomId: roomId,
+          payload: payload,
+        ))
+        .run();
     resp.fold((l) => fail(l.message), (r) {});
 
     verify(service.publishCustomEvent(
@@ -48,7 +55,10 @@ void main() {
     when(service.subscribeCustomEvent(roomId: anyNamed('roomId')))
         .thenAnswer((_) {
       return Stream.fromIterable([
-        CustomEventResponse(roomId, payload),
+        CustomEvent(
+          roomId: roomId,
+          payload: payload,
+        ),
       ]);
     });
 
@@ -57,7 +67,10 @@ void main() {
     await expectLater(
       resp,
       emitsInOrder(<CustomEvent>[
-        CustomEvent(roomId, payload),
+        CustomEvent(
+          roomId: roomId,
+          payload: payload,
+        ),
       ]),
     );
 

@@ -8,9 +8,8 @@ import 'package:qiscus_chat_sdk/src/features/user/entity/participant.dart';
 import 'package:qiscus_chat_sdk/src/features/user/entity/user.dart';
 
 class ChatRoom {
-  String uniqueId;
-  QRoomType type;
-  Option<String> name, avatarUrl;
+  Option<QRoomType> type;
+  Option<String> name, avatarUrl, uniqueId;
   Option<int> totalParticipants, unreadCount, id;
   Option<IMap<String, dynamic>> extras;
   Option<ISet<Participant>> participants;
@@ -18,8 +17,8 @@ class ChatRoom {
   Option<User> sender;
 
   ChatRoom._({
-    @required this.uniqueId,
-    @required this.type,
+    this.uniqueId,
+    this.type,
     this.id,
     this.name,
     this.unreadCount,
@@ -32,21 +31,21 @@ class ChatRoom {
   });
 
   factory ChatRoom({
-    @required String uniqueId,
-    @required QRoomType type,
-    @required Option<int> id,
-    @required Option<String> name,
-    @required Option<int> unreadCount,
-    @required Option<String> avatarUrl,
-    @required Option<int> totalParticipants,
-    @required Option<IMap<String, dynamic>> extras,
-    @required Option<ISet<Participant>> participants,
-    @required Option<Message> lastMessage,
-    @required Option<User> sender,
+    Option<String> uniqueId,
+    Option<QRoomType> type,
+    Option<int> id,
+    Option<String> name,
+    Option<int> unreadCount,
+    Option<String> avatarUrl,
+    Option<int> totalParticipants,
+    Option<IMap<String, dynamic>> extras,
+    Option<ISet<Participant>> participants,
+    Option<Message> lastMessage,
+    Option<User> sender,
   }) {
     return ChatRoom._(
-      uniqueId: uniqueId,
-      type: type,
+      uniqueId: uniqueId ?? none(),
+      type: type ?? none(),
       id: id ?? none(),
       name: name ?? none(),
       unreadCount: unreadCount ?? none(),
@@ -68,22 +67,22 @@ class ChatRoom {
       () => Message.fromJson(json['last_comment'] as Map<String, dynamic>),
     );
 
-    QRoomType _type;
+    Option<QRoomType> _type;
     var jsonType = json['chat_type'] as String;
     var isChannel = json['is_public_channel'] as bool;
 
     if (isChannel) {
-      _type = QRoomType.channel;
+      _type = some(QRoomType.channel);
     } else if (jsonType == 'single') {
-      _type = QRoomType.single;
+      _type = some(QRoomType.single);
     } else if (jsonType == 'group') {
-      _type = QRoomType.group;
+      _type = some(QRoomType.group);
     } else {
-      _type = QRoomType.single;
+      _type = some(QRoomType.single);
     }
     return ChatRoom(
       name: optionOf(json['room_name'] as String),
-      uniqueId: json['unique_id'] as String,
+      uniqueId: optionOf(json['unique_id'] as String),
       id: optionOf(json['id'] as int),
       unreadCount: optionOf(json['unread_count'] as int),
       avatarUrl: optionOf(json['avatar_url'] as String),
@@ -99,7 +98,7 @@ class ChatRoom {
   }
 
   QChatRoom toModel() => QChatRoom(
-        uniqueId: uniqueId,
+        uniqueId: uniqueId.toNullable(),
         id: id.toNullable(),
         avatarUrl: avatarUrl.toNullable(),
         extras: extras.map((it) => it.toMap()).toNullable(),
@@ -111,7 +110,7 @@ class ChatRoom {
             .map((p) => p.toModel())
             .toList(),
         totalParticipants: participants.length(),
-        type: type,
+        type: type.toNullable(),
         unreadCount: unreadCount.toNullable(),
       );
 }

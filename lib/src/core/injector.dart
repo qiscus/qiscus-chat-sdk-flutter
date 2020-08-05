@@ -47,7 +47,6 @@ class Injector {
     );
 
     // realtime
-    singleton(() => SyncApi(resolve<Dio>()));
     singleton(() => MqttServiceImpl(
           () => resolve<MqttClient>(),
           resolve<Storage>(),
@@ -59,10 +58,10 @@ class Injector {
           resolve<MqttServiceImpl>(),
         ));
     singleton(() => SyncServiceImpl(
-          resolve<Storage>(),
-          resolve<SyncApi>(),
-          resolve<Interval>(),
-          resolve<Logger>(),
+          storage: resolve(),
+          interval: resolve(),
+          logger: resolve(),
+          dio: resolve(),
         ));
     singleton<IRealtimeService>(() => RealtimeServiceImpl(
           resolve<MqttServiceImpl>(),

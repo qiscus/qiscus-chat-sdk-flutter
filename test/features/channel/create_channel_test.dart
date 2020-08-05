@@ -4,6 +4,7 @@ import 'package:qiscus_chat_sdk/src/features/room/entity.dart';
 import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
+import 'package:qiscus_chat_sdk/src/core/extension.dart';
 
 class MockRepo extends Mock implements IRoomRepository {}
 
@@ -24,8 +25,8 @@ void main() {
       options: anyNamed('options'),
     )).thenReturn(Task(() async {
       return right(ChatRoom(
-        uniqueId: '123',
-        type: QRoomType.channel,
+        uniqueId: '123'.toOption(),
+        type: QRoomType.channel.toOption(),
         id: some(123),
         name: some('name'),
         unreadCount: some(0),
