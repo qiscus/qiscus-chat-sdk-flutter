@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/extension.dart';
-import 'package:qiscus_chat_sdk/src/features/user/entity/user.dart';
+import '../../core/extension.dart';
+import '../user/entity/user.dart';
 
 enum QMessageType {
   text,
@@ -62,6 +62,7 @@ class QMessage {
       ')';
 
   @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is QMessage &&
@@ -69,6 +70,7 @@ class QMessage {
           uniqueId == other.uniqueId;
 
   @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
   int get hashCode => uniqueId.hashCode;
 }
 
@@ -180,8 +182,12 @@ class Message {
       }),
       extras: optionOf(json['extras'] as Map<String, dynamic>).map(imap),
       payload: optionOf(json['payload'] as Map<String, dynamic>).map(imap),
-      timestamp: optionOf(json['unix_nano_timestamp'] as int)
-          .map((it) => DateTime.fromMillisecondsSinceEpoch((it / 1e6).ceil())),
+      timestamp: optionOf(json['unix_nano_timestamp'] as int).map(
+        (it) => DateTime.fromMillisecondsSinceEpoch(
+          (it / 1e6).round(),
+          isUtc: true,
+        ),
+      ),
       sender: optionOf(User(
         id: optionOf(json['email'] as String),
         name: optionOf(json['username'] as String),
