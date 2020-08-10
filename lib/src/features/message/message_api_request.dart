@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/api_request.dart';
+import '../../core/api_request.dart';
 
 import 'entity.dart';
 
@@ -21,9 +21,9 @@ class SendMessageRequest extends IApiRequest<Message> {
     this.payload,
   });
 
-  get url => 'post_comment';
-  get method => IRequestMethod.post;
-  get body => <String, dynamic>{
+  String get url => 'post_comment';
+  IRequestMethod get method => IRequestMethod.post;
+  Map<String, dynamic> get body => <String, dynamic>{
         'topic_id': roomId.toString(),
         'comment': message,
         'type': type,
@@ -32,7 +32,7 @@ class SendMessageRequest extends IApiRequest<Message> {
         'extras': extras,
       };
 
-  format(Map<String, dynamic> json) {
+  Message format(Map<String, dynamic> json) {
     var data = json['results']['comment'] as Map<String, dynamic>;
     return Message.fromJson(data);
   }
@@ -51,16 +51,16 @@ class GetMessagesRequest extends IApiRequest<List<Message>> {
     this.limit = 20,
   });
 
-  get url => 'load_comments';
-  get method => IRequestMethod.get;
-  get params => <String, dynamic>{
+  String get url => 'load_comments';
+  IRequestMethod get method => IRequestMethod.get;
+  Map<String, dynamic> get params => <String, dynamic>{
         'topic_id': roomId,
         'last_comment_id': lastMessageId,
         'after': after,
         'limit': limit,
       };
 
-  format(json) {
+  List<Message> format(Map<String, dynamic> json) {
     var data = (json['results']['comments'] as List) //
         .cast<Map<String, dynamic>>();
 
@@ -79,9 +79,9 @@ class UpdateMessageStatusRequest extends IApiRequest<Unit> {
     this.lastDeliveredId,
   });
 
-  get url => 'update_comment_status';
-  get method => IRequestMethod.post;
-  get body => <String, dynamic>{
+  String get url => 'update_comment_status';
+  IRequestMethod get method => IRequestMethod.post;
+  Map<String, dynamic> get body => <String, dynamic>{
         'room_id': roomId.toString(),
         'last_comment_read_id': lastReadId?.toString(),
         'last_comment_received_id': lastDeliveredId?.toString(),

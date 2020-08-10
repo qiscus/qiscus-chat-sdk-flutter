@@ -1,8 +1,9 @@
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/features/room/room.dart';
+
+import '../../../core/core.dart';
+import '../../room/repository.dart';
+import '../../room/room.dart';
 
 @sealed
 class GetOrCreateChannelParams {
@@ -23,7 +24,7 @@ class GetOrCreateChannelUseCase
   GetOrCreateChannelUseCase(IRoomRepository repository) : super(repository);
 
   @override
-  Task<Either<QError, ChatRoom>> call(p) {
+  Task<Either<QError, ChatRoom>> call(GetOrCreateChannelParams p) {
     return repository.getOrCreateChannel(
       uniqueId: p.uniqueId,
       name: p.name,

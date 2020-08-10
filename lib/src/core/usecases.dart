@@ -3,8 +3,8 @@ import 'dart:collection';
 
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 
+import '../features/realtime/realtime.dart';
 import 'errors.dart';
 
 class NoParams extends Equatable {
@@ -26,18 +26,6 @@ abstract class UseCase<Repository, ReturnType, Params> {
   Task<Either<QError, ReturnType>> call(Params params);
 }
 
-abstract class SubscriptionUseCase<Repository, ReturnType, Params> {
-  final Repository _repository;
-
-  const SubscriptionUseCase(this._repository);
-
-  Repository get repository => _repository;
-
-  Stream<ReturnType> subscribe(Params params);
-
-  void unsubscribe(Params params);
-}
-
 /// A helper mixin for handling subscription based
 /// usecase, please ensure [params] implement
 /// both == equality method and hashCode method.
@@ -53,8 +41,10 @@ mixin Subscription<Repository extends IRealtimeService, Params, Response> {
               () => Task.delay(() {}),
               (topic) => repository.subscribe(topic),
             ))
-        .andThen(Task.delay(() => _subscriptions.putIfAbsent(params,
-            () => mapStream(params).listen((res) => _controller.add(res)))))
+        .andThen(Task.delay(() => _subscriptions.putIfAbsent(
+              params,
+              () => mapStream(params).listen(_controller.add),
+            )))
         .andThen(Task.delay(() => _controller.stream));
   }
 

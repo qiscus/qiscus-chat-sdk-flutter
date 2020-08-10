@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/features/core/repository.dart';
 
+import '../../../core/core.dart';
 import '../entity.dart';
+import '../repository.dart';
 
 class AppConfigUseCase extends UseCase<CoreRepository, AppConfig, NoParams> {
   AppConfigUseCase(CoreRepository repository, this._storage)

@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/features/message/message.dart';
-import 'package:qiscus_chat_sdk/src/features/room/room.dart';
-import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 
+import 'src/core/core.dart';
 import 'src/core/utils.dart';
+import 'src/features/message/message.dart';
+import 'src/features/room/room.dart';
+import 'src/features/user/user.dart';
 import 'src/qiscus_core.dart';
 
 extension XQiscusSDK on QiscusSDK {
@@ -119,6 +119,32 @@ extension XQiscusSDK on QiscusSDK {
   }) async {
     return futurify2((cb) {
       chatUser(userId: userId, extras: extras, callback: cb);
+    });
+  }
+
+  Future<bool> registerDeviceToken$({
+    @required String token,
+    bool isDevelopment,
+  }) async {
+    return futurify2((cb) {
+      registerDeviceToken(
+        token: token,
+        isDevelopment: isDevelopment,
+        callback: cb,
+      );
+    });
+  }
+
+  Future<bool> removeDeviceToken$({
+    @required String token,
+    bool isDevelopment,
+  }) async {
+    return futurify2((cb) {
+      removeDeviceToken(
+        token: token,
+        isDevelopment: isDevelopment,
+        callback: cb,
+      );
     });
   }
 
@@ -422,4 +448,23 @@ extension XQiscusSDK on QiscusSDK {
           });
     });
   }
+}
+
+class QChatRoomWithMessages {
+  const QChatRoomWithMessages(this.room, this.messages);
+
+  final QChatRoom room;
+  final List<QMessage> messages;
+}
+
+class QUserPresence {
+  String userId;
+  bool isOnline;
+  DateTime lastOnline;
+}
+
+class QUserTyping {
+  String userId;
+  int roomId;
+  bool isTyping;
 }

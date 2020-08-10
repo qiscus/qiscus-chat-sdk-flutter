@@ -16,12 +16,13 @@ class CMqttMessage {
 }
 
 extension OptionDo<T> on Option<T> {
+  // ignore: non_constant_identifier_names
   void do_(void Function(T data) onData) {
     fold(() {}, (it) => onData(it));
   }
 }
 
-extension CMqttClient on MqttClient {
+extension MqttClientX on MqttClient {
   Either<QError, void> publishEvent(MqttEventHandler event) {
     var topic = event.topic;
     var message = event.publish();
@@ -67,6 +68,7 @@ extension CEither<L, R> on Either<L, R> {
     map((r) {
       try {
         callback(r);
+        // ignore: avoid_catches_without_on_clauses
       } catch (_) {
         // do nothing
       }
@@ -120,6 +122,7 @@ extension StreamTapped<T> on Stream<T> {
     return asyncMap((event) {
       try {
         tapData(event);
+        // ignore: avoid_catches_without_on_clauses
       } catch (_) {
         // do nothing
       }
@@ -153,6 +156,7 @@ extension COption<T01> on Option<T01> {
 }
 
 extension TaskX<L1, R1> on Task<Either<L1, R1>> {
+  // ignore: non_constant_identifier_names
   void toCallback_(void Function(R1, L1) callback) {
     toCallback(callback).run();
   }
@@ -181,16 +185,16 @@ extension TaskX<L1, R1> on Task<Either<L1, R1>> {
 
 extension FutureX<T> on Future<T> {
   void toCallback1(void Function(QError) callback) {
-    this.then(
+    then(
       (_) => callback(null),
-      onError: (Object error) => callback(error as QError),
+      onError: (dynamic error) => callback(error as QError),
     );
   }
 
   void toCallback2(void Function(T, QError) callback) {
-    this.then(
+    then(
       (value) => callback(value, null),
-      onError: (Object error) => callback(null, error as QError),
+      onError: (dynamic error) => callback(null, error as QError),
     );
   }
 }

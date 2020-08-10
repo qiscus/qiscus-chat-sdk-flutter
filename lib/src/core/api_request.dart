@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-typedef Output Formatter<Output>(Map<String, dynamic> json);
+typedef Formatter<Output> = Output Function(Map<String, dynamic> json);
 
 abstract class IApiRequest<T> {
   String get url;

@@ -1,14 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-import 'package:qiscus_chat_sdk/src/constants.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
+import '../constants.dart';
+import 'core.dart';
 
 Dio getDio(Storage storage, Logger logger) {
   final interceptor = InterceptorsWrapper(
     onRequest: (request) {
       request.baseUrl = '${storage?.baseUrl}/api/v2/mobile/';
       request.headers['qiscus-sdk-app-id'] = storage.appId;
-      request.headers['qiscus-sdk-version'] = '$PLATFORM_NAME-$VERSION';
+      request.headers['qiscus-sdk-version'] = '$sdkPlatformName-$sdkVersion';
       if (storage?.token != null) {
         request.headers['qiscus-sdk-token'] = storage.token;
         request.headers['qiscus-sdk-user-id'] = storage.userId;

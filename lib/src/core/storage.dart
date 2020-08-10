@@ -1,9 +1,9 @@
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/features/user/entity/account.dart';
+import '../features/user/entity/account.dart';
+import 'core.dart';
 
-final _makeGetter = <T1>(Map s, String name, [T1 valueIfEmpty]) =>
+T1 _makeGetter<T1>(Map s, String name, [T1 valueIfEmpty]) =>
     s[name] as T1 ?? valueIfEmpty;
-final _makeSetter = <T2>(Map s, String name, T2 value) =>
+void _makeSetter<T2>(Map s, String name, T2 value) =>
     s.update(name, (dynamic _) => value, ifAbsent: () => value);
 
 class Storage {

@@ -17,7 +17,7 @@ class CustomEventUseCase extends UseCase<IRealtimeService, void, CustomEvent>
       _instance ??= CustomEventUseCase._(s);
 
   @override
-  Task<Either<QError, void>> call(p) {
+  Task<Either<QError, void>> call(CustomEvent p) {
     return Task.delay<Either<QError, void>>(() {
       return repository.publishCustomEvent(
         roomId: p.roomId,
@@ -27,10 +27,11 @@ class CustomEventUseCase extends UseCase<IRealtimeService, void, CustomEvent>
   }
 
   @override
-  Stream<CustomEvent> mapStream(p) {
+  Stream<CustomEvent> mapStream(RoomIdParams p) {
     return repository.subscribeCustomEvent(roomId: p.roomId);
   }
 
   @override
-  Option<String> topic(p) => some(TopicBuilder.customEvent(p.roomId));
+  Option<String> topic(RoomIdParams p) =>
+      some(TopicBuilder.customEvent(p.roomId));
 }

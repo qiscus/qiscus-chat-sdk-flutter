@@ -2,13 +2,14 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/features/core/core.dart';
-import 'package:qiscus_chat_sdk/src/features/message/message.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/interval.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
-import 'package:qiscus_chat_sdk/src/features/room/room.dart';
-import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+
+import '../features/core/core.dart';
+import '../features/message/message.dart';
+import '../features/realtime/interval.dart';
+import '../features/realtime/realtime.dart';
+import '../features/room/room.dart';
+import '../features/user/user.dart';
+import 'core.dart';
 
 @sealed
 class Injector {
@@ -18,6 +19,7 @@ class Injector {
     c.registerLazySingleton<T>(inst, instanceName: name);
   }
 
+  // ignore: non_constant_identifier_names
   void factory_<T>(T Function() inst, [String name]) {
     c.registerFactory(inst, instanceName: name);
   }
@@ -41,7 +43,7 @@ class Injector {
     singleton<Dio>(() => getDio(resolve<Storage>(), resolve<Logger>()));
     singleton<MqttClient>(() => getMqttClient(resolve<Storage>()));
     singleton(() => CoreApi(resolve<Dio>()));
-    singleton<CoreRepository>(() => CoreRepositoryImpl(resolve<CoreApi>()));
+    singleton<CoreRepository>(() => CoreRepository(resolve<CoreApi>()));
     singleton(
       () => AppConfigUseCase(resolve<CoreRepository>(), resolve<Storage>()),
     );

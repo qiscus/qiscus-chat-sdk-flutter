@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
+import '../../core/core.dart';
 
 Option<T> optionFromJson<T>(T json) {
   if ((json is String) && json.isEmpty) {
@@ -46,7 +46,7 @@ class AppConfig {
           optionFromJson(json['enable_realtime_check'] as bool),
       syncInterval: optionFromJson(json['sync_interval'] as int),
       syncOnConnect: optionFromJson(json['sync_on_connect'] as int),
-      extras: ((String extras) {
+      extras: ((dynamic extras) {
         if ((extras is String) && extras.isNotEmpty) {
           var json = jsonDecode(extras) as Map<String, dynamic>;
           return optionFromJson(json);
