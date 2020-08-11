@@ -63,7 +63,7 @@ class MqttServiceImpl implements IRealtimeService {
     var newUrl = 'wss://$url:$port/mqtt';
     _s.brokerUrl = newUrl;
     try {
-      __mqtt = getMqttClient(_s);
+      __mqtt = _getClient();
       await _mqtt.connect();
     } catch (e) {
       log('got error when reconnecting mqtt: $e');

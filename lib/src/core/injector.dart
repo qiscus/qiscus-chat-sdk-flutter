@@ -39,24 +39,22 @@ class Injector {
   void _configure() {
     // core
     singleton(() => Storage());
-    singleton(() => Logger(resolve<Storage>()));
-    singleton<Dio>(() => getDio(resolve<Storage>(), resolve<Logger>()));
-    singleton<MqttClient>(() => getMqttClient(resolve<Storage>()));
+    singleton(() => Logger(resolve()));
+    singleton<Dio>(() => getDio(resolve(), resolve()));
+    singleton<MqttClient>(() => makeMqttClient(resolve()));
     singleton(() => CoreApi(resolve<Dio>()));
-    singleton<CoreRepository>(() => CoreRepository(resolve<CoreApi>()));
-    singleton(
-      () => AppConfigUseCase(resolve<CoreRepository>(), resolve<Storage>()),
-    );
+    singleton(() => CoreRepository(resolve<CoreApi>()));
+    singleton(() => AppConfigUseCase(resolve(), resolve()));
 
     // realtime
     singleton(() => MqttServiceImpl(
-          () => resolve<MqttClient>(),
-          resolve<Storage>(),
-          resolve<Logger>(),
-          resolve<Dio>(),
+          () => resolve(),
+          resolve(),
+          resolve(),
+          resolve(),
         ));
     singleton(() => Interval(
-          resolve<Storage>(),
+          resolve(),
           resolve<MqttServiceImpl>(),
         ));
     singleton(() => SyncServiceImpl(
@@ -95,11 +93,11 @@ class Injector {
     singleton<IUserRepository>(() => UserRepositoryImpl(resolve()));
     factory_(() => AuthenticateUserUseCase(
           resolve<IUserRepository>(),
-          resolve<Storage>(),
+          resolve(),
         ));
     factory_(() => AuthenticateUserWithTokenUseCase(
           resolve<IUserRepository>(),
-          resolve<Storage>(),
+          resolve(),
         ));
     factory_(() => BlockUserUseCase(resolve<IUserRepository>()));
     factory_(() => UnblockUserUseCase(resolve<IUserRepository>()));
@@ -111,7 +109,7 @@ class Injector {
     factory_(() => UnregisterDeviceTokenUseCase(resolve<IUserRepository>()));
     factory_(() => UpdateUserUseCase(
           resolve<IUserRepository>(),
-          resolve<Storage>(),
+          resolve(),
         ));
     singleton(() => TypingUseCase(resolve<IRealtimeService>()));
     singleton(() => PresenceUseCase(resolve<IRealtimeService>()));

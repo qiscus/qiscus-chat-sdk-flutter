@@ -1,5 +1,9 @@
 # 1.0.3-dev.1
 
+- trying to make this package compatible with dartjs
+
+# 1.0.3-dev.1
+
 - fix not using utc time when parsing timestamp
 - another interval improvement
 

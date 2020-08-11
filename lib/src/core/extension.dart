@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
 import 'errors.dart';
-import 'mqtt.dart';
+import 'mqtt/mqtt.dart';
 
 class CMqttMessage {
   const CMqttMessage(this.topic, this.payload);
