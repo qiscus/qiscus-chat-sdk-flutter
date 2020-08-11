@@ -1,3 +1,16 @@
+# 1.0.3-dev.1
+
+- fix not using utc time when parsing timestamp
+- another interval improvement
+
+# 1.0.3
+
+- Fix broken changes leftover
+
+# 1.0.2
+
+- Fix not sending the correct format of extras data for some API
+
 # 1.0.2-dev.1
 
 - fix not using utc time when parsing timestamp

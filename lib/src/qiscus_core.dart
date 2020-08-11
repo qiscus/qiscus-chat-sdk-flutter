@@ -160,7 +160,10 @@ class QiscusSDK {
     @required Function2<QChatRoom, QError, void> callback,
   }) {
     _authenticated
-        .andThen(__<GetRoomByUserIdUseCase>()(UserIdParams(userId)))
+        .andThen(__<GetRoomByUserIdUseCase>()(UserIdParams(
+          userId: userId,
+          extras: extras,
+        )))
         .rightMap((u) => u.toModel())
         .toCallback_(callback);
   }

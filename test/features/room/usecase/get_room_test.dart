@@ -17,8 +17,11 @@ void main() {
   });
 
   test('get room successfully', () async {
-    var params = GetRoomParams('guest-101');
-    when(repo.getRoomWithUserId(any)).thenAnswer((_) {
+    var params = UserIdParams(userId: 'guest-101');
+    when(repo.getRoomWithUserId(
+      userId: anyNamed('userId'),
+      extras: anyNamed('extras'),
+    )).thenAnswer((_) {
       return Task(() async {
         return right(ChatRoom(
           id: some(123),
@@ -42,7 +45,7 @@ void main() {
       expect(r.name, some(params.userId));
     });
 
-    verify(repo.getRoomWithUserId(params.userId)).called(1);
+    verify(repo.getRoomWithUserId(userId: params.userId)).called(1);
     verifyNoMoreInteractions(repo);
   });
 }

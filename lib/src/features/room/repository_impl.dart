@@ -17,9 +17,15 @@ class RoomRepositoryImpl implements IRoomRepository {
   });
 
   @override
-  getRoomWithUserId(String userId) {
+  getRoomWithUserId({
+    @required String userId,
+    Map<String, dynamic> extras,
+  }) {
     return task(() async {
-      var request = req.ChatTargetRequest(userId: userId);
+      var request = req.ChatTargetRequest(
+        userId: userId,
+        extras: extras,
+      );
       return dio.sendApiRequest(request).then(request.format);
     });
   }

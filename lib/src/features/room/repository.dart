@@ -7,7 +7,10 @@ import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 import 'entity.dart';
 
 abstract class IRoomRepository {
-  Task<Either<QError, ChatRoom>> getRoomWithUserId(String userId);
+  Task<Either<QError, ChatRoom>> getRoomWithUserId({
+    @required String userId,
+    Map<String, dynamic> extras,
+  });
 
   Task<Either<QError, Tuple2<ChatRoom, List<Message>>>> getRoomWithId(
       int roomId);
