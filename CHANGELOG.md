@@ -1,3 +1,8 @@
+# 1.0.2-dev.1
+
+- fix not using utc time when parsing timestamp
+- another interval improvement
+
 # 1.0.1
 
 - Nothing new
