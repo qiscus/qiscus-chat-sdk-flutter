@@ -34,7 +34,7 @@ class RoomUniqueIdsParams extends Equatable {
 }
 
 class OnMessageDeleted
-    with Subscription<IRealtimeService, TokenParams, Message> {
+    with SubscriptionMixin<IRealtimeService, TokenParams, Message> {
   OnMessageDeleted._(this._service);
 
   final IRealtimeService _service;
@@ -54,7 +54,8 @@ class OnMessageDeleted
   Option<String> topic(p) => some(TopicBuilder.notification(p.token));
 }
 
-class OnMessageRead with Subscription<IRealtimeService, RoomIdParams, Message> {
+class OnMessageRead
+    with SubscriptionMixin<IRealtimeService, RoomIdParams, Message> {
   OnMessageRead._(this._service);
 
   final IRealtimeService _service;
@@ -88,7 +89,7 @@ class TokenParams extends Equatable {
 }
 
 class OnMessageReceived
-    with Subscription<IRealtimeService, TokenParams, Message> {
+    with SubscriptionMixin<IRealtimeService, TokenParams, Message> {
   OnMessageReceived._(this._service, this._updateMessageStatus) {
     _receiveMessage = StreamTransformer //
         .fromHandlers(
@@ -133,7 +134,7 @@ class OnMessageReceived
 }
 
 class OnMessageDelivered
-    with Subscription<IRealtimeService, RoomIdParams, Message> {
+    with SubscriptionMixin<IRealtimeService, RoomIdParams, Message> {
   OnMessageDelivered._(this._service);
 
   final IRealtimeService _service;

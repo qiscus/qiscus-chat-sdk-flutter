@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
+import 'core/core.dart';
 import 'features/message/message.dart';
 import 'features/user/user.dart';
 

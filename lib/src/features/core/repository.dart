@@ -1,22 +1,25 @@
 import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
+import 'package:meta/meta.dart';
 
 import '../../core/core.dart';
 import '../../core/utils.dart';
+import '../../core/api_request.dart';
 import 'api.dart';
 import 'entity.dart';
 
 class CoreRepository {
-  const CoreRepository(this._api);
+  const CoreRepository({@required this.dio});
 
-  final CoreApi _api;
+  final Dio dio;
 
   Task<Either<QError, AppConfig>> getConfig() {
-    return task(_api.getConfig).rightMap((str) {
-      var json = jsonDecode(str) as Map<String, dynamic>;
-      var config = AppConfig.fromJson(json['results'] as Map<String, dynamic>);
-      return config;
+    return task(() {
+      final request = GetConfigRequest();
+
+      return dio.sendApiRequest(request).then(request.format);
     });
   }
 }

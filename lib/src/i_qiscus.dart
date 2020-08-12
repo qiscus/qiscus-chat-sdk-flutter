@@ -2,16 +2,11 @@ import 'dart:io' if (dart.library.js) 'dart:html';
 
 import 'package:meta/meta.dart';
 
-import 'core/core.dart';
-import 'core/errors.dart';
+import 'core/logger.dart';
 import 'features/message/message.dart';
 import 'features/room/room.dart';
 import 'features/user/user.dart';
-
-typedef Callback0 = void Function(QError error);
-typedef Callback1<Data1> = void Function(Data1, QError error);
-typedef Callback2<Data1, Data2> = void Function(Data1, Data2, QError error);
-typedef Subscription = void Function();
+import 'typedefs.dart';
 
 abstract class IQiscusSDK {
   String get appId;

@@ -22,7 +22,7 @@ class ClearRoomMessagesUseCase
 }
 
 class OnRoomMessagesCleared
-    with Subscription<IRealtimeService, NoParams, Option<int>> {
+    with SubscriptionMixin<IRealtimeService, NoParams, Option<int>> {
   OnRoomMessagesCleared._(this._service);
   factory OnRoomMessagesCleared(IRealtimeService s) =>
       _instance ??= OnRoomMessagesCleared._(s);

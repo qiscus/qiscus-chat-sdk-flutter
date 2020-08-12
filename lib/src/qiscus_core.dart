@@ -1,7 +1,7 @@
 library qiscus_chat_sdk;
 
 import 'dart:async';
-import 'dart:io' if (dart.library.html) 'dart:html';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:dartz/dartz.dart';
@@ -21,11 +21,7 @@ import 'features/realtime/realtime.dart';
 import 'features/realtime/topic_builder.dart';
 import 'features/room/room.dart';
 import 'features/user/user.dart';
-import 'i_qiscus.dart';
-
-typedef Subscription = void Function();
-typedef UserPresenceHandler = void Function(String, bool, DateTime);
-typedef UserTypingHandler = void Function(String, int, bool);
+import 'typedefs.dart';
 
 class QiscusSDK {
   static final instance = QiscusSDK();

@@ -8,7 +8,7 @@ import '../../realtime/topic_builder.dart';
 import '../entity.dart';
 
 class CustomEventUseCase extends UseCase<IRealtimeService, void, CustomEvent>
-    with Subscription<IRealtimeService, RoomIdParams, CustomEvent> {
+    with SubscriptionMixin<IRealtimeService, RoomIdParams, CustomEvent> {
   CustomEventUseCase._(IRealtimeService s) : super(s);
 
   static CustomEventUseCase _instance;

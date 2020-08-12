@@ -41,9 +41,8 @@ class Injector {
     singleton(() => Storage());
     singleton(() => Logger(resolve()));
     singleton<Dio>(() => getDio(resolve(), resolve()));
-    singleton<MqttClient>(() => makeMqttClient(resolve()));
-    singleton(() => CoreApi(resolve<Dio>()));
-    singleton(() => CoreRepository(resolve<CoreApi>()));
+    singleton<MqttClient>(() => getMqttClient(resolve()));
+    singleton(() => CoreRepository(dio: resolve()));
     singleton(() => AppConfigUseCase(resolve(), resolve()));
 
     // realtime

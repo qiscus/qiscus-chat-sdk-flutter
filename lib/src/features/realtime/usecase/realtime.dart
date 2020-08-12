@@ -2,7 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/core/core.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 
-class OnConnected with Subscription<IRealtimeService, NoParams, void> {
+class OnConnected with SubscriptionMixin<IRealtimeService, NoParams, void> {
   OnConnected._(this._repo);
 
   factory OnConnected(IRealtimeService repo) =>
@@ -20,7 +20,7 @@ class OnConnected with Subscription<IRealtimeService, NoParams, void> {
   Option<String> topic(NoParams p) => none();
 }
 
-class OnDisconnected with Subscription<IRealtimeService, NoParams, void> {
+class OnDisconnected with SubscriptionMixin<IRealtimeService, NoParams, void> {
   OnDisconnected._(this._repo);
 
   final IRealtimeService _repo;
@@ -39,7 +39,7 @@ class OnDisconnected with Subscription<IRealtimeService, NoParams, void> {
   Option<String> topic(NoParams p) => none();
 }
 
-class OnReconnecting with Subscription<IRealtimeService, NoParams, void> {
+class OnReconnecting with SubscriptionMixin<IRealtimeService, NoParams, void> {
   OnReconnecting._(this._repo);
 
   final IRealtimeService _repo;

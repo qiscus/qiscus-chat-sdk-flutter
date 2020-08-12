@@ -1,12 +1,11 @@
-import 'package:dio/dio.dart';
-import 'package:retrofit/retrofit.dart';
+import '../../core/api_request.dart';
+import 'entity.dart';
 
-part 'api.g.dart';
+class GetConfigRequest extends IApiRequest<AppConfig> {
+  IRequestMethod get method => IRequestMethod.get;
+  String get url => 'config';
 
-@RestApi(autoCastResponse: false)
-abstract class CoreApi {
-  factory CoreApi(Dio dio) = _CoreApi;
-
-  @GET('config')
-  Future<String> getConfig();
+  AppConfig format(Map<String, dynamic> json) {
+    return null;
+  }
 }

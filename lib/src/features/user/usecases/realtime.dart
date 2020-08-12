@@ -44,7 +44,7 @@ class Presence with EquatableMixin {
 }
 
 class TypingUseCase extends UseCase<IRealtimeService, void, Typing>
-    with Subscription<IRealtimeService, Typing, Typing> {
+    with SubscriptionMixin<IRealtimeService, Typing, Typing> {
   TypingUseCase._(IRealtimeService repository) : super(repository);
 
   factory TypingUseCase(IRealtimeService repo) =>
@@ -75,7 +75,7 @@ class TypingUseCase extends UseCase<IRealtimeService, void, Typing>
 
 @immutable
 class PresenceUseCase extends UseCase<IRealtimeService, void, Presence>
-    with Subscription<IRealtimeService, Presence, Presence> {
+    with SubscriptionMixin<IRealtimeService, Presence, Presence> {
   PresenceUseCase._(IRealtimeService service) : super(service);
   static PresenceUseCase _instance;
 

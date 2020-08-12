@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 
+import '../typedefs.dart';
 import 'errors.dart';
 import 'extension.dart';
 
@@ -24,8 +25,6 @@ Future<T> futurify2<T>(void Function(void Function(T, QError)) fn) async {
 
   return completer.future;
 }
-
-typedef Subscription = void Function();
 
 Stream<Out> streamify<Out>(
   Subscription Function(void Function(Out)) fn,
