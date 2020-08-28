@@ -1,8 +1,4 @@
-import 'dart:convert';
-
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-import '../../core/core.dart';
+part of qiscus_chat_sdk.usecase.app_config;
 
 Option<T> optionFromJson<T>(T json) {
   if ((json is String) && json.isEmpty) {
@@ -48,8 +44,7 @@ class AppConfig {
       syncOnConnect: optionFromJson(json['sync_on_connect'] as int),
       extras: ((dynamic extras) {
         if ((extras is String) && extras.isNotEmpty) {
-          var json = jsonDecode(extras) as Map<String, dynamic>;
-          return optionFromJson(json);
+          return decodeJson(extras);
         } else {
           return none<Map<String, dynamic>>();
         }

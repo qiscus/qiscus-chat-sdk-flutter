@@ -1,23 +1,4 @@
-import 'dart:async';
-
-import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
-import 'package:meta/meta.dart';
-import 'package:mqtt_client/mqtt_client.dart';
-import 'package:qiscus_chat_sdk/src/features/custom_event/entity.dart';
-import '../../core/core.dart';
-import '../../core/extension.dart';
-import '../../core/storage.dart';
-import '../../core/utils.dart';
-import '../message/entity.dart';
-import '../../core/api_request.dart';
-import '../room/room.dart';
-import '../user/user.dart';
-
-import 'interval.dart';
-import 'realtime_api_request.dart';
-import 'realtime_model.dart';
-import 'service.dart';
+part of qiscus_chat_sdk.usecase.realtime;
 
 class SyncServiceImpl implements IRealtimeService {
   SyncServiceImpl({
@@ -25,9 +6,7 @@ class SyncServiceImpl implements IRealtimeService {
     @required this.interval,
     @required this.logger,
     @required this.dio,
-  }) {
-    //
-  }
+  });
 
   final Dio dio;
   final Logger logger;

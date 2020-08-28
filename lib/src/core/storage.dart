@@ -1,5 +1,4 @@
-import '../features/user/entity/account.dart';
-import 'core.dart';
+part of qiscus_chat_sdk.core;
 
 T1 _makeGetter<T1>(Map s, String name, [T1 valueIfEmpty]) =>
     s[name] as T1 ?? valueIfEmpty;

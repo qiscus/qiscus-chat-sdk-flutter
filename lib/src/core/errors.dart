@@ -1,3 +1,5 @@
+part of qiscus_chat_sdk.core;
+
 class QError extends Error {
   final String message;
 

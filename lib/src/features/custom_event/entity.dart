@@ -1,4 +1,4 @@
-import 'package:meta/meta.dart';
+part of qiscus_chat_sdk.usecase.custom_event;
 
 @sealed
 @immutable

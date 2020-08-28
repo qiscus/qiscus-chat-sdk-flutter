@@ -1,22 +1,4 @@
-import 'dart:convert';
-
-import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
-import 'package:meta/meta.dart';
-import 'package:mqtt_client/mqtt_client.dart';
-import 'package:qiscus_chat_sdk/src/features/custom_event/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/room/room.dart';
-import 'package:qiscus_chat_sdk/src/features/user/user.dart';
-import 'package:sealed_unions/sealed_unions.dart';
-
-import '../../core/core.dart';
-import '../../core/extension.dart';
-import '../../core/storage.dart';
-import '../message/entity.dart';
-import 'mqtt_events.dart';
-import 'realtime_model.dart';
-import 'service.dart';
-import 'topic_builder.dart';
+part of qiscus_chat_sdk.usecase.realtime;
 
 class MqttServiceImpl implements IRealtimeService {
   MqttServiceImpl(this._getClient, this._s, this._logger, this._dio) {
@@ -31,12 +13,7 @@ class MqttServiceImpl implements IRealtimeService {
     };
     _mqtt.onUnsubscribed = (topic) => log('on mqtt unsubscribed: $topic');
 
-    if (_s.isRealtimeEnabled) {
-      _mqtt
-          .connect()
-          .then((status) => log('connected to mqtt: $status'))
-          .catchError((dynamic error) => log('cannot connect to mqtt: $error'));
-    }
+    if (_s.isRealtimeEnabled) connect();
 
     _mqtt.updates?.expand((it) => it)?.listen((event) {
       var p = event.payload as MqttPublishMessage;
@@ -44,6 +21,15 @@ class MqttServiceImpl implements IRealtimeService {
       var topic = event.topic;
       log('on-message: $topic -> $payload');
     });
+  }
+
+  Future<void> connect() async {
+    try {
+      var status = await _mqtt.connect();
+      log('connected to mqtt: $status');
+    } on Exception catch (error) {
+      log('cannot connect to mqtt: $error');
+    }
   }
 
   void log(String str) => _logger.log('MqttServiceImpl::- $str');
@@ -54,6 +40,8 @@ class MqttServiceImpl implements IRealtimeService {
       log('Mqtt disconnected with unknown state: ${connectionStatus.state}');
       return;
     }
+
+    await Future<void>.delayed(const Duration(milliseconds: 500));
 
     // get a new broker url by calling lb
     var result = await _dio.get<Map<String, dynamic>>(_s.brokerLbUrl);

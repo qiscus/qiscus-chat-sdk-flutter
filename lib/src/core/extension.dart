@@ -1,19 +1,4 @@
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
-import 'package:mqtt_client/mqtt_client.dart';
-
-import 'errors.dart';
-import 'mqtt/mqtt.dart';
-
-class CMqttMessage {
-  const CMqttMessage(this.topic, this.payload);
-
-  final String topic;
-  final String payload;
-}
+part of qiscus_chat_sdk.core;
 
 extension OptionDo<T> on Option<T> {
   // ignore: non_constant_identifier_names
@@ -46,7 +31,7 @@ extension MqttClientX on MqttClient {
     }).leftMapToQError();
   }
 
-  Stream<CMqttMessage> forTopic(String topic) async* {
+  Stream<Tuple2<String, String>> forTopic(String topic) async* {
     if (updates == null) {
       yield* Stream.empty();
     } else {
@@ -57,7 +42,7 @@ extension MqttClientX on MqttClient {
         var _payload = event.payload as MqttPublishMessage;
         var payload =
             MqttPublishPayload.bytesToStringAsString(_payload.payload.message);
-        return CMqttMessage(event.topic, payload);
+        return tuple2(event.topic, payload);
       });
     }
   }
@@ -86,7 +71,6 @@ extension CEither<L, R> on Either<L, R> {
           json =
               jsonDecode(err.response.data as String) as Map<String, dynamic>;
         }
-        print('json: $json');
         if (message != null) {
           return QError(message);
         } else {
@@ -94,7 +78,8 @@ extension CEither<L, R> on Either<L, R> {
           return QError(message);
         }
       }
-      return QError(err.toString());
+      throw err;
+//      return QError(err.toString());
     });
   }
 }
@@ -203,4 +188,9 @@ extension ObjectX on Object {
   Option<T> toOption<T>() {
     return optionOf<T>(this as T);
   }
+}
+
+extension TupleMqttData on Tuple2<String, String> {
+  String get topic => value1;
+  String get payload => value2;
 }

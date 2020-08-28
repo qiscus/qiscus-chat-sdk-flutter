@@ -1,10 +1,4 @@
-import 'dart:async';
-
-import 'package:dartz/dartz.dart';
-
-import '../typedefs.dart';
-import 'errors.dart';
-import 'extension.dart';
+part of qiscus_chat_sdk.core;
 
 Future<void> futurify1(void Function(void Function(QError)) fn) async {
   final completer = Completer<void>();
@@ -27,7 +21,7 @@ Future<T> futurify2<T>(void Function(void Function(T, QError)) fn) async {
 }
 
 Stream<Out> streamify<Out>(
-  Subscription Function(void Function(Out)) fn,
+  SubscriptionFn Function(void Function(Out)) fn,
 ) async* {
   var controller = StreamController<Out>();
   var subscription = fn((data) {
@@ -40,4 +34,10 @@ Stream<Out> streamify<Out>(
 
 Task<Either<QError, T>> task<T>(Future<T> Function() cb) {
   return Task(cb).attempt().leftMapToQError();
+}
+
+Option<Map<String, dynamic>> decodeJson(String json) {
+  return catching(() {
+    return jsonDecode(json) as Map<String, dynamic>;
+  }).toOption();
 }

@@ -1,7 +1,4 @@
-import 'package:dio/dio.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-import '../constants.dart';
-import 'core.dart';
+part of qiscus_chat_sdk.core;
 
 Dio getDio(Storage storage, Logger logger) {
   final interceptor = InterceptorsWrapper(

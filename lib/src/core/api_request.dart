@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+part of qiscus_chat_sdk.core;
 
 typedef Formatter<Output> = Output Function(Map<String, dynamic> json);
 
@@ -35,12 +35,11 @@ extension on IRequestMethod {
 extension DioXRequest on Dio {
   Future<Output> sendApiRequest<Output extends Map<String, dynamic>>(
     IApiRequest request,
-  ) {
+  ) async {
     var body = (request.body ?? <String, dynamic>{})
       ..removeWhere((key, dynamic value) => value == null);
     var params = (request.params ?? <String, dynamic>{})
       ..removeWhere((key, dynamic value) => value == null);
-
     return this
         .request<Output>(
           request.url,

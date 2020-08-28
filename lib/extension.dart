@@ -3,8 +3,7 @@ import 'dart:io';
 
 import 'package:meta/meta.dart';
 
-import 'src/core/core.dart';
-import 'src/core/utils.dart';
+import 'src/core.dart';
 import 'src/features/message/message.dart';
 import 'src/features/room/room.dart';
 import 'src/features/user/user.dart';
@@ -49,6 +48,24 @@ extension XQiscusSDK on QiscusSDK {
         avatarUrl: avatarUrl,
         extras: extras,
         callback: cb,
+      );
+    });
+  }
+
+  Future<QChatRoom> updateChatRoom$({
+    int roomId,
+    String name,
+    String avatarUrl,
+    Map<String, dynamic> extras,
+    @required void Function(QChatRoom, QError) callback,
+  }) async {
+    return futurify2((cb) {
+      updateChatRoom(
+        callback: cb,
+        roomId: roomId,
+        name: name,
+        avatarUrl: avatarUrl,
+        extras: extras,
       );
     });
   }

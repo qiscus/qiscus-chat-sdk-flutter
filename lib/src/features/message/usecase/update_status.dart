@@ -1,8 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/core/usecases.dart';
-import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/message/repository.dart';
+part of qiscus_chat_sdk.usecase.message;
 
 class UpdateStatusParams {
   const UpdateStatusParams(this.roomId, this.messageId, this.status);

@@ -1,12 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-import 'package:mqtt_client/mqtt_client.dart';
-
-import '../../core/core.dart';
-import '../custom_event/entity.dart';
-import '../message/message.dart';
-import '../room/room.dart';
-import '../user/user.dart';
+part of qiscus_chat_sdk.usecase.realtime;
 
 abstract class IRealtimeService {
   MqttClientConnectionStatus get connectionState;

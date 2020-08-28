@@ -1,12 +1,4 @@
-import 'dart:convert';
-
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/api_request.dart';
-import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/user/entity/participant.dart';
-
-import 'entity.dart';
+part of qiscus_chat_sdk.usecase.room;
 
 class ChatTargetRequest extends IApiRequest<ChatRoom> {
   ChatTargetRequest({
@@ -184,7 +176,7 @@ class GetOrCreateChannelRequest extends IApiRequest<ChatRoom> {
         'unique_id': uniqueId,
         'name': name,
         'avatar_url': avatarUrl,
-        'options': jsonEncode(extras),
+        'options': extras != null ? jsonEncode(extras) : null,
       };
 
   @override
@@ -213,7 +205,7 @@ class CreateGroupRequest extends IApiRequest<ChatRoom> {
         'name': name,
         'participants': userIds,
         'avatar_url': avatarUrl,
-        'options': jsonEncode(extras),
+        'options': extras,
       };
 
   @override

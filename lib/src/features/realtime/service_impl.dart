@@ -1,16 +1,4 @@
-import 'package:async/async.dart';
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-import 'package:mqtt_client/mqtt_client.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/features/custom_event/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/room/room.dart';
-import 'package:qiscus_chat_sdk/src/features/user/user.dart';
-
-import 'mqtt_service_impl.dart';
-import 'service.dart';
-import 'sync_service_impl.dart';
+part of qiscus_chat_sdk.usecase.realtime;
 
 class RealtimeServiceImpl implements IRealtimeService {
   const RealtimeServiceImpl(this._mqttService, this._syncService);

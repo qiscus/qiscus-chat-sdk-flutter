@@ -1,11 +1,4 @@
-import 'package:dartz/dartz.dart';
-
-import '../../../core/core.dart';
-import '../../../core/usecases.dart';
-import '../../message/message.dart';
-import '../../realtime/realtime.dart';
-import '../../realtime/topic_builder.dart';
-import '../entity.dart';
+part of qiscus_chat_sdk.usecase.custom_event;
 
 class CustomEventUseCase extends UseCase<IRealtimeService, void, CustomEvent>
     with SubscriptionMixin<IRealtimeService, RoomIdParams, CustomEvent> {

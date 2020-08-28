@@ -1,8 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:qiscus_chat_sdk/src/core/api_request.dart';
-import 'package:qiscus_chat_sdk/src/features/message/message.dart';
-
-import 'realtime_model.dart';
+part of qiscus_chat_sdk.usecase.realtime;
 
 class SynchronizeRequest extends IApiRequest<Tuple2<int, List<Message>>> {
   final int lastMessageId;

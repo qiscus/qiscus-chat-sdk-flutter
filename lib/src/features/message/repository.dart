@@ -1,7 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
+part of qiscus_chat_sdk.usecase.message;
 
 abstract class MessageRepository {
   Task<Either<QError, Message>> sendMessage(

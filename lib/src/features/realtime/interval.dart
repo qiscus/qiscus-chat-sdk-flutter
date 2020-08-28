@@ -1,6 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:qiscus_chat_sdk/src/core/storage.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/service.dart';
+part of qiscus_chat_sdk.usecase.realtime;
 
 class Interval {
   Interval(

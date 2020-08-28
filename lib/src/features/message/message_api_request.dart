@@ -1,8 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-import '../../core/api_request.dart';
-
-import 'entity.dart';
+part of qiscus_chat_sdk.usecase.message;
 
 class SendMessageRequest extends IApiRequest<Message> {
   final int roomId;

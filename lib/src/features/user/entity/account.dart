@@ -1,14 +1,9 @@
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/extension.dart';
+part of qiscus_chat_sdk.usecase.user;
 
-import 'user.dart';
-
-@immutable
 class QAccount {
-  final String id, name, avatarUrl;
-  final int lastMessageId, lastEventId;
-  final Map<String, dynamic> extras;
+  String id, name, avatarUrl;
+  int lastMessageId, lastEventId;
+  Map<String, dynamic> extras;
 
   QAccount({
     @required this.id,
@@ -29,7 +24,8 @@ class QAccount {
       ' extras=$extras'
       ')';
 
-  QUser asUser() => QUser(
+  QUser asUser() =>
+      QUser(
         id: id,
         name: name,
         avatarUrl: avatarUrl,

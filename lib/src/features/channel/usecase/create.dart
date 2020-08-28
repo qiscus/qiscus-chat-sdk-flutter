@@ -1,9 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-
-import '../../../core/core.dart';
-import '../../room/repository.dart';
-import '../../room/room.dart';
+part of qiscus_chat_sdk.usecase.channel;
 
 @sealed
 class GetOrCreateChannelParams {

@@ -1,10 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/features/message/message.dart';
-import 'package:qiscus_chat_sdk/src/features/user/user.dart';
-
-import 'entity.dart';
+part of qiscus_chat_sdk.usecase.room;
 
 abstract class IRoomRepository {
   Task<Either<QError, ChatRoom>> getRoomWithUserId({

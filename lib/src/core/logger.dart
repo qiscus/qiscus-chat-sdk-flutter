@@ -1,4 +1,4 @@
-import 'core.dart';
+part of qiscus_chat_sdk.core;
 
 enum QLogLevel {
   verbose,

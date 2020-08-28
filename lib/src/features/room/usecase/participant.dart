@@ -1,9 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/features/message/message.dart';
-import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
-import 'package:qiscus_chat_sdk/src/features/room/room.dart';
-import 'package:qiscus_chat_sdk/src/features/user/entity/participant.dart';
+part of qiscus_chat_sdk.usecase.room;
 
 class ParticipantParams {
   const ParticipantParams(this.roomId, this.participantIds);

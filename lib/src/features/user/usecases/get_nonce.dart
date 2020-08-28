@@ -1,7 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/core/usecases.dart';
-import 'package:qiscus_chat_sdk/src/features/user/repository.dart';
+part of qiscus_chat_sdk.usecase.user;
 
 class GetNonceUseCase extends UseCase<IUserRepository, String, NoParams> {
   GetNonceUseCase(IUserRepository repository) : super(repository);

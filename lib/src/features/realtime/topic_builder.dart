@@ -1,3 +1,5 @@
+part of qiscus_chat_sdk.usecase.realtime;
+
 abstract class TopicBuilder {
   static String typing(String roomId, String userId) =>
       'r/$roomId/$roomId/$userId/t';

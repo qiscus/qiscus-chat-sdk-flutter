@@ -6,22 +6,20 @@ import 'dart:math';
 
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:get_it/get_it.dart';
 import 'package:meta/meta.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 
-import 'core/core.dart';
-import 'core/errors.dart';
-import 'core/injector.dart';
-import 'core/utils.dart';
+import 'core.dart';
+import 'features/app_config/app_config.dart';
 import 'features/channel/channel.dart';
-import 'features/core/core.dart';
-import 'features/custom_event/entity.dart';
-import 'features/custom_event/usecase/realtime.dart';
+import 'features/custom_event/custom_event.dart';
 import 'features/message/message.dart';
 import 'features/realtime/realtime.dart';
-import 'features/realtime/topic_builder.dart';
 import 'features/room/room.dart';
 import 'features/user/user.dart';
-import 'typedefs.dart';
+
+part 'injector.dart';
 
 class QiscusSDK {
   static final instance = QiscusSDK();
@@ -462,7 +460,7 @@ class QiscusSDK {
         .toCallback_((_, e) => callback(e));
   }
 
-  Subscription onChatRoomCleared(void Function(int) handler) {
+  SubscriptionFn onChatRoomCleared(void Function(int) handler) {
     var ret = _authenticated
         .andThen(__<OnRoomMessagesCleared>().subscribe(noParams))
         .bind((s) => Task.delay(() => s //
@@ -472,7 +470,7 @@ class QiscusSDK {
     return () => ret.then<void>((s) => s.cancel());
   }
 
-  Subscription onConnected(void Function() handler) {
+  SubscriptionFn onConnected(void Function() handler) {
     var ret = _authenticated
         .andThen(__<OnConnected>().subscribe(noParams))
         .bind((stream) => Task.delay(() => stream.listen((_) => handler())))
@@ -480,7 +478,7 @@ class QiscusSDK {
     return () => ret.then<void>((s) => s.cancel());
   }
 
-  Subscription onDisconnected(void Function() handler) {
+  SubscriptionFn onDisconnected(void Function() handler) {
     var ret = _authenticated
         .andThen(__<OnDisconnected>().subscribe(noParams))
         .bind((s) => Task.delay(() => s.listen((_) => handler())))
@@ -488,28 +486,28 @@ class QiscusSDK {
     return () => ret.then<void>((s) => s.cancel());
   }
 
-  Subscription onMessageDeleted(Function1<QMessage, void> callback) {
+  SubscriptionFn onMessageDeleted(Function1<QMessage, void> callback) {
     var subs = _authenticated
         .andThen(__<OnMessageDeleted>().listen((m) => callback(m.toModel())))
         .run();
     return () => subs.then<void>((s) => s.cancel());
   }
 
-  Subscription onMessageDelivered(void Function(QMessage) callback) {
+  SubscriptionFn onMessageDelivered(void Function(QMessage) callback) {
     final subs = _authenticated
         .andThen(__<OnMessageDelivered>().listen((m) => callback(m.toModel())))
         .run();
     return () => subs.then<void>((s) => s.cancel());
   }
 
-  Subscription onMessageRead(void Function(QMessage) callback) {
+  SubscriptionFn onMessageRead(void Function(QMessage) callback) {
     final subs = _authenticated
         .andThen(__<OnMessageRead>().listen((m) => callback(m.toModel())))
         .run();
     return () => subs.then<void>((s) => s.cancel());
   }
 
-  Subscription onMessageReceived(void Function(QMessage) callback) {
+  SubscriptionFn onMessageReceived(void Function(QMessage) callback) {
     var token = __<Storage>().token;
     var listenable = __<OnMessageReceived>()
         .subscribe(TokenParams(token))
@@ -520,7 +518,7 @@ class QiscusSDK {
     return () => subs.then<void>((s) => s.cancel());
   }
 
-  Subscription onReconnecting(void Function() handler) {
+  SubscriptionFn onReconnecting(void Function() handler) {
     var ret = _authenticated
         .andThen(__<OnReconnecting>().subscribe(noParams))
         .bind((s) => Task.delay(() => s.listen((_) => handler())))
@@ -528,7 +526,7 @@ class QiscusSDK {
     return () => ret.then<void>((s) => s.cancel());
   }
 
-  Subscription onUserOnlinePresence(
+  SubscriptionFn onUserOnlinePresence(
     void Function(String, bool, DateTime) handler,
   ) {
     final subs = _authenticated //
@@ -539,7 +537,7 @@ class QiscusSDK {
     return () => subs.then<void>((s) => s.cancel());
   }
 
-  Subscription onUserTyping(void Function(String, int, bool) handler) {
+  SubscriptionFn onUserTyping(void Function(String, int, bool) handler) {
     var subs = _authenticated
         .andThen(__<TypingUseCase>().listen((data) {
           handler(data.userId, data.roomId, data.isTyping);

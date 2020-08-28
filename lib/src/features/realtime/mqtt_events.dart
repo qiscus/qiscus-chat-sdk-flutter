@@ -1,13 +1,4 @@
-import 'dart:convert';
-
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-import '../custom_event/entity.dart';
-
-import '../../core/core.dart';
-import '../message/message.dart';
-import '../user/user.dart';
-import 'topic_builder.dart';
+part of qiscus_chat_sdk.usecase.realtime;
 
 class MqttTypingEvent extends MqttEventHandler<bool, UserTyping> {
   const MqttTypingEvent({
@@ -31,8 +22,8 @@ class MqttTypingEvent extends MqttEventHandler<bool, UserTyping> {
 
   @override
   receive(message) async* {
-    var payload = message.payload.toString();
-    var topic = message.topic.split('/');
+    var payload = message.value2.toString();
+    var topic = message.value1.split('/');
     var roomId = optionOf(topic[1]).map((it) => int.tryParse(it));
     var userId = optionOf(topic[3]);
     yield UserTyping(
@@ -57,7 +48,7 @@ class MqttCustomEvent
 
   @override
   receive(message) async* {
-    var payload = message.payload.toString();
+    var payload = message.value2.toString();
     var data = jsonDecode(payload) as Map<String, dynamic>;
     yield CustomEvent(
       roomId: roomId,
@@ -86,8 +77,8 @@ class MqttPresenceEvent extends MqttEventHandler<UserPresence, UserPresence> {
 
   @override
   receive(msg) async* {
-    var payload = msg.payload.toString().split(':');
-    var userId_ = msg.topic.split('/')[1];
+    var payload = msg.value2.toString().split(':');
+    var userId_ = msg.value1.split('/')[1];
     var onlineStatus = optionOf(payload[0]) //
         .map((str) => str == '1' ? true : false);
     var timestamp = optionOf(payload[1])

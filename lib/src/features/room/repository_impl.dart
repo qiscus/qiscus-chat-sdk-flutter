@@ -1,13 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
-import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/api_request.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/core/utils.dart';
-import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
-
-import 'entity.dart';
-import 'room_api_request.dart' as req;
+part of qiscus_chat_sdk.usecase.room;
 
 class RoomRepositoryImpl implements IRoomRepository {
   final Dio dio;
@@ -22,7 +13,7 @@ class RoomRepositoryImpl implements IRoomRepository {
     Map<String, dynamic> extras,
   }) {
     return task(() async {
-      var request = req.ChatTargetRequest(
+      var request = ChatTargetRequest(
         userId: userId,
         extras: extras,
       );
@@ -33,7 +24,7 @@ class RoomRepositoryImpl implements IRoomRepository {
   @override
   getRoomWithId(int roomId) {
     return task(() async {
-      var request = req.GetRoomByIdRequest(roomId: roomId);
+      var request = GetRoomByIdRequest(roomId: roomId);
       return dio.sendApiRequest(request).then(request.format);
     });
   }
@@ -44,7 +35,7 @@ class RoomRepositoryImpl implements IRoomRepository {
     List<String> participantIds,
   ) {
     return task(() async {
-      var request = req.AddParticipantRequest(
+      var request = AddParticipantRequest(
         roomId: roomId,
         userIds: participantIds,
       );
@@ -58,7 +49,7 @@ class RoomRepositoryImpl implements IRoomRepository {
     List<String> participantIds,
   ) {
     return task(() async {
-      var request = req.RemoveParticipantRequest(
+      var request = RemoveParticipantRequest(
         roomId: roomId,
         userIds: participantIds,
       );
@@ -69,7 +60,7 @@ class RoomRepositoryImpl implements IRoomRepository {
   @override
   getParticipants(String uniqueId) {
     return task(() async {
-      var request = req.GetParticipantRequest(roomUniqueId: uniqueId);
+      var request = GetParticipantRequest(roomUniqueId: uniqueId);
       return dio.sendApiRequest(request).then(request.format);
     });
   }
@@ -83,14 +74,17 @@ class RoomRepositoryImpl implements IRoomRepository {
     int page,
   }) {
     return task(() async {
-      var request = req.GetAllRoomRequest(
+      var request = GetAllRoomRequest(
         withParticipants: withParticipants,
         withEmptyRoom: withEmptyRoom,
         withRemovedRoom: withRemovedRoom,
         limit: limit,
         page: page,
       );
-      return dio.sendApiRequest(request).then(request.format);
+
+      return dio
+          .sendApiRequest(request) //
+          .then(request.format);
     });
   }
 
@@ -102,7 +96,7 @@ class RoomRepositoryImpl implements IRoomRepository {
     Map<String, dynamic> options,
   }) {
     return task(() async {
-      var request = req.GetOrCreateChannelRequest(
+      var request = GetOrCreateChannelRequest(
         uniqueId: uniqueId,
         name: name,
         avatarUrl: avatarUrl,
@@ -120,7 +114,7 @@ class RoomRepositoryImpl implements IRoomRepository {
     Map<String, dynamic> extras,
   }) {
     return task(() async {
-      var request = req.CreateGroupRequest(
+      var request = CreateGroupRequest(
         name: name,
         userIds: userIds,
         avatarUrl: avatarUrl,
@@ -135,7 +129,7 @@ class RoomRepositoryImpl implements IRoomRepository {
     @required List<String> uniqueIds,
   }) {
     return task(() async {
-      var request = req.ClearMessagesRequest(roomUniqueIds: uniqueIds);
+      var request = ClearMessagesRequest(roomUniqueIds: uniqueIds);
       return dio.sendApiRequest(request).then(request.format);
     });
   }
@@ -149,7 +143,7 @@ class RoomRepositoryImpl implements IRoomRepository {
     int page,
   }) {
     return task(() async {
-      var r = req.GetRoomInfoRequest(
+      var r = GetRoomInfoRequest(
         roomIds: roomIds,
         uniqueIds: uniqueIds,
         withParticipants: withParticipants,
@@ -163,7 +157,7 @@ class RoomRepositoryImpl implements IRoomRepository {
   @override
   getTotalUnreadCount() {
     return task(() async {
-      var r = req.GetTotalUnreadCountRequest();
+      var r = GetTotalUnreadCountRequest();
       return dio.sendApiRequest(r).then(r.format);
     });
   }
@@ -176,7 +170,7 @@ class RoomRepositoryImpl implements IRoomRepository {
     Map<String, dynamic> extras,
   }) {
     return task(() async {
-      var r = req.UpdateRoomRequest(
+      var r = UpdateRoomRequest(
         roomId: roomId.toString(),
         name: name,
         avatarUrl: avatarUrl,

@@ -1,10 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/core/usecases.dart';
-import 'package:qiscus_chat_sdk/src/features/room/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
-import 'package:qiscus_chat_sdk/src/features/room/room.dart';
+part of qiscus_chat_sdk.usecase.room;
 
 @immutable
 class GetRoomParams {

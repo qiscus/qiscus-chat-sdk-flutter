@@ -1,7 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-import '../../core/extension.dart';
-import '../user/entity/user.dart';
+part of qiscus_chat_sdk.usecase.message;
 
 enum QMessageType {
   text,

@@ -1,11 +1,4 @@
-import 'dart:convert';
-
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/extension.dart';
-import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/user/entity/participant.dart';
-import 'package:qiscus_chat_sdk/src/features/user/entity/user.dart';
+part of qiscus_chat_sdk.usecase.room;
 
 class ChatRoom {
   Option<QRoomType> type;
@@ -88,8 +81,8 @@ class ChatRoom {
       avatarUrl: optionOf(json['avatar_url'] as String),
       totalParticipants: optionOf(json['room_total_participants'] as int),
       extras: optionOf(json['options'] as String)
-          .map((it) => jsonDecode(it) as Map<String, dynamic>)
-          .map(imap),
+          .bind((it) => decodeJson(it))
+          .map((it) => imap<String, dynamic>(it)),
       participants: participants,
       type: _type,
       sender: none<User>(),

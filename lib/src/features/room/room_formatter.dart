@@ -1,7 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:qiscus_chat_sdk/src/features/message/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/user/entity/participant.dart';
-import 'entity.dart';
+part of qiscus_chat_sdk.usecase.room;
 
 class RoomFormatter {
   Tuple2<ChatRoom, Iterable<Message>> fromId(Map<String, dynamic> json) {

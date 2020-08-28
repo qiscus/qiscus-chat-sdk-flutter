@@ -1,8 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/extension.dart';
-
-import '../user.dart';
+part of qiscus_chat_sdk.usecase.user;
 
 class QParticipant {
   final String id, name, avatarUrl;

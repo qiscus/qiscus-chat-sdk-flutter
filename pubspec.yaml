@@ -20,9 +20,9 @@ dependencies:
   get_it: ^4.0.2
 
 dev_dependencies:
+  grinder: ^0.8.5
   build_runner: ^1.8.0
   mockito: ^4.1.1
   pedantic: ^1.8.0
   test: ^1.6.0
   test_coverage: ^0.4.3
- 

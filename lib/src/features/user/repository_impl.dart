@@ -1,14 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
-import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/api_request.dart';
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/core/utils.dart';
-import 'package:qiscus_chat_sdk/src/features/user/entity/account.dart';
-import 'package:qiscus_chat_sdk/src/features/user/entity/user.dart';
-import 'package:qiscus_chat_sdk/src/features/user/repository.dart';
-
-import 'user_api_request.dart' as r;
+part of qiscus_chat_sdk.usecase.user;
 
 class UserRepositoryImpl implements IUserRepository {
   final Dio dio;
@@ -24,7 +14,7 @@ class UserRepositoryImpl implements IUserRepository {
     Map<String, dynamic> extras,
   }) {
     return task(() async {
-      var request = r.AuthenticateRequest(
+      var request = AuthenticateRequest(
         userId: userId,
         userKey: userKey,
         name: name,
@@ -41,7 +31,7 @@ class UserRepositoryImpl implements IUserRepository {
     String identityToken,
   }) {
     return task(() async {
-      var request = r.AuthenticateWithTokenRequest(
+      var request = AuthenticateWithTokenRequest(
         identityToken: identityToken,
       );
       return dio.sendApiRequest(request).then(request.format);
@@ -51,7 +41,7 @@ class UserRepositoryImpl implements IUserRepository {
   @override
   Task<Either<QError, User>> blockUser({@required String userId}) {
     return task(() async {
-      var request = r.BlockUserRequest(userId: userId);
+      var request = BlockUserRequest(userId: userId);
       return dio.sendApiRequest(request).then(request.format);
     });
   }
@@ -59,7 +49,7 @@ class UserRepositoryImpl implements IUserRepository {
   @override
   Task<Either<QError, List<User>>> getBlockedUser({int page, int limit}) {
     return task(() async {
-      var request = r.GetBlockedUsersRequest(page: page, limit: limit);
+      var request = GetBlockedUsersRequest(page: page, limit: limit);
       return dio.sendApiRequest(request).then(request.format);
     });
   }
@@ -67,7 +57,7 @@ class UserRepositoryImpl implements IUserRepository {
   @override
   Task<Either<QError, String>> getNonce() {
     return task(() async {
-      var request = r.GetNonceRequest();
+      var request = GetNonceRequest();
       return dio.sendApiRequest(request).then(request.format);
     });
   }
@@ -75,7 +65,7 @@ class UserRepositoryImpl implements IUserRepository {
   @override
   Task<Either<QError, Account>> getUserData() {
     return task(() async {
-      var request = r.GetUserDataRequest();
+      var request = GetUserDataRequest();
       return dio.sendApiRequest(request).then(request.format);
     });
   }
@@ -87,7 +77,7 @@ class UserRepositoryImpl implements IUserRepository {
     int limit,
   }) {
     return task(() async {
-      var request = r.GetUserListRequest(
+      var request = GetUserListRequest(
         query: query,
         page: page,
         limit: limit,
@@ -102,7 +92,7 @@ class UserRepositoryImpl implements IUserRepository {
     bool isDevelopment,
   }) {
     return task(() async {
-      var request = r.SetDeviceTokenRequest(
+      var request = SetDeviceTokenRequest(
         token: token,
         isDevelopment: isDevelopment,
       );
@@ -113,7 +103,7 @@ class UserRepositoryImpl implements IUserRepository {
   @override
   Task<Either<QError, User>> unblockUser({String userId}) {
     return task(() async {
-      var request = r.UnblockUserRequest(userId: userId);
+      var request = UnblockUserRequest(userId: userId);
       return dio.sendApiRequest(request).then(request.format);
     });
   }
@@ -124,7 +114,7 @@ class UserRepositoryImpl implements IUserRepository {
     bool isDevelopment,
   }) {
     return task(() async {
-      var request = r.UnsetDeviceTokenRequest(
+      var request = UnsetDeviceTokenRequest(
         token: token,
         isDevelopment: isDevelopment,
       );
@@ -139,7 +129,7 @@ class UserRepositoryImpl implements IUserRepository {
     Map<String, dynamic> extras,
   }) {
     return task(() async {
-      var request = r.UpdateUserDataRequest(
+      var request = UpdateUserDataRequest(
         name: name,
         avatarUrl: avatarUrl,
         extras: extras,

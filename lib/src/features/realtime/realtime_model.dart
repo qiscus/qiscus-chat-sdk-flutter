@@ -1,7 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/features/message/message.dart';
+part of qiscus_chat_sdk.usecase.realtime;
 
 @sealed
 abstract class RealtimeEvent {

@@ -1,9 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:meta/meta.dart';
-import 'package:qiscus_chat_sdk/src/core/api_request.dart';
-
-import 'entity/account.dart';
-import 'entity/user.dart';
+part of qiscus_chat_sdk.usecase.user;
 
 class AuthenticateRequest extends IApiRequest<Tuple2<String, Account>> {
   AuthenticateRequest({
