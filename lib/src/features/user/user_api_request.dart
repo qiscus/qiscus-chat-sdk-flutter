@@ -226,7 +226,7 @@ class UpdateUserDataRequest extends IApiRequest<Account> {
   get url => 'my_profile';
   get method => IRequestMethod.patch;
   get body => <String, dynamic>{
-        'username': name,
+        'name': name,
         'avatar_url': avatarUrl,
         'extras': extras,
       };

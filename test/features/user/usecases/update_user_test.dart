@@ -12,7 +12,7 @@ void main() {
 
   UpdateUserUseCase useCase;
 
-  setUpAll(() {
+  setUp(() {
     repo = MockUserRepo();
     storage = Storage();
     useCase = UpdateUserUseCase(repo, storage);

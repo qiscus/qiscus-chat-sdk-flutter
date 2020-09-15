@@ -483,7 +483,7 @@ void main() {
 
     test('only updating name should not update other field', () {
       request = r.UpdateUserDataRequest(name: 'some-name');
-      expect(request.body['username'], 'some-name');
+      expect(request.body['name'], 'some-name');
       expect(request.body['avatar_url'], null);
       expect(request.body['extras'], null);
     });
