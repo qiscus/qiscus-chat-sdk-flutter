@@ -16,3 +16,4 @@ doc/api/
 /coverage/test
 /test/.test_coverage.dart
 /test/**/*.vm.json
+/example/
