@@ -20,8 +20,8 @@ class CustomEventUseCase extends UseCase<IRealtimeService, void, CustomEvent>
   }
 
   @override
-  Stream<CustomEvent> mapStream(RoomIdParams p) {
-    return repository.subscribeCustomEvent(roomId: p.roomId);
+  Stream<CustomEvent> mapStream(RoomIdParams p) async* {
+    yield* repository.subscribeCustomEvent(roomId: p.roomId);
   }
 
   @override

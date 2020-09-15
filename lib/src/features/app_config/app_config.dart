@@ -1,7 +1,5 @@
 library qiscus_chat_sdk.usecase.app_config;
 
-import 'dart:convert';
-
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';

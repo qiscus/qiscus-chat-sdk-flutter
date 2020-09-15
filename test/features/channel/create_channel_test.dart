@@ -1,10 +1,9 @@
 import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/features/channel/channel.dart';
-import 'package:qiscus_chat_sdk/src/features/room/entity.dart';
-import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
+import 'package:qiscus_chat_sdk/src/features/room/room.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:qiscus_chat_sdk/src/core/extension.dart';
+import 'package:qiscus_chat_sdk/src/core.dart';
 
 class MockRepo extends Mock implements IRoomRepository {}
 
@@ -48,7 +47,7 @@ void main() {
 
     resp.fold((l) => fail(l.message), (r) {
       expect(r.name, some('name'));
-      expect(r.uniqueId, '123');
+      expect(r.uniqueId, some('123'));
     });
 
     verify(repo.getOrCreateChannel(

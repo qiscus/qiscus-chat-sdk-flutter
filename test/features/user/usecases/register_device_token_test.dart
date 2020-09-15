@@ -1,7 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:mockito/mockito.dart';
-import 'package:qiscus_chat_sdk/src/features/user/repository.dart';
-import 'package:qiscus_chat_sdk/src/features/user/usecases/register_device_token.dart';
+import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 import 'package:test/test.dart';
 
 class MockUserRepo extends Mock implements IUserRepository {}

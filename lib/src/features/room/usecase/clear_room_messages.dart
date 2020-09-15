@@ -18,7 +18,7 @@ class ClearRoomMessagesUseCase
 }
 
 class OnRoomMessagesCleared
-    with SubscriptionMixin<IRealtimeService, NoParams, Option<int>> {
+    with SubscriptionMixin<IRealtimeService, TokenParams, Option<int>> {
   OnRoomMessagesCleared._(this._service);
   factory OnRoomMessagesCleared(IRealtimeService s) =>
       _instance ??= OnRoomMessagesCleared._(s);
@@ -34,5 +34,5 @@ class OnRoomMessagesCleared
       .asyncMap((it) => it.id);
 
   @override
-  Option<String> topic(_) => none();
+  Option<String> topic(_) => some(TopicBuilder.notification(_.token));
 }

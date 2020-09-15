@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import 'package:qiscus_chat_sdk/src/core/extension.dart';
+import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 import 'package:test/test.dart';
 
@@ -54,7 +54,7 @@ void main() {
       'extras': <String, dynamic>{'key': 'value'},
     });
 
-    expect(user.id, 'user-id');
+    expect(user.id, some('user-id'));
     expect(user.name, some('some-name'));
     expect(user.avatarUrl, some('some-avatar-url'));
     expect(

@@ -1,8 +1,7 @@
+import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
-import 'package:qiscus_chat_sdk/src/features/user/repository.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 import 'package:test/test.dart';
-import 'package:dartz/dartz.dart';
 
 import '../../utils.dart';
 import 'backend_response.dart';
@@ -72,7 +71,7 @@ void main() {
 
       var resp = await repo.blockUser(userId: 'id').run();
       resp.fold((l) => fail(l.message), (r) {
-        expect(r.id, user['email']);
+        expect(r.id, some(user['email'] as String));
         expect(r.name, some(user['username'] as String));
       });
     });
@@ -85,7 +84,7 @@ void main() {
 
       var resp = await repo.unblockUser(userId: 'id').run();
       resp.fold((l) => fail(l.message), (r) {
-        expect(r.id, user['email']);
+        expect(r.id, some(user['email'] as String));
         expect(r.name, some(user['username'] as String));
       });
     });
@@ -101,7 +100,7 @@ void main() {
       var resp = await repo.getBlockedUser(page: 1, limit: 1).run();
 
       resp.fold((l) => fail(l.message), (r) {
-        expect(r.first.id, user['email']);
+        expect(r.first.id, some(user['email'] as String));
         expect(r.first.name, some(user['username'] as String));
       });
     });
@@ -142,7 +141,7 @@ void main() {
       var resp = await repo.getUsers(query: '', page: 1, limit: 2).run();
       resp.fold((l) => fail(l.message), (r) {
         expect(r.length, 1);
-        expect(r.first.id, user['email']);
+        expect(r.first.id, some(user['email'] as String));
         expect(r.first.name, some(user['username'] as String));
       });
     });

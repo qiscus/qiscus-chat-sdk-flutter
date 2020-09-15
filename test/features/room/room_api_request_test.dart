@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:qiscus_chat_sdk/src/core/api_request.dart';
-import 'package:qiscus_chat_sdk/src/features/room/room_api_request.dart';
+import 'package:qiscus_chat_sdk/src/core.dart';
+import 'package:qiscus_chat_sdk/src/features/room/room.dart';
 import 'package:test/test.dart';
 
 import 'backend_response.dart';
@@ -22,7 +22,7 @@ void main() {
       var data = request.format(response);
       expect(data.id, some(room['id'] as int));
       expect(data.name, some(room['room_name'] as String));
-      expect(data.uniqueId, room['unique_id']);
+      expect(data.uniqueId, some(room['unique_id'] as String));
     });
   });
 
@@ -45,10 +45,10 @@ void main() {
     test('format', () {
       var data = request.format(response);
       expect(data.value1.id, some(room['id'] as int));
-      expect(data.value1.uniqueId, room['unique_id']);
+      expect(data.value1.uniqueId, some(room['unique_id'] as String));
 
       expect(data.value2.length, 1);
-      expect(data.value2.first.id, messages.first['id']);
+      expect(data.value2.first.id, some(messages.first['id'] as int));
       expect(data.value2.first.uniqueId,
           some(messages.first['unique_temp_id'] as String));
     });
@@ -140,7 +140,7 @@ void main() {
     });
     test('format', () {
       var data = request.format(response);
-      expect(data.first.uniqueId, rooms.first['unique_id']);
+      expect(data.first.uniqueId, some(rooms.first['unique_id'] as String));
       expect(data.first.id, some(rooms.first['id'] as int));
       expect(data.first.name, some(rooms.first['room_name'] as String));
     });
@@ -164,7 +164,7 @@ void main() {
       var data = request.format(response);
       var room = response['results']['room'] as Map<String, dynamic>;
 
-      expect(data.uniqueId, room['unique_id']);
+      expect(data.uniqueId, some(room['unique_id'] as String));
       expect(data.name, some(room['room_name'] as String));
       expect(data.id, some(room['id'] as int));
     });
@@ -188,7 +188,7 @@ void main() {
       var data = request.format(createGroupResponse);
       var room = createGroupResponse['results']['room'] as Map<String, dynamic>;
 
-      expect(data.uniqueId, room['unique_id']);
+      expect(data.uniqueId, some(room['unique_id'] as String));
       expect(data.id, some(room['id'] as int));
       expect(data.name, some(room['room_name'] as String));
       expect(data.avatarUrl, some(room['avatar_url'] as String));

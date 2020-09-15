@@ -57,7 +57,6 @@ extension XQiscusSDK on QiscusSDK {
     String name,
     String avatarUrl,
     Map<String, dynamic> extras,
-    @required void Function(QChatRoom, QError) callback,
   }) async {
     return futurify2((cb) {
       updateChatRoom(

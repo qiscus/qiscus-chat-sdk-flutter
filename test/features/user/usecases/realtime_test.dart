@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/topic_builder.dart';
-import 'package:qiscus_chat_sdk/src/features/user/usecases/realtime.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 import 'package:test/test.dart';
 
@@ -71,7 +69,7 @@ void main() {
         var stream = await useCase.subscribe(param).run();
         await expectLater(
           stream,
-          emitsInOrder(<Typing>[
+          emitsAnyOf(<Typing>[
             Typing(userId: 'user-id-1', roomId: 1, isTyping: true),
             Typing(userId: 'user-id-2', roomId: 1, isTyping: true),
             Typing(userId: 'user-id-3', roomId: 1, isTyping: true),

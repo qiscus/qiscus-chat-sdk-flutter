@@ -1,5 +1,4 @@
-import 'package:qiscus_chat_sdk/src/core/errors.dart';
-import 'package:qiscus_chat_sdk/src/core/utils.dart';
+import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:test/test.dart';
 
 class Dummy {

@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:qiscus_chat_sdk/src/core/api_request.dart';
-import 'package:qiscus_chat_sdk/src/features/user/user_api_request.dart' as r;
+import 'package:qiscus_chat_sdk/src/core.dart';
+import 'package:qiscus_chat_sdk/src/features/user/user.dart' as r;
 import 'package:test/test.dart';
 
 void main() {
@@ -194,7 +194,7 @@ void main() {
       var data = request.format(responseBackend);
       var user = responseBackend['results']['user'] as Map<String, dynamic>;
 
-      expect(data.id, user['email']);
+      expect(data.id, some(user['email'] as String));
       expect(data.name, some(user['username'] as String));
       expect(data.avatarUrl, some(user['avatar_url'] as String));
     });
@@ -235,7 +235,7 @@ void main() {
       var data = request.format(responseBackend);
       var user = responseBackend['results']['user'] as Map<String, dynamic>;
 
-      expect(data.id, user['email']);
+      expect(data.id, some(user['email'] as String));
       expect(data.name, some(user['username'] as String));
       expect(data.avatarUrl, some(user['avatar_url'] as String));
     });
@@ -284,7 +284,7 @@ void main() {
           .cast<Map<String, dynamic>>()
           .first;
 
-      expect(data.first.id, user['email']);
+      expect(data.first.id, some(user['email'] as String));
       expect(data.first.name, some(user['username'] as String));
       expect(data.first.avatarUrl, some(user['avatar_url'] as String));
     });
@@ -383,7 +383,7 @@ void main() {
           .cast<Map<String, dynamic>>()
           .first;
 
-      expect(data.first.id, user['email']);
+      expect(data.first.id, some(user['email'] as String));
       expect(data.first.name, some(user['username'] as String));
       expect(data.first.avatarUrl, some(user['avatar_url'] as String));
     });

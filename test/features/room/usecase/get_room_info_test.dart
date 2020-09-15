@@ -1,8 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
 import 'package:qiscus_chat_sdk/src/features/room/room.dart';
 import 'package:test/test.dart';
-import 'package:qiscus_chat_sdk/src/core/extension.dart';
+import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:mockito/mockito.dart';
 
 class MockRepo extends Mock implements IRoomRepository {}
@@ -50,7 +49,7 @@ void main() {
     resp.fold((l) => fail(l.message), (r) {
       var room = r.single;
       expect(room.id, some(112));
-      expect(room.uniqueId, 'unique-id');
+      expect(room.uniqueId, some('unique-id'));
     });
 
     verify(repo.getRoomInfo(roomIds: roomIds)).called(1);

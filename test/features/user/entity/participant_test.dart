@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
+import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 import 'package:test/test.dart';
-import 'package:qiscus_chat_sdk/src/features/user/entity/participant.dart';
 
 void main() {
   QParticipant qParticipant;

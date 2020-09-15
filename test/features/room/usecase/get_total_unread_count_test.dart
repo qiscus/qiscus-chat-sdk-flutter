@@ -1,5 +1,4 @@
-import 'package:qiscus_chat_sdk/src/core/core.dart';
-import 'package:qiscus_chat_sdk/src/features/room/repository.dart';
+import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/room/room.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';

@@ -462,7 +462,8 @@ class QiscusSDK {
 
   SubscriptionFn onChatRoomCleared(void Function(int) handler) {
     var ret = _authenticated
-        .andThen(__<OnRoomMessagesCleared>().subscribe(noParams))
+        .andThen(__<OnRoomMessagesCleared>()
+            .subscribe(TokenParams(__<Storage>()?.token)))
         .bind((s) => Task.delay(() => s //
             .where((it) => it.isSome())
             .listen((it) => handler(it.toNullable()))))
