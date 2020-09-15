@@ -177,8 +177,8 @@ class Message {
             return QMessageType.text;
         }
       }),
-      extras: optionOf(json['extras'] as Map<String, dynamic>).map(imap),
-      payload: optionOf(json['payload'] as Map<String, dynamic>).map(imap),
+      extras: optionOf(json['extras'] as Object).bind(decodeJson).map(imap),
+      payload: optionOf(json['payload'] as Object).bind(decodeJson).map(imap),
       timestamp: optionOf(json['unix_nano_timestamp'] as int).map(
         (it) => DateTime.fromMillisecondsSinceEpoch(
           (it / 1e6).round(),

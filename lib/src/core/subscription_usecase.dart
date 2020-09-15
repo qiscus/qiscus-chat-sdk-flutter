@@ -4,7 +4,7 @@ part of qiscus_chat_sdk.core;
 /// usecase, please ensure [params] implement
 /// both == equality method and hashCode
 mixin SubscriptionMixin<Service extends IRealtimeService, Params, Response> {
-  final _controller = StreamController<Response>();
+  final _controller = StreamController<Response>.broadcast();
   final _subscriptions = HashMap<Params, StreamSubscription<Response>>();
 
   Service get repository;
@@ -13,7 +13,7 @@ mixin SubscriptionMixin<Service extends IRealtimeService, Params, Response> {
 
   Option<String> topic(Params p);
 
-  Stream<Response> get _stream => _controller.stream.asBroadcastStream();
+  Stream<Response> get _stream => _controller.stream;
 
   Task<void> unsubscribe(Params params) {
     var t1 = topic(params).map((_) => repository.unsubscribe(_));

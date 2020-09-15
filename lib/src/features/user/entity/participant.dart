@@ -73,9 +73,7 @@ class Participant {
       ).map((it) => int.tryParse(it)),
       lastReadMessageId: optionOf(json['last_read_comment_id'] as String)
           .map((it) => int.tryParse(it)),
-      extras: optionOf(
-        json['extras'] as Map<String, dynamic>,
-      ).map((it) => imap<String, dynamic>(it)),
+      extras: optionOf(json['extras'] as Object).bind(decodeJson).map(imap),
     );
   }
 

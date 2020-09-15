@@ -74,7 +74,7 @@ class Account {
       avatarUrl: optionOf(json['avatar_url'] as String),
       lastMessageId: optionOf(json['last_comment_id'] as int),
       lastEventId: optionOf(json['last_sync_event_id'] as int),
-      extras: optionOf(json['extras'] as Map<String, dynamic>).map(imap),
+      extras: optionOf(json['extras'] as Object).bind<Map<String, dynamic>>(decodeJson).map(imap),
     );
   }
 

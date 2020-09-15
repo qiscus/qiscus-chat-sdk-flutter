@@ -49,7 +49,7 @@ class User {
       id: optionOf(json['email'] as String),
       name: optionOf(json['username'] as String),
       avatarUrl: optionOf(json['avatar_url'] as String),
-      extras: optionOf(json['extras'] as Map<String, dynamic>).map(imap),
+      extras: optionOf(json['extras'] as Object).bind(decodeJson).map(imap),
     );
   }
 

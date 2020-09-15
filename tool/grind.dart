@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:grinder/grinder.dart';
-import 'package:coverage/coverage.dart' as c;
 import 'package:lcov/lcov.dart' as lc;
 
 void main(List<String> args) => grind(args);

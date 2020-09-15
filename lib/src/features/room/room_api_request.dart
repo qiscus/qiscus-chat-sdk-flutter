@@ -30,6 +30,7 @@ class GetRoomByIdRequest extends IApiRequest<Tuple2<ChatRoom, List<Message>>> {
   get url => 'get_room_by_id';
   get method => IRequestMethod.get;
   get params => <String, dynamic>{'id': roomId};
+
   @override
   format(json) {
     var results = json['results'] as Map<String, dynamic>;
