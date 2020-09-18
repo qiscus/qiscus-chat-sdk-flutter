@@ -1,15 +1,13 @@
 part of qiscus_chat_sdk.usecase.room;
 
-class UserIdParams extends Equatable {
+@immutable
+class UserIdParams {
   final String userId;
   final Map<String, dynamic> extras;
   const UserIdParams({
     @required this.userId,
     this.extras,
   });
-
-  get props => [userId];
-  get stringify => true;
 }
 
 class GetRoomByUserIdUseCase

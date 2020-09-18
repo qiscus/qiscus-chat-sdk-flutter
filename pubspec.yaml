@@ -9,6 +9,8 @@ environment:
   sdk: '>=2.7.0 <3.0.0'
 
 dependencies:
+  flutter:
+    sdk: flutter
   sealed_unions: ^3.0.2+2
   async: ^2.4.1
   meta: ^1.1.8
@@ -20,6 +22,8 @@ dependencies:
   get_it: ^4.0.2
 
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
   grinder: ^0.8.5
   build_runner: ^1.8.0
   mockito: ^4.1.1
