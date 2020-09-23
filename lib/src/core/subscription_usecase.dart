@@ -28,21 +28,21 @@ mixin SubscriptionMixin<Service extends IRealtimeService, Params, Response> {
   }
 
   Task<Stream<Response>> subscribe(Params params) {
-    var listen = () {
-      var stream = mapStream(params);
-      var subscription = stream.listen((it) => _controller.sink.add(it));
-      return subscription;
-    };
-    var putIfAbsent = () => _subscriptions.putIfAbsent(params, listen);
+    var listen = () => mapStream(params).listen(_controller.sink.add);
+
+    var putIfAbsent =
+        Task(() async => _subscriptions.putIfAbsent(params, listen))
+            .andThen(Task(() async => _stream));
+
     var orIfEmpty = () => topic(params)
         .map((topic) => repository.subscribe(topic))
-        .map((_) => _.andThen(Task.delay(putIfAbsent)));
+        .map((_) => putIfAbsent)
+        .getOrElse(() => putIfAbsent);
+
     return _subscriptions
         .getValue(params)
-        .map((it) => Task.delay(() => it))
-        .orElse(orIfEmpty)
-        .map((_) => _.map((_) => _stream))
-        .getOrElse(() => Task.delay(() => Stream.empty()));
+        .map((_) => Task(() async => _stream))
+        .getOrElse(orIfEmpty);
   }
 
   Task<StreamSubscription<Response>> listen(

@@ -48,6 +48,19 @@ extension MqttClientX on MqttClient {
   }
 }
 
+extension OptionX<T> on Option<T> {
+  Option<T> tap(void Function(T) func) {
+    return map((it) {
+      try {
+        func(it);
+      } catch (_) {
+        // do nothing
+      }
+      return it;
+    });
+  }
+}
+
 extension CEither<L, R> on Either<L, R> {
   Either<L, R> tap(Function1<R, void> callback) {
     map((r) {

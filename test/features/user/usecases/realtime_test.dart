@@ -128,33 +128,27 @@ void main() {
         when(service.subscribeUserPresence(
           userId: anyNamed('userId'),
         )).thenAnswer((_) {
-          return Stream.fromIterable([
-            UserPresence(
+          return Stream.periodic(
+            const Duration(milliseconds: 100),
+            (_) => UserPresence(
               userId: 'user-id-1',
               lastSeen: date,
               isOnline: true,
             ),
-            UserPresence(
-              userId: 'user-id-2',
-              lastSeen: date,
-              isOnline: true,
-            )
-          ]);
+          );
         });
 
         var stream = await useCase.subscribe(params).run();
-        expect(
-          stream,
-          emitsInOrder(<Presence>[
-            Presence(userId: 'user-id-1', lastSeen: date, isOnline: true),
-            Presence(userId: 'user-id-2', lastSeen: date, isOnline: true),
-          ]),
-        );
+        stream.take(1).listen(expectAsync1((presence) {
+              expect(presence.userId, 'user-id-1');
+              expect(presence.lastSeen, date);
+              expect(presence.isOnline, true);
+            }, max: 1, count: 1));
 
         verify(service.subscribe(topic)).called(1);
         verify(service.subscribeUserPresence(userId: params.userId)).called(1);
         verifyNoMoreInteractions(service);
-      });
+      }, timeout: Timeout(const Duration(seconds: 1)));
     });
   });
 }

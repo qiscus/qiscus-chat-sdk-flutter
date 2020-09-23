@@ -24,73 +24,84 @@ class MockRepo extends Mock implements IRealtimeService {}
 
 class MockClass extends Mock with SubscriptionMixin<MockRepo, Params, int> {}
 
+void prepareTest(MockRepo mockRepo, MockClass mockClass, {String topic}) {
+  when(mockClass.repository).thenReturn(mockRepo);
+  when(mockClass.topic(any)).thenAnswer((_) => some(topic));
+//    when(mock.mapStream(any)).thenAnswer((_) => Stream.empty());
+  when(mockClass.mapStream(any)).thenAnswer(
+    (_) => Stream.periodic(Duration(milliseconds: 100), (id) => id),
+  );
+  when(mockRepo.subscribe(any))
+      .thenAnswer((_) => Task(() async => right(null)));
+  when(mockRepo.unsubscribe(any))
+      .thenAnswer((_) => Task(() async => right(null)));
+}
+
 void main() {
-  MockClass mock;
-  MockRepo repo;
+  MockClass mockClass;
+  MockRepo mockRepo;
   var params = const Params(1);
-  const topic = 'topic';
+  const topic = 'my-custom-topic';
 
   setUp(() {
-    mock = MockClass();
-    repo = MockRepo();
-
-    when(mock.repository).thenReturn(repo);
-    when(mock.topic(any)).thenAnswer((_) => some(topic));
-//    when(mock.mapStream(any)).thenAnswer((_) => Stream.empty());
-    when(mock.mapStream(any)).thenAnswer(
-      (_) => Stream.periodic(Duration(milliseconds: 100), (id) => id),
-    );
-    when(repo.subscribe(any)).thenAnswer((_) => Task(() async => right(null)));
-    when(repo.unsubscribe(any))
-        .thenAnswer((_) => Task(() async => right(null)));
+    mockClass = MockClass();
+    mockRepo = MockRepo();
   });
 
   test('should call repository once', () async {
-    await mock.subscribe(params).run();
+    prepareTest(mockRepo, mockClass, topic: topic);
 
-    verify(mock.repository).called(1);
-    verify(mock.topic(params)).called(1);
-    verify(mock.mapStream(params)).called(1);
-    verify(repo.subscribe(topic)).called(1);
-    verifyNoMoreInteractions(mock);
-    verifyNoMoreInteractions(repo);
+    await mockClass.subscribe(params).run();
+
+    verify(mockClass.repository).called(1);
+    verify(mockClass.topic(params)).called(1);
+    verify(mockClass.mapStream(params)).called(1);
+    verify(mockRepo.subscribe(topic)).called(1);
+    verifyNoMoreInteractions(mockClass);
+    verifyNoMoreInteractions(mockRepo);
   });
 
   test('subscribing twice should only call repository once', () async {
-    await mock.subscribe(params).run();
-    await mock.subscribe(params).run();
+    prepareTest(mockRepo, mockClass, topic: topic);
 
-    verify(mock.repository).called(1);
-    verify(mock.topic(params)).called(1);
-    verify(mock.mapStream(params)).called(1);
-    verify(repo.subscribe(topic)).called(1);
+    await mockClass.subscribe(params).run();
+    await mockClass.subscribe(params).run();
 
-    verifyNoMoreInteractions(mock);
-    verifyNoMoreInteractions(repo);
+    verify(mockClass.repository).called(1);
+    verify(mockClass.topic(params)).called(1);
+    verify(mockClass.mapStream(params)).called(1);
+    verify(mockRepo.subscribe(topic)).called(1);
+
+    verifyNoMoreInteractions(mockClass);
+    verifyNoMoreInteractions(mockRepo);
   });
 
   test('unsubscribe should call repo unsubscribe', () async {
-    await mock.subscribe(params).run();
-    await mock.unsubscribe(params).run();
+    prepareTest(mockRepo, mockClass, topic: topic);
 
-    verify(repo.subscribe(topic)).called(1);
-    verify(repo.unsubscribe(topic)).called(1);
-    verify(mock.repository).called(2);
-    verify(mock.topic(params)).called(2);
-    verify(mock.mapStream(params)).called(1);
+    await mockClass.subscribe(params).run();
+    await mockClass.unsubscribe(params).run();
 
-    verifyNoMoreInteractions(mock);
-    verifyNoMoreInteractions(repo);
+    verify(mockRepo.subscribe(topic)).called(1);
+    verify(mockRepo.unsubscribe(topic)).called(1);
+    verify(mockClass.repository).called(2);
+    verify(mockClass.topic(params)).called(2);
+    verify(mockClass.mapStream(params)).called(1);
+
+    verifyNoMoreInteractions(mockClass);
+    verifyNoMoreInteractions(mockRepo);
   });
 
   test('unsubscribe should not emit new event', () async {
-    var stream = await mock.subscribe(params).run();
+    prepareTest(mockRepo, mockClass, topic: topic);
+
+    var stream = await mockClass.subscribe(params).run();
     var queue = StreamQueue(stream);
 
     var timer = Timer(const Duration(milliseconds: 100 * 6), () async {
       // print('cancel the subscription');
       await queue.cancel(immediate: true);
-      await mock.unsubscribe(params).run();
+      await mockClass.unsubscribe(params).run();
     });
 
     // var counter = 0;
