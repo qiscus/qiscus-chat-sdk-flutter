@@ -392,43 +392,47 @@ extension XQiscusSDK on QiscusSDK {
   }
 
   Stream<int> onChatRoomCleared$() async* {
-    yield* streamify(onChatRoomCleared);
+    yield* streamify((cb, _) {
+      return onChatRoomCleared((roomId) {
+        cb(roomId);
+      });
+    });
   }
 
   Stream<void> onConnected$() async* {
-    yield* streamify((cb) {
+    yield* streamify((cb, _) {
       return onConnected(() => cb(null));
     });
   }
 
   Stream<void> onDisconnected$() async* {
-    yield* streamify((cb) {
+    yield* streamify((cb, _) {
       return onDisconnected(() => cb(null));
     });
   }
 
   Stream<QMessage> onMessageReceived$() async* {
-    yield* streamify(onMessageReceived);
+    yield* streamify((cb, _) => onMessageReceived(cb));
   }
 
   Stream<QMessage> onMessageDeleted$() async* {
-    yield* streamify(onMessageDeleted);
+    yield* streamify((cb, _) => onMessageDeleted(cb));
   }
 
   Stream<QMessage> onMessageDelivered$() async* {
-    yield* streamify(onMessageDelivered);
+    yield* streamify((cb, _) => onMessageDelivered(cb));
   }
 
   Stream<QMessage> onMessageRead$() async* {
-    yield* streamify(onMessageRead);
+    yield* streamify((cb, _) => onMessageRead(cb));
   }
 
   Stream<void> onReconnecting$() async* {
-    yield* streamify((cb) => onReconnecting(() => cb(null)));
+    yield* streamify((cb, _) => onReconnecting(() => cb(null)));
   }
 
   Stream<QUserPresence> onUserOnlinePresence$() async* {
-    yield* streamify((cb) {
+    yield* streamify((cb, _) {
       return onUserOnlinePresence((userId, isOnline, lastOnline) {
         cb(
           QUserPresence()
@@ -441,7 +445,7 @@ extension XQiscusSDK on QiscusSDK {
   }
 
   Stream<QUserTyping> onUserTyping$() async* {
-    yield* streamify((cb) {
+    yield* streamify((cb, _) {
       return onUserTyping((userId, roomId, isTyping) {
         cb(
           QUserTyping()

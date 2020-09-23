@@ -40,6 +40,7 @@ extension DioXRequest on Dio {
       ..removeWhere((key, dynamic value) => value == null);
     var params = (request.params ?? <String, dynamic>{})
       ..removeWhere((key, dynamic value) => value == null);
+
     return this
         .request<Output>(
           request.url,

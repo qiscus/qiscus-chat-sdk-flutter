@@ -221,4 +221,16 @@ class Message {
       ' timestamp=$timestamp,'
       ' previousMessageId=$previousMessageId'
       ')';
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Message &&
+          runtimeType == other.runtimeType &&
+          uniqueId == other.uniqueId;
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => uniqueId.hashCode;
 }

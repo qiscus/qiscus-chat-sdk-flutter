@@ -142,7 +142,7 @@ class GetAllRoomRequest extends IApiRequest<List<ChatRoom>> {
 
   get url => 'user_rooms';
   get method => IRequestMethod.get;
-  get body => <String, dynamic>{
+  get params => <String, dynamic>{
         'show_participants': withParticipants,
         'show_empty': withEmptyRoom,
         'show_removed': withRemovedRoom,

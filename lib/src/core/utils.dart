@@ -21,11 +21,13 @@ Future<T> futurify2<T>(void Function(void Function(T, QError)) fn) async {
 }
 
 Stream<Out> streamify<Out>(
-  SubscriptionFn Function(void Function(Out)) fn,
+  SubscriptionFn Function(void Function(Out), void Function() done) fn,
 ) async* {
   var controller = StreamController<Out>();
   var subscription = fn((data) {
     controller.sink.add(data);
+  }, () {
+    controller.close();
   });
 
   controller.onCancel = subscription;

@@ -59,22 +59,10 @@ class Injector {
     singleton(() => OnReconnecting(resolve()));
 
     // room
-    singleton<IRoomRepository>(() => RoomRepositoryImpl(
+    factory_<IRoomRepository>(() => RoomRepositoryImpl(
           dio: resolve(),
+          storage: resolve(),
         ));
-    factory_(() => ClearRoomMessagesUseCase(resolve()));
-    factory_(() => CreateGroupChatUseCase(resolve()));
-    factory_(() => GetRoomUseCase(resolve()));
-    factory_(() => GetRoomByUserIdUseCase(resolve()));
-    factory_(() => GetRoomInfoUseCase(resolve()));
-    factory_(() => GetRoomWithMessagesUseCase(resolve()));
-    factory_(() => GetAllRoomsUseCase(resolve()));
-    factory_(() => GetTotalUnreadCountUseCase(resolve()));
-    factory_(() => AddParticipantUseCase(resolve()));
-    factory_(() => GetParticipantsUseCase(resolve()));
-    factory_(() => RemoveParticipantUseCase(resolve()));
-    factory_(() => UpdateRoomUseCase(resolve()));
-    factory_(() => OnRoomMessagesCleared(resolve()));
 
     // user
     singleton<IUserRepository>(() => UserRepositoryImpl(resolve()));

@@ -83,7 +83,7 @@ class UpdateMessageStatusRequest extends IApiRequest<Unit> {
         'last_comment_received_id': lastDeliveredId?.toString(),
       };
 
-  format(json) {
+  Unit format(json) {
     return unit;
   }
 }
@@ -112,20 +112,24 @@ class DeleteMessagesRequest extends IApiRequest<List<Message>> {
   final List<String> uniqueIds;
   final bool isHardDelete;
   final bool isForEveryone;
+
   DeleteMessagesRequest({
     @required this.uniqueIds,
     this.isForEveryone = true,
     this.isHardDelete = true,
   });
 
-  get url => 'delete_messages';
-  get method => IRequestMethod.delete;
-  get params => <String, dynamic>{
+  String get url => 'delete_messages';
+  IRequestMethod get method => IRequestMethod.delete;
+  @override
+  Map<String, dynamic> get params => <String, dynamic>{
         'unique_ids': uniqueIds,
         'is_hard_delete': isHardDelete,
         'is_delete_for_everyone': isForEveryone,
       };
-  format(json) {
+
+  @override
+  List<Message> format(json) {
     var data = (json['results']['comments'] as List) //
         .cast<Map<String, dynamic>>();
 

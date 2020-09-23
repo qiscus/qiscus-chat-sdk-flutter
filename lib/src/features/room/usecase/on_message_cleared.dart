@@ -1,22 +1,5 @@
 part of qiscus_chat_sdk.usecase.room;
 
-@sealed
-@immutable
-class ClearRoomMessagesParams {
-  const ClearRoomMessagesParams(this.uniqueIds);
-  final List<String> uniqueIds;
-}
-
-class ClearRoomMessagesUseCase
-    extends UseCase<IRoomRepository, Unit, ClearRoomMessagesParams> {
-  ClearRoomMessagesUseCase(IRoomRepository repository) : super(repository);
-
-  @override
-  Task<Either<QError, Unit>> call(params) {
-    return repository.clearMessages(uniqueIds: params.uniqueIds);
-  }
-}
-
 class OnRoomMessagesCleared
     with SubscriptionMixin<IRealtimeService, TokenParams, Option<int>> {
   OnRoomMessagesCleared._(this._service);
@@ -29,7 +12,7 @@ class OnRoomMessagesCleared
   IRealtimeService get repository => _service;
 
   @override
-  mapStream(_) => repository //
+  Stream<Option<int>> mapStream(_) => repository //
       .subscribeRoomCleared()
       .asyncMap((it) => it.id);
 

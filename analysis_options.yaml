@@ -4,6 +4,7 @@ analyzer:
   errors:
     public_member_api_docs: ignore
     always_require_non_null_named_parameters: true
+    annotate_overrides: ignore
   strong-mode:
     implicit-casts: false
     implicit-dynamic: false

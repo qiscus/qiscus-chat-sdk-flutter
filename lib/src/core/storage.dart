@@ -12,7 +12,6 @@ class Storage {
 
   static const defaultBaseUrl = 'https://api.qiscus.com';
   static const defaultUploadUrl = '$defaultBaseUrl/api/v2/sdk/upload';
-  static const defaultBrokerPort = 1886;
   static const defaultBrokerUrl = 'wss://mqtt.qiscus.com:1886/mqtt';
   static const defaultBrokerLbUrl = 'https://realtime-lb.qiscus.com';
   static const defaultAccInterval = 1000;
@@ -26,8 +25,6 @@ class Storage {
   String get baseUrl => _makeGetter(_storage, 'base-url', defaultBaseUrl);
 
   set baseUrl(String baseUrl) => _makeSetter(_storage, 'base-url', baseUrl);
-
-  int get brokerPort => defaultBrokerPort;
 
   String get brokerUrl => _makeGetter(_storage, 'broker-url', defaultBrokerUrl);
 
@@ -150,5 +147,16 @@ class Storage {
     appId = null;
     currentUser = null;
     token = null;
+  }
+}
+
+extension StorageX on Storage {
+  Task<bool> get authenticated$ {
+    var s = Stream<bool>.periodic(const Duration(milliseconds: 130))
+        .map((_) => currentUser != null)
+        .distinct()
+        .firstWhere((it) => it == true);
+
+    return Task(() async => s);
   }
 }

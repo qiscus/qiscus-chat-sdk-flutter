@@ -20,8 +20,11 @@ abstract class IRoomRepository {
   );
 
   Task<Either<QError, List<Participant>>> getParticipants(
-    String uniqueId,
-  );
+    String uniqueId, {
+    int page,
+    int limit,
+    String sorting,
+  });
 
   Task<Either<QError, List<ChatRoom>>> getAllRooms({
     bool withParticipants,

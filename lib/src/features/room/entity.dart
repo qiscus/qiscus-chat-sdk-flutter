@@ -7,7 +7,6 @@ class ChatRoom {
   Option<IMap<String, dynamic>> extras;
   Option<ISet<Participant>> participants;
   Option<Message> lastMessage;
-  Option<User> sender;
 
   ChatRoom._({
     this.uniqueId,
@@ -20,7 +19,6 @@ class ChatRoom {
     this.extras,
     this.participants,
     this.lastMessage,
-    this.sender,
   });
 
   factory ChatRoom({
@@ -34,7 +32,6 @@ class ChatRoom {
     Option<IMap<String, dynamic>> extras,
     Option<ISet<Participant>> participants,
     Option<Message> lastMessage,
-    Option<User> sender,
   }) {
     return ChatRoom._(
       uniqueId: uniqueId ?? none(),
@@ -47,7 +44,6 @@ class ChatRoom {
       extras: extras ?? none(),
       participants: participants ?? none(),
       lastMessage: lastMessage ?? none(),
-      sender: sender ?? none(),
     );
   }
 
@@ -80,12 +76,9 @@ class ChatRoom {
       unreadCount: optionOf(json['unread_count'] as int),
       avatarUrl: optionOf(json['avatar_url'] as String),
       totalParticipants: optionOf(json['room_total_participants'] as int),
-      extras: optionOf(json['options'] as Object)
-          .bind(decodeJson)
-          .map(imap),
+      extras: optionOf(json['options'] as Object).bind(decodeJson).map(imap),
       participants: participants,
       type: _type,
-      sender: none<User>(),
       lastMessage: lastMessage.toOption(),
     );
   }
@@ -95,14 +88,13 @@ class ChatRoom {
         id: id.toNullable(),
         avatarUrl: avatarUrl.toNullable(),
         extras: extras.map((it) => it.toMap()).toNullable(),
-        lastMessage: this.lastMessage.map((it) => it.toModel()).toNullable(),
+        lastMessage: lastMessage.map((it) => it.toModel()).toNullable(),
         name: name.toNullable(),
-        participants: participants
-            .getOrElse(() => emptySet())
-            .toIterable()
-            .map((p) => p.toModel())
-            .toList(),
-        totalParticipants: participants.length(),
+        participants: participants.getOrElse(() => emptySet()).foldMap(
+              monoid(() => [], (a1, a2) => a1 + a2),
+              (a) => [a.toModel()],
+            ),
+        totalParticipants: participants.getOrElse(() => emptySet()).length(),
         type: type.toNullable(),
         unreadCount: unreadCount.toNullable(),
       );

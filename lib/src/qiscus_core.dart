@@ -12,7 +12,6 @@ import 'package:mqtt_client/mqtt_client.dart';
 
 import 'core.dart';
 import 'features/app_config/app_config.dart';
-import 'features/channel/channel.dart';
 import 'features/custom_event/custom_event.dart';
 import 'features/message/message.dart';
 import 'features/realtime/realtime.dart';
@@ -118,6 +117,8 @@ class QiscusSDK {
     return Task(() => _isLogin).attempt().leftMapToQError('Not logged in');
   }
 
+  IRoomRepository get _room$$ => __<IRoomRepository>();
+
   void addHttpInterceptors(RequestOptions Function(RequestOptions) onRequest) {
     __<Dio>().interceptors.add(InterceptorsWrapper(
           onRequest: onRequest,
@@ -129,9 +130,8 @@ class QiscusSDK {
     @required List<String> userIds,
     @required void Function(List<QParticipant>, QError) callback,
   }) {
-    final params = ParticipantParams(roomId, userIds);
-    final useCase = __<AddParticipantUseCase>();
-    final addParticipant = _authenticated.andThen(useCase(params));
+    final addParticipant =
+        _authenticated.andThen(_room$$.addParticipant(roomId, userIds));
     addParticipant
         .rightMap((r) => r.map((m) => m.toModel()).toList())
         .toCallback_(callback);
@@ -154,11 +154,11 @@ class QiscusSDK {
     @required Function2<QChatRoom, QError, void> callback,
   }) {
     _authenticated
-        .andThen(__<GetRoomByUserIdUseCase>()(UserIdParams(
+        .andThen(_room$$.getRoomWithUserId(
           userId: userId,
           extras: extras,
-        )))
-        .rightMap((u) => u.toModel())
+        ))
+        .rightMap((r) => r.toModel())
         .toCallback_(callback);
   }
 
@@ -166,9 +166,8 @@ class QiscusSDK {
     @required List<String> roomUniqueIds,
     @required void Function(QError) callback,
   }) {
-    final clearRoom = __<ClearRoomMessagesUseCase>();
     _authenticated
-        .andThen(clearRoom(ClearRoomMessagesParams(roomUniqueIds)))
+        .andThen(_room$$.clearMessages(uniqueIds: roomUniqueIds))
         .toCallback1(callback)
         .run();
   }
@@ -190,14 +189,13 @@ class QiscusSDK {
     Map<String, dynamic> extras,
     @required void Function(QChatRoom, QError) callback,
   }) {
-    final useCase = __<GetOrCreateChannelUseCase>();
     _authenticated
-        .andThen(useCase(GetOrCreateChannelParams(
-          uniqueId,
+        .andThen(_room$$.getOrCreateChannel(
+          uniqueId: uniqueId,
           name: name,
           avatarUrl: avatarUrl,
           options: extras,
-        )))
+        ))
         .rightMap((room) => room.toModel())
         .toCallback_(callback);
   }
@@ -209,14 +207,13 @@ class QiscusSDK {
     Map<String, dynamic> extras,
     @required void Function(QChatRoom, QError) callback,
   }) {
-    final useCase = __<CreateGroupChatUseCase>();
     _authenticated
-        .andThen(useCase(CreateGroupChatParams(
+        .andThen(_room$$.createGroup(
           name: name,
           userIds: userIds,
           avatarUrl: avatarUrl,
           extras: extras,
-        )))
+        ))
         .rightMap((r) => r.toModel())
         .toCallback_(callback);
   }
@@ -249,16 +246,14 @@ class QiscusSDK {
     int page,
     @required void Function(List<QChatRoom>, QError) callback,
   }) {
-    final params = GetAllRoomsParams(
-      withParticipants: showParticipant,
-      withRemovedRoom: showRemoved,
-      withEmptyRoom: showEmpty,
-      limit: limit,
-      page: page,
-    );
-    final useCase = __<GetAllRoomsUseCase>();
     _authenticated
-        .andThen(useCase(params))
+        .andThen(_room$$.getAllRooms(
+          withParticipants: showParticipant,
+          withRemovedRoom: showRemoved,
+          withEmptyRoom: showEmpty,
+          limit: limit,
+          page: page,
+        ))
         .rightMap((r) => r.map((c) => c.toModel()).toList())
         .toCallback_(callback);
   }
@@ -280,10 +275,8 @@ class QiscusSDK {
     @required String uniqueId,
     @required void Function(QChatRoom, QError) callback,
   }) {
-    final params = GetOrCreateChannelParams(uniqueId);
-    final useCase = __<GetOrCreateChannelUseCase>();
     _authenticated
-        .andThen(useCase(params))
+        .andThen(_room$$.getOrCreateChannel(uniqueId: uniqueId))
         .rightMap((r) => r.toModel())
         .toCallback_(callback);
   }
@@ -305,16 +298,14 @@ class QiscusSDK {
       return callback(null, QError(errorMessage));
     }
 
-    final params = GetRoomInfoParams(
-      roomIds: roomIds,
-      uniqueIds: uniqueIds,
-      withRemoved: showRemoved,
-      withParticipants: showParticipants,
-      page: page,
-    );
-    final useCase = __<GetRoomInfoUseCase>();
     _authenticated
-        .andThen(useCase(params))
+        .andThen(_room$$.getRoomInfo(
+          roomIds: roomIds,
+          uniqueIds: uniqueIds,
+          withRemoved: showRemoved,
+          withParticipants: showParticipants,
+          page: page,
+        ))
         .rightMap((r) => r.map((it) => it.toModel()).toList())
         .toCallback_(callback);
   }
@@ -323,10 +314,8 @@ class QiscusSDK {
     @required int roomId,
     @required void Function(QChatRoom, List<QMessage>, QError) callback,
   }) {
-    final useCase = __<GetRoomWithMessagesUseCase>();
-
     _authenticated //
-        .andThen(useCase(RoomIdParams(roomId)))
+        .andThen(_room$$.getRoomWithId(roomId))
         .rightMap((data) => data
             .map1((room) => room.toModel())
             .map2((messages) => messages.map((m) => m.toModel()).toList()))
@@ -362,8 +351,11 @@ class QiscusSDK {
     @required void Function(List<QParticipant>, QError) callback,
   }) {
     _authenticated
-        .andThen(
-            __<GetParticipantsUseCase>()(RoomUniqueIdsParams(roomUniqueId)))
+        .andThen(_room$$.getParticipants(
+          roomUniqueId,
+          page: page,
+          limit: limit,
+        ))
         .rightMap((r) => r.map((p) => p.toModel()).toList())
         .toCallback_(callback);
   }
@@ -387,9 +379,7 @@ class QiscusSDK {
   void getTotalUnreadCount({
     @required void Function(int, QError) callback,
   }) {
-    _authenticated
-        .andThen(__<GetTotalUnreadCountUseCase>()(noParams))
-        .toCallback_(callback);
+    _authenticated.andThen(_room$$.getTotalUnreadCount()).toCallback_(callback);
   }
 
   void getUserData({
@@ -615,9 +605,9 @@ class QiscusSDK {
     @required List<String> userIds,
     @required void Function(List<String>, QError) callback,
   }) {
-    var removeParticipants = __<RemoveParticipantUseCase>();
-    var params = ParticipantParams(roomId, userIds);
-    _authenticated.andThen(removeParticipants(params)).toCallback_(callback);
+    _authenticated
+        .andThen(_room$$.removeParticipant(roomId, userIds))
+        .toCallback_(callback);
   }
 
   void sendFileMessage({
@@ -839,12 +829,12 @@ class QiscusSDK {
     @required void Function(QChatRoom, QError) callback,
   }) {
     _authenticated
-        .andThen(__<UpdateRoomUseCase>()(UpdateRoomParams(
+        .andThen(_room$$.updateRoom(
           roomId: roomId,
           name: name,
           avatarUrl: avatarUrl,
           extras: extras,
-        )))
+        ))
         .rightMap((r) => r.toModel())
         .toCallback_(callback);
   }

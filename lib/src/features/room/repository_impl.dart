@@ -2,67 +2,80 @@ part of qiscus_chat_sdk.usecase.room;
 
 class RoomRepositoryImpl implements IRoomRepository {
   final Dio dio;
+  final Storage storage;
 
   const RoomRepositoryImpl({
     @required this.dio,
+    @required this.storage,
   });
 
   @override
-  getRoomWithUserId({
+  Task<Either<QError, ChatRoom>> getRoomWithUserId({
     @required String userId,
     Map<String, dynamic> extras,
   }) {
-    return task(() async {
+    return storage.authenticated$.andThen(task(() async {
       var request = ChatTargetRequest(
         userId: userId,
         extras: extras,
       );
       return dio.sendApiRequest(request).then(request.format);
-    });
+    }));
   }
 
   @override
-  getRoomWithId(int roomId) {
-    return task(() async {
+  Task<Either<QError, Tuple2<ChatRoom, List<Message>>>> getRoomWithId(
+      int roomId) {
+    return storage.authenticated$.andThen(task(() async {
       var request = GetRoomByIdRequest(roomId: roomId);
       return dio.sendApiRequest(request).then(request.format);
-    });
+    }));
   }
 
   @override
-  addParticipant(
+  Task<Either<QError, List<Participant>>> addParticipant(
     int roomId,
     List<String> participantIds,
   ) {
-    return task(() async {
+    return storage.authenticated$.andThen(task(() async {
       var request = AddParticipantRequest(
         roomId: roomId,
         userIds: participantIds,
       );
       return dio.sendApiRequest(request).then(request.format);
-    });
+    }));
   }
 
   @override
-  removeParticipant(
+  Task<Either<QError, List<String>>> removeParticipant(
     int roomId,
     List<String> participantIds,
   ) {
-    return task(() async {
+    return storage.authenticated$.andThen(task(() async {
       var request = RemoveParticipantRequest(
         roomId: roomId,
         userIds: participantIds,
       );
       return dio.sendApiRequest(request).then(request.format);
-    });
+    }));
   }
 
   @override
-  getParticipants(String uniqueId) {
-    return task(() async {
-      var request = GetParticipantRequest(roomUniqueId: uniqueId);
+  Task<Either<QError, List<Participant>>> getParticipants(
+    String uniqueId, {
+    int page,
+    int limit,
+    String sorting,
+  }) {
+    return storage.authenticated$.andThen(task(() async {
+      var request = GetParticipantRequest(
+        roomUniqueId: uniqueId,
+        page: page,
+        limit: limit,
+        sorting: sorting,
+      );
       return dio.sendApiRequest(request).then(request.format);
-    });
+    }));
   }
 
   @override
@@ -73,7 +86,7 @@ class RoomRepositoryImpl implements IRoomRepository {
     int limit,
     int page,
   }) {
-    return task(() async {
+    return storage.authenticated$.andThen(task(() async {
       var request = GetAllRoomRequest(
         withParticipants: withParticipants,
         withEmptyRoom: withEmptyRoom,
@@ -85,17 +98,17 @@ class RoomRepositoryImpl implements IRoomRepository {
       return dio
           .sendApiRequest(request) //
           .then(request.format);
-    });
+    }));
   }
 
   @override
-  getOrCreateChannel({
+  Task<Either<QError, ChatRoom>> getOrCreateChannel({
     String uniqueId,
     String name,
     String avatarUrl,
     Map<String, dynamic> options,
   }) {
-    return task(() async {
+    return storage.authenticated$.andThen(task(() async {
       var request = GetOrCreateChannelRequest(
         uniqueId: uniqueId,
         name: name,
@@ -103,17 +116,17 @@ class RoomRepositoryImpl implements IRoomRepository {
         extras: options,
       );
       return dio.sendApiRequest(request).then(request.format);
-    });
+    }));
   }
 
   @override
-  createGroup({
+  Task<Either<QError, ChatRoom>> createGroup({
     String name,
     List<String> userIds,
     String avatarUrl,
     Map<String, dynamic> extras,
   }) {
-    return task(() async {
+    return storage.authenticated$.andThen(task(() async {
       var request = CreateGroupRequest(
         name: name,
         userIds: userIds,
@@ -121,28 +134,28 @@ class RoomRepositoryImpl implements IRoomRepository {
         extras: extras,
       );
       return dio.sendApiRequest(request).then(request.format);
-    });
+    }));
   }
 
   @override
-  clearMessages({
+  Task<Either<QError, Unit>> clearMessages({
     @required List<String> uniqueIds,
   }) {
-    return task(() async {
+    return storage.authenticated$.andThen(task(() async {
       var request = ClearMessagesRequest(roomUniqueIds: uniqueIds);
       return dio.sendApiRequest(request).then(request.format);
-    });
+    }));
   }
 
   @override
-  getRoomInfo({
+  Task<Either<QError, List<ChatRoom>>> getRoomInfo({
     List<int> roomIds,
     List<String> uniqueIds,
     bool withParticipants,
     bool withRemoved,
     int page,
   }) {
-    return task(() async {
+    return storage.authenticated$.andThen(task(() async {
       var r = GetRoomInfoRequest(
         roomIds: roomIds,
         uniqueIds: uniqueIds,
@@ -151,15 +164,15 @@ class RoomRepositoryImpl implements IRoomRepository {
         page: page,
       );
       return dio.sendApiRequest(r).then(r.format);
-    });
+    }));
   }
 
   @override
-  getTotalUnreadCount() {
-    return task(() async {
+  Task<Either<QError, int>> getTotalUnreadCount() {
+    return storage.authenticated$.andThen(task(() async {
       var r = GetTotalUnreadCountRequest();
       return dio.sendApiRequest(r).then(r.format);
-    });
+    }));
   }
 
   @override
@@ -169,7 +182,7 @@ class RoomRepositoryImpl implements IRoomRepository {
     String avatarUrl,
     Map<String, dynamic> extras,
   }) {
-    return task(() async {
+    return storage.authenticated$.andThen(task(() async {
       var r = UpdateRoomRequest(
         roomId: roomId.toString(),
         name: name,
@@ -178,6 +191,6 @@ class RoomRepositoryImpl implements IRoomRepository {
       );
 
       return dio.sendApiRequest(r).then(r.format);
-    });
+    }));
   }
 }

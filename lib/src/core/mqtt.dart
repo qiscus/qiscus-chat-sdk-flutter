@@ -14,14 +14,15 @@ MqttClient getMqttClient(Storage storage) {
       ;
 }
 
-String getClientId() {
-  return 'dart-sdk-${DateTime.now().millisecondsSinceEpoch}';
+String getClientId([int millis]) {
+  var _millis = millis ?? DateTime.now().millisecondsSinceEpoch;
+  return 'dart-sdk-$_millis';
 }
 
 MqttConnectMessage getConnectionMessage(String clientId, String userId) {
   return MqttConnectMessage()
         ..withClientIdentifier(clientId)
-        ..withWillTopic(userId)
+        ..withWillTopic('u/$userId/s')
         ..withWillMessage('0')
         ..withWillRetain()
       //
