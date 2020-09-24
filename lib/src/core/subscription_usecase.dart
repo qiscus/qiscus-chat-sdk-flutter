@@ -3,7 +3,8 @@ part of qiscus_chat_sdk.core;
 /// A helper mixin for handling subscription based
 /// usecase, please ensure [params] implement
 /// both == equality method and hashCode
-mixin SubscriptionMixin<Service extends IRealtimeService, Params, Response> {
+mixin SubscriptionMixin<Service extends IRealtimeService,
+    Params extends EquatableMixin, Response> {
   final _controller = StreamController<Response>.broadcast();
   final _subscriptions = HashMap<Params, StreamSubscription<Response>>();
 
@@ -16,15 +17,10 @@ mixin SubscriptionMixin<Service extends IRealtimeService, Params, Response> {
   Stream<Response> get _stream => _controller.stream;
 
   Task<void> unsubscribe(Params params) {
-    var t1 = topic(params).map((_) => repository.unsubscribe(_));
-    var t2 = t1.map(
-      (_) => _.andThen(Task(() {
-        var subscription = _subscriptions[params];
-        return subscription?.cancel();
-      })),
-    );
-
-    return t2.getOrElse(() => Task.delay(() {}));
+    return topic(params)
+        .map((_) => repository.unsubscribe(_))
+        .map((_) => _.andThen(Task(() => _subscriptions[params]?.cancel())))
+        .getOrElse(() => Task(() async {}));
   }
 
   Task<Stream<Response>> subscribe(Params params) {

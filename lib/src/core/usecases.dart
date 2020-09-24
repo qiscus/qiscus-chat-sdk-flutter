@@ -1,10 +1,12 @@
 part of qiscus_chat_sdk.core;
 
-class NoParams extends Equatable {
+class NoParams with EquatableMixin {
   const NoParams();
 
   @override
   List<Object> get props => [];
+  @override
+  bool get stringify => true;
 }
 
 const noParams = NoParams();

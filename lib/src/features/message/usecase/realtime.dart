@@ -1,6 +1,6 @@
 part of qiscus_chat_sdk.usecase.message;
 
-class RoomIdParams extends Equatable {
+class RoomIdParams with EquatableMixin {
   const RoomIdParams(this.roomId);
 
   final int roomId;
@@ -67,7 +67,7 @@ class OnMessageRead
   IRealtimeService get repository => _service;
 }
 
-class TokenParams extends Equatable {
+class TokenParams with EquatableMixin {
   const TokenParams(this.token);
 
   final String token;

@@ -20,7 +20,6 @@ class OnConnected with SubscriptionMixin<IRealtimeService, NoParams, void> {
 
 class OnDisconnected with SubscriptionMixin<IRealtimeService, NoParams, void> {
   OnDisconnected._(this._repo);
-
   final IRealtimeService _repo;
 
   factory OnDisconnected(IRealtimeService repo) =>
