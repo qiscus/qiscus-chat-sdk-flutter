@@ -36,7 +36,8 @@ class MqttServiceImpl implements IRealtimeService {
 
   void _onDisconnected(MqttClientConnectionStatus connectionStatus) async {
     // if connected state are not disconnected
-    if (connectionState.state != MqttConnectionState.disconnected) {
+    if ((_mqtt?.connectionStatus?.state ?? false) !=
+        MqttConnectionState.disconnected) {
       log('Mqtt disconnected with unknown state: ${connectionStatus.state}');
       return;
     }
@@ -80,26 +81,27 @@ class MqttServiceImpl implements IRealtimeService {
     }
   }
 
-  Task<Either<QError, void>> _connected() =>
-      Task<bool>(() => _isConnected).attempt().leftMapToQError();
+  Task<Either<QError, void>> _connected() => task<bool>(() => _isConnected);
 
   @override
-  Task<Either<QError, void>> subscribe(String topic) => _connected()
-      .andThen(Task.delay(
-          () => catching(() => _mqtt.subscribe(topic, MqttQos.atLeastOnce))))
-      .leftMapToQError();
+  Task<Either<QError, void>> subscribe(String topic) {
+    return _connected().andThen(task(() async {
+      return catching(() => _mqtt.subscribe(topic, MqttQos.atLeastOnce));
+    }));
+  }
 
   @override
-  Task<Either<QError, void>> unsubscribe(String topic) => _connected()
-      .andThen(Task.delay(() => catching(() => _mqtt.unsubscribe(topic))))
-      .leftMapToQError();
+  Task<Either<QError, void>> unsubscribe(String topic) {
+    return _connected().andThen(task(() async {
+      return catching(() => _mqtt.unsubscribe(topic));
+    }));
+  }
 
   @override
-  bool get isConnected =>
-      _mqtt?.connectionStatus?.state == MqttConnectionState.connected ?? false;
-
-  @override
-  MqttClientConnectionStatus get connectionState => _mqtt?.connectionStatus;
+  bool get isConnected {
+    return _mqtt?.connectionStatus?.state == MqttConnectionState.connected ??
+        false;
+  }
 
   Stream<Notification> get _notification {
     return _mqtt
@@ -279,7 +281,7 @@ class MqttServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<void> onConnected() =>
+  Stream<bool> onConnected() =>
       Stream<void>.periodic(const Duration(milliseconds: 300))
           .asyncMap((_) =>
               _mqtt.connectionStatus.state == MqttConnectionState.connected)
@@ -288,7 +290,7 @@ class MqttServiceImpl implements IRealtimeService {
           .asBroadcastStream();
 
   @override
-  Stream<void> onDisconnected() =>
+  Stream<bool> onDisconnected() =>
       Stream<void>.periodic(const Duration(milliseconds: 300))
           .asyncMap((_) =>
               _mqtt.connectionStatus.state == MqttConnectionState.disconnected)
@@ -297,7 +299,7 @@ class MqttServiceImpl implements IRealtimeService {
           .asBroadcastStream();
 
   @override
-  Stream<void> onReconnecting() =>
+  Stream<bool> onReconnecting() =>
       Stream<void>.periodic(const Duration(milliseconds: 300))
           .asyncMap((_) =>
               _mqtt.connectionStatus.state == MqttConnectionState.disconnecting)

@@ -59,8 +59,8 @@ class AppConfig {
     enableEventReport.do_((it) => s.enableEventReport = it);
     enableRealtime.do_((it) => s.isRealtimeEnabled = it);
     enableRealtimeCheck.do_((it) => s.isRealtimeCheckEnabled = it);
-    syncInterval.do_((it) => s.syncInterval = it);
-    syncOnConnect.do_((it) => s.syncIntervalWhenConnected = it);
+    syncInterval.do_((it) => s.syncInterval = it.milliseconds);
+    syncOnConnect.do_((it) => s.syncIntervalWhenConnected = it.milliseconds);
     extras.do_((it) => s.configExtras = it);
   }
 }

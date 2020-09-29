@@ -1,9 +1,7 @@
-import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 import 'package:test/test.dart';
-import 'package:dio/dio.dart';
-import 'package:mockito/mockito.dart';
 
 void main() {
   Storage storage;
@@ -34,7 +32,8 @@ void main() {
     expect(options.headers['qiscus-sdk-app-id'], 'app-id');
     expect(options.headers['qiscus-sdk-token'], 'token');
     expect(options.headers['qiscus-sdk-user-id'], 'user-id');
-    expect(options.headers['qiscus-sdk-version'], '$sdkPlatformName-$sdkVersion');
+    expect(
+        options.headers['qiscus-sdk-version'], '$sdkPlatformName-$sdkVersion');
   });
   test('has 2 interceptor if debug enabled', () async {
     storage.debugEnabled = true;

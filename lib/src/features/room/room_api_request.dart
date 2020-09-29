@@ -8,9 +8,12 @@ class ChatTargetRequest extends IApiRequest<ChatRoom> {
   final String userId;
   final Map<String, dynamic> extras;
 
-  get url => 'get_or_create_room_with_target';
-  get method => IRequestMethod.post;
-  get body => <String, dynamic>{
+  @override
+  String get url => 'get_or_create_room_with_target';
+  @override
+  IRequestMethod get method => IRequestMethod.post;
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{
         'emails': [userId],
         'options': jsonEncode(extras),
       };
@@ -27,7 +30,8 @@ class GetRoomByIdRequest extends IApiRequest<Tuple2<ChatRoom, List<Message>>> {
   });
   final int roomId;
 
-  get url => 'get_room_by_id';
+  @override
+  String get url => 'get_room_by_id';
   get method => IRequestMethod.get;
   get params => <String, dynamic>{'id': roomId};
 

@@ -8,11 +8,9 @@ import 'package:dio/dio.dart';
 class MockDio extends Mock implements Dio {}
 
 void main() async {
-  Dio dio;
   GetConfigRequest api;
 
   setUp(() {
-    dio = MockDio();
     api = GetConfigRequest();
   });
 
@@ -44,13 +42,18 @@ void main() async {
     var extras = decodeJson(json['results']['extras']);
 
     expect(result.baseUrl, some(json['results']['base_url'] as String));
-    expect(result.brokerLbUrl, some(json['results']['broker_lb_url'] as String));
+    expect(
+        result.brokerLbUrl, some(json['results']['broker_lb_url'] as String));
     expect(result.brokerUrl, some(json['results']['broker_url'] as String));
-    expect(result.enableEventReport, some(json['results']['enable_event_report'] as bool));
-    expect(result.enableRealtime, some(json['results']['enable_realtime'] as bool));
-    expect(result.enableRealtimeCheck, some(json['results']['enable_realtime_check'] as bool));
+    expect(result.enableEventReport,
+        some(json['results']['enable_event_report'] as bool));
+    expect(result.enableRealtime,
+        some(json['results']['enable_realtime'] as bool));
+    expect(result.enableRealtimeCheck,
+        some(json['results']['enable_realtime_check'] as bool));
     expect(result.extras, extras);
     expect(result.syncInterval, some(json['results']['sync_interval'] as int));
-    expect(result.syncOnConnect, some(json['results']['sync_on_connect'] as int));
+    expect(
+        result.syncOnConnect, some(json['results']['sync_on_connect'] as int));
   });
 }

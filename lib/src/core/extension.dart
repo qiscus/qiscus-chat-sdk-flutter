@@ -27,6 +27,9 @@ extension MqttClientX on MqttClient {
   Either<QError, void> publish(String topic, String message) {
     return catching<void>(() {
       var payload = MqttClientPayloadBuilder()..addString(message);
+      print(
+        'Mqtt.publishMessage($topic, MqttQos.atLeastOnce, ${payload.payload}, retain: false',
+      );
       publishMessage(topic, MqttQos.atLeastOnce, payload.payload);
     }).leftMapToQError();
   }
@@ -206,4 +209,9 @@ extension ObjectX on Object {
 extension TupleMqttData on Tuple2<String, String> {
   String get topic => value1;
   String get payload => value2;
+}
+
+extension DurationX on int {
+  Duration get seconds => Duration(seconds: this);
+  Duration get milliseconds => Duration(milliseconds: this);
 }

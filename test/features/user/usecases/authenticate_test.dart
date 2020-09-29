@@ -54,8 +54,8 @@ void main() async {
   test('failure authenticate', () async {
     // region json response
     var json = <String, dynamic>{
-      "error": {"code": 401306, "message": "wrong password"},
-      "status": 401
+      'error': {'code': 401306, 'message': 'wrong password'},
+      'status': 401
     };
     // endregion
 

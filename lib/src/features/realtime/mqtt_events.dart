@@ -15,13 +15,13 @@ class MqttTypingEvent extends MqttEventHandler<bool, UserTyping> {
   final bool isTyping;
 
   @override
-  publish() {
+  String publish() {
     if (isTyping != null && isTyping == true) return '1';
     return '0';
   }
 
   @override
-  receive(message) async* {
+  Stream<UserTyping> receive(message) async* {
     var payload = message.value2.toString();
     var topic = message.value1.split('/');
     var roomId = optionOf(topic[1]).map((it) => int.tryParse(it));
@@ -42,12 +42,12 @@ class MqttCustomEvent
   });
 
   @override
-  publish() {
+  String publish() {
     return jsonEncode(payload);
   }
 
   @override
-  receive(message) async* {
+  Stream<CustomEvent> receive(message) async* {
     var payload = message.value2.toString();
     var data = jsonDecode(payload) as Map<String, dynamic>;
     yield CustomEvent(
@@ -76,7 +76,7 @@ class MqttPresenceEvent extends MqttEventHandler<UserPresence, UserPresence> {
   }
 
   @override
-  receive(msg) async* {
+  Stream<UserPresence> receive(msg) async* {
     var payload = msg.value2.toString().split(':');
     var userId_ = msg.value1.split('/')[1];
     var onlineStatus = optionOf(payload[0]) //
@@ -90,7 +90,8 @@ class MqttPresenceEvent extends MqttEventHandler<UserPresence, UserPresence> {
     );
   }
 
-  get topic => TopicBuilder.presence(userId);
+  @override
+  String get topic => TopicBuilder.presence(userId);
   final String userId;
   final bool isOnline;
   final DateTime lastSeen;
@@ -107,7 +108,7 @@ class MqttMessageReceivedEvent extends MqttEventHandler<void, Message> {
   }
 
   @override
-  receive(message) async* {
+  Stream<Message> receive(message) async* {
     var decode = (String str) => jsonDecode(str) as Map<String, dynamic>;
     var data = decode(message.payload.toString());
     yield Message.fromJson(data);

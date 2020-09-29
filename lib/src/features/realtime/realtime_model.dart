@@ -5,19 +5,26 @@ abstract class RealtimeEvent {
   static List<RealtimeEvent> fromJson(Map<String, dynamic> json) {
     var events = (json['events'] as List).cast<Map<String, dynamic>>();
     var results = events.map<List<RealtimeEvent>>((event) {
-      if (event['action_topic'] == 'read') {
-        return [MessageReadEvent.fromJson(event)];
+      List<RealtimeEvent> result;
+      switch (event['action_topic'] as String) {
+        case 'read':
+          result = [MessageReadEvent.fromJson(event)];
+          break;
+        case 'delivered':
+          result = [MessageDeliveredEvent.fromJson(event)];
+          break;
+        case 'clear_room':
+          result = RoomClearedEvent.fromJson(event);
+          break;
+        case 'delete_message':
+          result = MessageDeletedEvent.fromJson(event);
+          break;
+        default:
+          result = [UnknownEvent.fromJson(event)];
+          break;
       }
-      if (event['action_topic'] == 'delivered') {
-        return [MessageDeliveredEvent.fromJson(event)];
-      }
-      if (event['action_topic'] == 'clear_room') {
-        return RoomClearedEvent.fromJson(event);
-      }
-      if (event['action_topic'] != 'deleted_messages') {
-        return MessageDeletedEvent.fromJson(event);
-      }
-      return [UnknownEvent.fromJson(event)];
+
+      return result ?? [];
     });
 
     return results.expand(id).toList();
@@ -66,7 +73,8 @@ abstract class RealtimeEvent {
 class UnknownEvent extends RealtimeEvent with EquatableMixin {
   UnknownEvent({@required this.actionType});
   final String actionType;
-  get props => [];
+  @override
+  List<Object> get props => [];
 
   @override
   factory UnknownEvent.fromJson(Map<String, dynamic> json) {
@@ -85,7 +93,8 @@ class MessageReadEvent extends RealtimeEvent with EquatableMixin {
   final int messageId, roomId;
   final String messageUniqueId, userId;
 
-  get props => [userId, roomId, messageId, messageUniqueId];
+  @override
+  List<Object> get props => [userId, roomId, messageId, messageUniqueId];
 
   factory MessageReadEvent.fromJson(Map<String, dynamic> json) {
     var data = json['payload']['data'] as Map<String, dynamic>;
@@ -109,7 +118,8 @@ class MessageDeliveredEvent extends RealtimeEvent with EquatableMixin {
   final int messageId, roomId;
   final String messageUniqueId, userId;
 
-  get props => [userId, roomId, messageId, messageUniqueId];
+  @override
+  List<Object> get props => [userId, roomId, messageId, messageUniqueId];
 
   factory MessageDeliveredEvent.fromJson(Map<String, dynamic> json) {
     var data = json['payload']['data'] as Map<String, dynamic>;
@@ -131,7 +141,8 @@ class MessageDeletedEvent extends RealtimeEvent with EquatableMixin {
   final int roomId;
   final String messageUniqueId;
 
-  get props => [roomId, messageUniqueId];
+  @override
+  List<Object> get props => [roomId, messageUniqueId];
 
   static List<MessageDeletedEvent> fromJson(Map<String, dynamic> json) {
     var data = json['payload'] as Map<String, dynamic>;
@@ -158,7 +169,8 @@ class RoomClearedEvent extends RealtimeEvent with EquatableMixin {
 
   final int roomId;
 
-  get props => [roomId];
+  @override
+  List<Object> get props => [roomId];
 
   static List<RoomClearedEvent> fromJson(Map<String, dynamic> json) {
     var data = json['payload'] as Map<String, dynamic>;

@@ -25,8 +25,8 @@ void main() {
       enableRealtime: some(true),
       enableRealtimeCheck: some(true),
       extras: some(<String, dynamic>{'key': 1}),
-      syncInterval: some(1),
-      syncOnConnect: some(12),
+      syncInterval: some(1000),
+      syncOnConnect: some(12000),
     );
     when(repo.getConfig()).thenReturn(Task(() async {
       return right(c);
@@ -53,8 +53,8 @@ void main() {
       expect(s.isRealtimeCheckEnabled, true);
       expect(s.configExtras.keys.length, 1);
       expect(s.configExtras['key'], 1);
-      expect(s.syncInterval, 1);
-      expect(s.syncIntervalWhenConnected, 12);
+      expect(s.syncInterval, 1.seconds);
+      expect(s.syncIntervalWhenConnected, 12.seconds);
     });
   });
 }

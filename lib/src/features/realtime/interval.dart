@@ -10,7 +10,7 @@ class Interval {
   final IRealtimeService _mqttClient;
   bool _stopped = false;
 
-  int get _interval => _mqttClient.isConnected
+  Duration get _interval => _mqttClient.isConnected
       ? _storage.syncIntervalWhenConnected
       : _storage.syncInterval;
 
@@ -22,16 +22,17 @@ class Interval {
     if (!_stopped) _stopped = true;
   }
 
-  Stream<Unit> interval() async* {
-    var accumulator = 0;
-    var interval = Stream.periodic(
-      Duration(milliseconds: _storage.accSyncInterval),
-      (_) => accumulator += _storage.accSyncInterval,
-    );
+  Stream<Unit> interval([Stream<Duration> interval]) async* {
+    var accumulator = 0.milliseconds;
+    var interval$ = interval ??
+        Stream.periodic(
+          _storage.accSyncInterval,
+          (_) => accumulator += _storage.accSyncInterval,
+        );
 
-    await for (var interval_ in interval) {
-      if (!_stopped && interval_ > _interval) {
-        accumulator = 0;
+    await for (var it in interval$) {
+      if (!_stopped && it > _interval) {
+        accumulator = 0.seconds;
         yield unit;
       }
     }

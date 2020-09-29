@@ -653,8 +653,9 @@ class QiscusSDK {
     __<Storage>().customHeaders = headers;
   }
 
-  void setSyncInterval(double interval) {
-    __<Storage>().syncInterval = interval.ceil();
+  /// Set [period] (in milliseconds) in which sync and sync_event run
+  void setSyncInterval(double period) {
+    __<Storage>().syncInterval = period.ceil().milliseconds;
   }
 
   void setup(
@@ -679,8 +680,8 @@ class QiscusSDK {
       ..baseUrl = baseUrl
       ..brokerUrl = brokerUrl
       ..brokerLbUrl = brokerLbUrl
-      ..syncInterval = syncInterval
-      ..syncIntervalWhenConnected = syncIntervalWhenConnected;
+      ..syncInterval = syncInterval.milliseconds
+      ..syncIntervalWhenConnected = syncIntervalWhenConnected.milliseconds;
 
     __<AppConfigUseCase>() //
         .call(noParams)
@@ -713,22 +714,10 @@ class QiscusSDK {
       extras: extras,
     );
     authenticate(params)
-        .bind((either) {
-          return either.fold(
-            (e) {
-              return Task.delay(() {
-                return left<QError, Tuple2<String, Account>>(e);
-              });
-            },
-            (tuple) {
-              return _subscribes(tuple.value1).andThen(Task.delay(
-                () {
-                  return right<QError, Tuple2<String, Account>>(tuple);
-                },
-              ));
-            },
-          );
-        })
+        .bind((either) => either.fold(
+            (e) => Task(() async => left<QError, Tuple2<String, Account>>(e)),
+            (tuple) => _subscribes(tuple.value1).andThen(Task(
+                () async => right<QError, Tuple2<String, Account>>(tuple)))))
         .rightMap((it) => it.value2.toModel())
         .toCallback_(callback);
   }

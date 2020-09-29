@@ -42,24 +42,26 @@ class Storage {
   set uploadUrl(String uploadUrl) =>
       _makeSetter(_storage, 'upload-url', uploadUrl);
 
-  int get syncInterval =>
-      _makeGetter(_storage, 'sync-interval', defaultSyncInterval);
+  Duration get syncInterval =>
+      _makeGetter(_storage, 'sync-interval', defaultSyncInterval.milliseconds);
 
-  set syncInterval(int syncInterval) =>
+  set syncInterval(Duration syncInterval) =>
       _makeSetter(_storage, 'sync-interval', syncInterval);
 
-  int get syncIntervalWhenConnected => _makeGetter(_storage,
-      'sync-interval-when-connected', defaultSyncIntervalWhenConnected);
+  Duration get syncIntervalWhenConnected => _makeGetter(
+      _storage,
+      'sync-interval-when-connected',
+      defaultSyncIntervalWhenConnected.milliseconds);
 
-  set syncIntervalWhenConnected(int interval) =>
+  set syncIntervalWhenConnected(Duration interval) =>
       _makeSetter(_storage, 'sync-interval-when-connected', interval);
 
   // accumulator interval, interval for periodically running sync http
   // request
-  int get accSyncInterval =>
-      _makeGetter(_storage, 'acc-sync-interval', defaultAccInterval);
+  Duration get accSyncInterval => _makeGetter(
+      _storage, 'acc-sync-interval', defaultAccInterval.milliseconds);
 
-  set accSyncInterval(int interval) =>
+  set accSyncInterval(Duration interval) =>
       _makeSetter(_storage, 'acc-sync-interval', interval);
 
   String get version => _makeGetter<String>(_storage, 'version');

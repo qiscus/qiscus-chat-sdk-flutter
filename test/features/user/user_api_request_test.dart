@@ -32,38 +32,38 @@ void main() {
 
     test('format', () {
       var responseBackend = <String, dynamic>{
-        "results": {
-          "user": {
-            "active": true,
-            "app": {
-              "code": "sdksample",
-              "id": 947,
-              "id_str": "947",
-              "name": "sdksample"
+        'results': {
+          'user': {
+            'active': true,
+            'app': {
+              'code': 'sdksample',
+              'id': 947,
+              'id_str': '947',
+              'name': 'sdksample'
             },
-            "avatar": {
-              "avatar": {
-                "url":
-                    "https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/P8AQ0Dkjxb/162.png"
+            'avatar': {
+              'avatar': {
+                'url':
+                    'https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/P8AQ0Dkjxb/162.png'
               }
             },
-            "avatar_url":
-                "https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/P8AQ0Dkjxb/162.png",
-            "email": "guest-101",
-            "extras": {"title": "senior manager"},
-            "id": 32230310,
-            "id_str": "32230310",
-            "last_comment_id": 0,
-            "last_comment_id_str": "0",
-            "last_sync_event_id": 0,
-            "pn_android_configured": true,
-            "pn_ios_configured": false,
-            "rtKey": "somestring",
-            "token": "biY5BEcAMJxVhLsxPYID",
-            "username": "guest-101"
+            'avatar_url':
+                'https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/P8AQ0Dkjxb/162.png',
+            'email': 'guest-101',
+            'extras': {'title': 'senior manager'},
+            'id': 32230310,
+            'id_str': '32230310',
+            'last_comment_id': 0,
+            'last_comment_id_str': '0',
+            'last_sync_event_id': 0,
+            'pn_android_configured': true,
+            'pn_ios_configured': false,
+            'rtKey': 'somestring',
+            'token': 'biY5BEcAMJxVhLsxPYID',
+            'username': 'guest-101'
           }
         },
-        "status": 200
+        'status': 200
       };
       var data = request.format(responseBackend);
       var user = data.value2;
@@ -93,37 +93,37 @@ void main() {
 
     test('format', () {
       var backendResponse = <String, dynamic>{
-        "results": {
-          "user": {
-            "app": {
-              "code": "jarjitapp",
-              "id": 3,
-              "id_str": "3",
-              "name": "jarjitapp"
+        'results': {
+          'user': {
+            'app': {
+              'code': 'jarjitapp',
+              'id': 3,
+              'id_str': '3',
+              'name': 'jarjitapp'
             },
-            "avatar": {
-              "avatar": {
-                "url":
-                    "https://d1edrlpyc25xu0.cloudfront.net/kiwari-prod/image/upload/75r6s_jOHa/1507541871-avatar-mine.png"
+            'avatar': {
+              'avatar': {
+                'url':
+                    'https://d1edrlpyc25xu0.cloudfront.net/kiwari-prod/image/upload/75r6s_jOHa/1507541871-avatar-mine.png'
               }
             },
-            "avatar_url":
-                "https://d1edrlpyc25xu0.cloudfront.net/kiwari-prod/image/upload/75r6s_jOHa/1507541871-avatar-mine.png",
-            "email": "jarjit@mail.com",
-            "extras": {"role": "admin"},
-            "id": 13,
-            "id_str": "13",
-            "last_comment_id": 0,
-            "last_comment_id_str": "0",
-            "last_sync_event_id": 0,
-            "pn_android_configured": true,
-            "pn_ios_configured": false,
-            "rtKey": "somestring",
-            "token": "xTeQ0r3r82nrBmCKZBc0",
-            "username": "Jarjit singh"
+            'avatar_url':
+                'https://d1edrlpyc25xu0.cloudfront.net/kiwari-prod/image/upload/75r6s_jOHa/1507541871-avatar-mine.png',
+            'email': 'jarjit@mail.com',
+            'extras': {'role': 'admin'},
+            'id': 13,
+            'id_str': '13',
+            'last_comment_id': 0,
+            'last_comment_id_str': '0',
+            'last_sync_event_id': 0,
+            'pn_android_configured': true,
+            'pn_ios_configured': false,
+            'rtKey': 'somestring',
+            'token': 'xTeQ0r3r82nrBmCKZBc0',
+            'username': 'Jarjit singh'
           }
         },
-        "status": 200
+        'status': 200
       };
       var data = request.format(backendResponse);
 
@@ -143,11 +143,11 @@ void main() {
   group('GetNonce', () {
     r.GetNonceRequest request;
     var responseBackend = <String, dynamic>{
-      "results": {
-        "expired_at": 1503025239,
-        "nonce": "nabk2qL74OlVtdv5V5EhEYZGla5JoRyBlQPXp9xZ"
+      'results': {
+        'expired_at': 1503025239,
+        'nonce': 'nabk2qL74OlVtdv5V5EhEYZGla5JoRyBlQPXp9xZ'
       },
-      "status": 200
+      'status': 200
     };
 
     setUpAll(() {
@@ -163,24 +163,24 @@ void main() {
   group('BlockUserRequest', () {
     r.BlockUserRequest request;
     var responseBackend = <String, dynamic>{
-      "results": {
-        "user": {
-          "avatar": {
-            "avatar": {
-              "url":
-                  "https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/FhDIH53G9r/image-304e1a31-47e9-46ff-9064-ece1d96bf808.jpg"
+      'results': {
+        'user': {
+          'avatar': {
+            'avatar': {
+              'url':
+                  'https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/FhDIH53G9r/image-304e1a31-47e9-46ff-9064-ece1d96bf808.jpg'
             }
           },
-          "avatar_url":
-              "https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/FhDIH53G9r/image-304e1a31-47e9-46ff-9064-ece1d96bf808.jpg",
-          "email": "guest-102",
-          "extras": <String, dynamic>{},
-          "id": 32593562,
-          "id_str": "32593562",
-          "username": "guest-102"
+          'avatar_url':
+              'https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/FhDIH53G9r/image-304e1a31-47e9-46ff-9064-ece1d96bf808.jpg',
+          'email': 'guest-102',
+          'extras': <String, dynamic>{},
+          'id': 32593562,
+          'id_str': '32593562',
+          'username': 'guest-102'
         }
       },
-      "status": 200
+      'status': 200
     };
 
     setUpAll(() {
@@ -203,24 +203,24 @@ void main() {
   group('UnblockUserRequest', () {
     r.UnblockUserRequest request;
     var responseBackend = <String, dynamic>{
-      "results": {
-        "user": {
-          "avatar": {
-            "avatar": {
-              "url":
-                  "https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/FhDIH53G9r/image-304e1a31-47e9-46ff-9064-ece1d96bf808.jpg"
+      'results': {
+        'user': {
+          'avatar': {
+            'avatar': {
+              'url':
+                  'https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/FhDIH53G9r/image-304e1a31-47e9-46ff-9064-ece1d96bf808.jpg'
             }
           },
-          "avatar_url":
-              "https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/FhDIH53G9r/image-304e1a31-47e9-46ff-9064-ece1d96bf808.jpg",
-          "email": "guest-102",
-          "extras": <String, dynamic>{},
-          "id": 32593562,
-          "id_str": "32593562",
-          "username": "guest-102"
+          'avatar_url':
+              'https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/FhDIH53G9r/image-304e1a31-47e9-46ff-9064-ece1d96bf808.jpg',
+          'email': 'guest-102',
+          'extras': <String, dynamic>{},
+          'id': 32593562,
+          'id_str': '32593562',
+          'username': 'guest-102'
         }
       },
-      "status": 200
+      'status': 200
     };
 
     setUpAll(() {
@@ -244,27 +244,27 @@ void main() {
   group('GetBlockedUsersRequest', () {
     r.GetBlockedUsersRequest request;
     var responseBackend = <String, dynamic>{
-      "results": {
-        "blocked_users": [
+      'results': {
+        'blocked_users': [
           {
-            "avatar": {
-              "avatar": {
-                "url":
-                    "https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/1nOC-hvaQx/Screenshot_8.png"
+            'avatar': {
+              'avatar': {
+                'url':
+                    'https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/1nOC-hvaQx/Screenshot_8.png'
               }
             },
-            "avatar_url":
-                "https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/1nOC-hvaQx/Screenshot_8.png",
-            "email": "guest-1002",
-            "extras": <String, dynamic>{},
-            "id": 44465688,
-            "id_str": "44465688",
-            "username": "guest-1002"
+            'avatar_url':
+                'https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/1nOC-hvaQx/Screenshot_8.png',
+            'email': 'guest-1002',
+            'extras': <String, dynamic>{},
+            'id': 44465688,
+            'id_str': '44465688',
+            'username': 'guest-1002'
           }
         ],
-        "total": 1
+        'total': 1
       },
-      "status": 200
+      'status': 200
     };
 
     setUpAll(() {
@@ -293,38 +293,38 @@ void main() {
   group('GetUserDataRequest', () {
     r.GetUserDataRequest request;
     var responseBackend = <String, dynamic>{
-      "results": {
-        "user": {
-          "active": true,
-          "app": {
-            "code": "sdksample",
-            "id": 947,
-            "id_str": "947",
-            "name": "sdksample"
+      'results': {
+        'user': {
+          'active': true,
+          'app': {
+            'code': 'sdksample',
+            'id': 947,
+            'id_str': '947',
+            'name': 'sdksample'
           },
-          "avatar": {
-            "avatar": {
-              "url":
-                  "https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/GoLdHEInn5/Screenshot+(11).png"
+          'avatar': {
+            'avatar': {
+              'url':
+                  'https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/GoLdHEInn5/Screenshot+(11).png'
             }
           },
-          "avatar_url":
-              "https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/GoLdHEInn5/Screenshot+(11).png",
-          "email": "guest-1001",
-          "extras": {"extras": true},
-          "id": 44465689,
-          "id_str": "44465689",
-          "last_comment_id": 0,
-          "last_comment_id_str": "0",
-          "last_sync_event_id": 0,
-          "pn_android_configured": true,
-          "pn_ios_configured": false,
-          "rtKey": "somestring",
-          "token": "DliiUcM3RdiRtlTyYpHK",
-          "username": "guest-1001"
+          'avatar_url':
+              'https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/GoLdHEInn5/Screenshot+(11).png',
+          'email': 'guest-1001',
+          'extras': {'extras': true},
+          'id': 44465689,
+          'id_str': '44465689',
+          'last_comment_id': 0,
+          'last_comment_id_str': '0',
+          'last_sync_event_id': 0,
+          'pn_android_configured': true,
+          'pn_ios_configured': false,
+          'rtKey': 'somestring',
+          'token': 'DliiUcM3RdiRtlTyYpHK',
+          'username': 'guest-1001'
         }
       },
-      "status": 200
+      'status': 200
     };
 
     setUp(() {
@@ -344,23 +344,23 @@ void main() {
   group('GetUserListRequest', () {
     r.GetUserListRequest request;
     var responseBackend = <String, dynamic>{
-      "results": {
-        "meta": {"total_data": 0, "total_page": 0},
-        "users": [
+      'results': {
+        'meta': {'total_data': 0, 'total_page': 0},
+        'users': [
           {
-            "active": true,
-            "avatar_url": "https://image.url/image.jpeg",
-            "created_at": "2018-11-12T00:46:53.611450Z",
-            "email": "guest99@qiscus.com",
-            "extras": <String, dynamic>{},
-            "id": 8832918,
-            "name": "QISCUS demo user",
-            "updated_at": "2019-11-03T10:09:07.469457Z",
-            "username": "QISCUS demo user"
+            'active': true,
+            'avatar_url': 'https://image.url/image.jpeg',
+            'created_at': '2018-11-12T00:46:53.611450Z',
+            'email': 'guest99@qiscus.com',
+            'extras': <String, dynamic>{},
+            'id': 8832918,
+            'name': 'QISCUS demo user',
+            'updated_at': '2019-11-03T10:09:07.469457Z',
+            'username': 'QISCUS demo user'
           }
         ]
       },
-      "status": 200
+      'status': 200
     };
 
     setUp(() {
@@ -392,12 +392,12 @@ void main() {
   group('SetDeviceTokenRequest', () {
     r.SetDeviceTokenRequest request;
     var responseBackend = <String, dynamic>{
-      "results": {
-        "changed": true,
-        "pn_android_configured": true,
-        "pn_ios_configured": false
+      'results': {
+        'changed': true,
+        'pn_android_configured': true,
+        'pn_ios_configured': false
       },
-      "status": 200
+      'status': 200
     };
 
     setUp(() {
@@ -420,8 +420,8 @@ void main() {
   group('UnsetDeviceTokenRequest', () {
     r.UnsetDeviceTokenRequest request;
     var responseBackend = <String, dynamic>{
-      "results": {"success": true},
-      "status": 200
+      'results': {'success': true},
+      'status': 200
     };
 
     setUp(() {
@@ -443,38 +443,38 @@ void main() {
   group('UpdateUserDataRequest', () {
     r.UpdateUserDataRequest request;
     var responseBackend = <String, dynamic>{
-      "results": {
-        "user": {
-          "active": true,
-          "app": {
-            "code": "sdksample",
-            "id": 947,
-            "id_str": "947",
-            "name": "sdksample"
+      'results': {
+        'user': {
+          'active': true,
+          'app': {
+            'code': 'sdksample',
+            'id': 947,
+            'id_str': '947',
+            'name': 'sdksample'
           },
-          "avatar": {
-            "avatar": {
-              "url":
-                  "https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/GoLdHEInn5/Screenshot+(11).png"
+          'avatar': {
+            'avatar': {
+              'url':
+                  'https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/GoLdHEInn5/Screenshot+(11).png'
             }
           },
-          "avatar_url":
-              "https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/GoLdHEInn5/Screenshot+(11).png",
-          "email": "guest-1001",
-          "extras": {"extras": true},
-          "id": 44465689,
-          "id_str": "44465689",
-          "last_comment_id": 0,
-          "last_comment_id_str": "0",
-          "last_sync_event_id": 0,
-          "pn_android_configured": true,
-          "pn_ios_configured": false,
-          "rtKey": "somestring",
-          "token": "DliiUcM3RdiRtlTyYpHK",
-          "username": "guest-1001"
+          'avatar_url':
+              'https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/GoLdHEInn5/Screenshot+(11).png',
+          'email': 'guest-1001',
+          'extras': {'extras': true},
+          'id': 44465689,
+          'id_str': '44465689',
+          'last_comment_id': 0,
+          'last_comment_id_str': '0',
+          'last_sync_event_id': 0,
+          'pn_android_configured': true,
+          'pn_ios_configured': false,
+          'rtKey': 'somestring',
+          'token': 'DliiUcM3RdiRtlTyYpHK',
+          'username': 'guest-1001'
         }
       },
-      "status": 200
+      'status': 200
     };
 
     setUpAll(() {

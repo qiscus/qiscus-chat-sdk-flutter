@@ -32,7 +32,13 @@ void main() {
     expect(some(storage.isRealtimeEnabled), appConfig.enableRealtime);
     expect(some(storage.configExtras), appConfig.extras);
     expect(some(storage.isRealtimeCheckEnabled), appConfig.enableRealtimeCheck);
-    expect(some(storage.syncInterval), appConfig.syncInterval);
-    expect(some(storage.syncIntervalWhenConnected), appConfig.syncOnConnect);
+    expect(
+      some(storage.syncInterval.inMilliseconds),
+      appConfig.syncInterval,
+    );
+    expect(
+      some(storage.syncIntervalWhenConnected.inMilliseconds),
+      appConfig.syncOnConnect,
+    );
   });
 }

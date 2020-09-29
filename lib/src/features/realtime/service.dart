@@ -1,8 +1,6 @@
 part of qiscus_chat_sdk.usecase.realtime;
 
 abstract class IRealtimeService {
-  MqttClientConnectionStatus get connectionState;
-
   bool get isConnected;
 
   Either<QError, void> end();

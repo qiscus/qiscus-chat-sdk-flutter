@@ -67,7 +67,7 @@ void main() {
   group('MessageDeletedEvent', () {
     test('should parse json successfully', () {
       var json = events //
-          .firstWhere((it) => it['action_topic'] == 'delete_messages');
+          .firstWhere((it) => it['action_topic'] == 'delete_message');
 
       var data = MessageDeletedEvent.fromJson(json);
       expect(data.first.roomId, 12345);

@@ -133,7 +133,7 @@ class Message {
     Option<DateTime> timestamp,
   }) =>
       Message._(
-        id: id,
+        id: id ?? none(),
         chatRoomId: chatRoomId ?? none(),
         previousMessageId: previousMessageId ?? none(),
         uniqueId: uniqueId ?? none(),

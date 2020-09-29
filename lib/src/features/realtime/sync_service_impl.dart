@@ -117,9 +117,6 @@ class SyncServiceImpl implements IRealtimeService {
   @override
   bool get isConnected => true;
 
-  @override
-  MqttClientConnectionStatus get connectionState => null;
-
   Stream<Unit> get _interval$ => interval.interval();
 
   // region Not implemented on sync adapter

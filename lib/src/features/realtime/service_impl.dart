@@ -121,10 +121,6 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
-  MqttClientConnectionStatus get connectionState =>
-      _mqttService.connectionState;
-
-  @override
   Stream<void> onConnected() => _mqttService.onConnected();
 
   @override

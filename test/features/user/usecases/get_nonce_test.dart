@@ -17,7 +17,7 @@ void main() {
 
   test('get nonce success', () async {
     when(userRepo.getNonce()).thenReturn(Task(() async {
-      return right("ini nonce");
+      return right('ini nonce');
     }));
 
     var resp = await useCase.call(noParams).run();

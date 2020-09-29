@@ -8,4 +8,16 @@ void main() {
 
     expect(n1, n2);
   });
+  test('usecases.noParams stringify', () {
+    var n = NoParams();
+
+    expect('$n', 'NoParams()');
+  });
+
+  test('usecases.NoRepository', () {
+    var n1 = NoRepository();
+    var n2 = noRepository;
+
+    expect(n1, n2);
+  });
 }
