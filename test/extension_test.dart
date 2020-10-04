@@ -1,3 +1,5 @@
+@Timeout(Duration(seconds: 1))
+
 import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
@@ -32,7 +34,7 @@ void main() {
     );
 
     verify(qiscus.setUser(
-      callback: (_, err) => fail(err.message),
+      callback: any,
       userId: 'user-id',
       userKey: 'user-key',
       extras: extras,

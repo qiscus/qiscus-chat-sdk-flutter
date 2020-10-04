@@ -24,7 +24,7 @@ abstract class RealtimeEvent {
           break;
       }
 
-      return result ?? [];
+      return result;
     });
 
     return results.expand(id).toList();
@@ -78,7 +78,7 @@ class UnknownEvent extends RealtimeEvent with EquatableMixin {
 
   @override
   factory UnknownEvent.fromJson(Map<String, dynamic> json) {
-    return UnknownEvent(actionType: json['event']['action_topic'] as String);
+    return UnknownEvent(actionType: json['action_topic'] as String);
   }
 }
 
