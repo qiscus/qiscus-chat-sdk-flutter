@@ -1,3 +1,9 @@
+# 1.0.4
+
+- fix not parsing correct last event id
+- fix missing implementation of room message cleared
+- fix error while parsing `extras` and `payload`
+
 # 1.0.3-dev.1
 
 - trying to make this package compatible with dartjs
