@@ -46,10 +46,8 @@ class SynchronizeEventRequest
 
   @override
   Tuple2<int, List<RealtimeEvent>> format(json) {
-    // FIXME: change the event id to the correct value
-    final id = (json['events'] as List) //
-        .cast<Map<String, dynamic>>()
-        .last['id'] as int;
+    final data = (json['events'] as List).cast<Map<String, dynamic>>();
+    final id = data.isNotEmpty ? data.last['id'] as int : 0;
     return tuple2(id, RealtimeEvent.fromJson(json));
   }
 }

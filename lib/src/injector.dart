@@ -63,6 +63,7 @@ class Injector {
           dio: resolve(),
           storage: resolve(),
         ));
+    factory_(() => OnRoomMessagesCleared(resolve()));
 
     // user
     singleton<IUserRepository>(() => UserRepositoryImpl(resolve()));
