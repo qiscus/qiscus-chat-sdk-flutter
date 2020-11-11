@@ -210,7 +210,7 @@ class CreateGroupRequest extends IApiRequest<ChatRoom> {
         'name': name,
         'participants': userIds,
         'avatar_url': avatarUrl,
-        'options': extras,
+        'options': jsonEncode(extras),
       };
 
   @override
