@@ -1,3 +1,7 @@
+# 1.0.5
+
+- fix not stringified extras when creating room
+
 # 1.0.4
 
 - fix not parsing correct last event id
