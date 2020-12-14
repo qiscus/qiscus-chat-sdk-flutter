@@ -49,8 +49,7 @@ class MqttServiceImpl implements IRealtimeService {
     var data = result.data['data'] as Map<String, dynamic>;
     var url = data['url'] as String;
     var port = data['wss_port'] as String;
-    var newUrl = 'wss://$url:$port/mqtt';
-    _s.brokerUrl = newUrl;
+    _s.brokerUrl = url;
     try {
       __mqtt = _getClient();
       await _mqtt.connect();

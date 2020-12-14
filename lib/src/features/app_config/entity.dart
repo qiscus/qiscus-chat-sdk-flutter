@@ -55,7 +55,7 @@ class AppConfig {
   void hydrateStorage(Storage s) {
     baseUrl.do_((it) => s.baseUrl = it);
     brokerLbUrl.do_((it) => s.brokerLbUrl = it);
-    brokerUrl.map((it) => 'wss://$it:1886/mqtt').do_((it) => s.brokerUrl = it);
+    brokerUrl.map((it) => s.brokerUrl = it);
     enableEventReport.do_((it) => s.enableEventReport = it);
     enableRealtime.do_((it) => s.isRealtimeEnabled = it);
     enableRealtimeCheck.do_((it) => s.isRealtimeCheckEnabled = it);

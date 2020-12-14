@@ -7,9 +7,10 @@ MqttClient getMqttClient(Storage storage) {
 
   return MqttServerClient(brokerUrl, clientId)
         ..logging(on: false)
-        ..port = 1886
+        ..port = 1885
         ..connectionMessage = connectionMessage
         ..websocketProtocols = ['mqtt']
+        ..secure = true
       //
       ;
 }
