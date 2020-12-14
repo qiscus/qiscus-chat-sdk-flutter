@@ -1,3 +1,7 @@
+# 1.0.6
+
+- fix can not connect to mqtt broker
+
 # 1.0.5
 
 - fix not stringified extras when creating room
