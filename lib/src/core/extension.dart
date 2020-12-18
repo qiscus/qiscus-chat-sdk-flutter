@@ -214,4 +214,5 @@ extension TupleMqttData on Tuple2<String, String> {
 extension DurationX on int {
   Duration get seconds => Duration(seconds: this);
   Duration get milliseconds => Duration(milliseconds: this);
+  Duration get s => seconds;
 }

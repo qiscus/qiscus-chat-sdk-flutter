@@ -47,7 +47,7 @@ void main() {
 
       expect(s.baseUrl, 'base-url');
       expect(s.brokerLbUrl, 'broker-lb-url');
-      expect(s.brokerUrl, 'wss://broker-url:1886/mqtt');
+      expect(s.brokerUrl, 'broker-url');
       expect(s.enableEventReport, true);
       expect(s.isRealtimeEnabled, true);
       expect(s.isRealtimeCheckEnabled, true);

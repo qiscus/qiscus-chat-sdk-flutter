@@ -7,6 +7,7 @@ import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 import 'package:test/test.dart';
+import 'package:fake_async/fake_async.dart';
 
 class Params with EquatableMixin {
   final int field;
@@ -93,36 +94,17 @@ void main() {
   });
 
   test('unsubscribe should not emit new event', () async {
-    prepareTest(mockRepo, mockClass, topic: topic);
+    fakeAsync((a) {
+      prepareTest(mockRepo, mockClass, topic: topic);
+      var stream = mockClass.subscribe(params).run();
 
-    var stream = await mockClass.subscribe(params).run();
-    var queue = StreamQueue(stream);
-
-    var timer = Timer(const Duration(milliseconds: 100 * 6), () async {
-      // print('cancel the subscription');
-      await queue.cancel(immediate: true);
-      await mockClass.unsubscribe(params).run();
+      var counter = 0;
+      var subs = stream.then((s) => s.listen(expectAsync1((data) {
+        expect(data, counter++);
+      }, count: 6)));
+      a.elapse(600.milliseconds);
+      subs.then((s) => s.cancel());
+      a.elapse(1.s);
     });
-
-    // var counter = 0;
-    // stream.listen(expectAsync1((data) {
-    //   print('got data: $data | ${timer.isActive}');
-    //   expect(data, counter++);
-    // }, count: 5, max: 5));
-
-    // Timer(Duration(seconds: 2), () => queue.cancel());
-    await expectLater(
-      queue,
-      emitsInOrder(<StreamMatcher>[
-        emits(0),
-        emits(1),
-        emits(2),
-        emits(3),
-        emits(4),
-        // emitsDone,
-      ]),
-    );
-
-    timer.cancel();
-  }, timeout: Timeout(Duration(seconds: 2)));
+  });
 }

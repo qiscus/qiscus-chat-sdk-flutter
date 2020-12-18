@@ -48,7 +48,6 @@ class MqttServiceImpl implements IRealtimeService {
     var result = await _dio.get<Map<String, dynamic>>(_s.brokerLbUrl);
     var data = result.data['data'] as Map<String, dynamic>;
     var url = data['url'] as String;
-    var port = data['wss_port'] as String;
     _s.brokerUrl = url;
     try {
       __mqtt = _getClient();
@@ -112,8 +111,8 @@ class MqttServiceImpl implements IRealtimeService {
       var payload = jsonPayload['payload'] as Map<String, dynamic>;
 
       if (actionType == 'delete_message') {
-        var mPayload =
-            payload['data']['deleted_messages'] as List<Map<String, dynamic>>;
+        var mPayload = (payload['data']['deleted_messages'] as List)
+            .cast<Map<String, dynamic>>();
         return mPayload
             .map((m) {
               var roomId = m['room_id'] as String;
@@ -133,12 +132,10 @@ class MqttServiceImpl implements IRealtimeService {
       }
 
       if (actionType == 'clear_room') {
-        var rooms_ =
-            payload['data']['deleted_rooms'] as List<Map<String, dynamic>>;
+        var rooms_ = (payload['data']['deleted_rooms'] as List)
+            .cast<Map<String, dynamic>>();
         return rooms_.map((r) {
-          return Notification.room_cleared(
-            roomId: r['id'] as int,
-          );
+          return Notification.room_cleared(roomId: r['id'] as int);
         }).toList();
       }
 
@@ -173,7 +170,7 @@ class MqttServiceImpl implements IRealtimeService {
   @override
   Stream<Message> subscribeChannelMessage({String uniqueId}) {
     return _mqtt
-        ?.forTopic(TopicBuilder.channelMessageNew('', uniqueId))
+        ?.forTopic(TopicBuilder.channelMessageNew(_s.appId, uniqueId))
         ?.asyncMap((event) {
       // appId/channelId/c;
       var messageData = event.payload.toString();
@@ -321,10 +318,8 @@ class MqttServiceImpl implements IRealtimeService {
     int roomId,
     Map<String, dynamic> payload,
   }) {
-    return _mqtt.publishEvent(MqttCustomEvent(
-      roomId: roomId,
-      payload: payload,
-    ));
+    var event = MqttCustomEvent(roomId: roomId, payload: payload);
+    return _mqtt.publishEvent(event);
   }
 
   @override

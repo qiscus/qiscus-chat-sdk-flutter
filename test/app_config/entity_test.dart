@@ -26,8 +26,7 @@ void main() {
 
     expect(some(storage.baseUrl), appConfig.baseUrl);
     expect(some(storage.brokerLbUrl), appConfig.brokerLbUrl);
-    expect(some(storage.brokerUrl),
-        appConfig.brokerUrl.map((it) => 'wss://$it:1886/mqtt'));
+    expect(some(storage.brokerUrl), appConfig.brokerUrl.map((it) => '$it'));
     expect(some(storage.enableEventReport), appConfig.enableEventReport);
     expect(some(storage.isRealtimeEnabled), appConfig.enableRealtime);
     expect(some(storage.configExtras), appConfig.extras);

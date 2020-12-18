@@ -13,21 +13,22 @@ class SyncServiceImpl implements IRealtimeService {
   final Storage storage;
   final Interval interval;
 
+  @override
+  bool get isConnected => true;
+
   int get _messageId => storage.lastMessageId ?? 0;
 
   int get _eventId => storage.lastEventId ?? 0;
+
+  Stream<Unit> get _interval$ => interval.interval();
 
   void log(String str) => logger.log('SyncServiceImpl::- $str');
 
   // region Producer
   Stream<RealtimeEvent> get _syncEvent$ => _interval$
-      .map((_) {
-        var request = SynchronizeEventRequest(lastEventId: _eventId);
-        return dio
-            .sendApiRequest(request)
-            .then((r) => request.format(r))
-            .asStream();
-      })
+      .map((_) => dio(SynchronizeEventRequest(
+            lastEventId: _eventId,
+          )).asStream())
       .flatten()
       .tap((_) => log('QiscusSyncAdapter: synchronize-event'))
       .map((data) => data.value2)
@@ -35,19 +36,9 @@ class SyncServiceImpl implements IRealtimeService {
       .asBroadcastStream();
 
   Stream<Message> get _sync$ => _interval$
-      .map((_) {
-        var request = SynchronizeRequest(lastMessageId: _messageId);
-        return dio
-            .sendApiRequest(request)
-            .then((r) => request.format(r))
-            .asStream();
-      })
+      .map((_) => dio(SynchronizeRequest(lastMessageId: _messageId)).asStream())
       .flatten()
-      .tap((res) {
-        if (res.value1 > storage.lastMessageId) {
-          storage.lastMessageId = res.value1;
-        }
-      })
+      .tap(_saveLastId)
       .tap((_) => log('QiscusSyncAdapter: synchronize'))
       .map((it) => it.value2)
       .expand(id)
@@ -56,15 +47,19 @@ class SyncServiceImpl implements IRealtimeService {
   Stream<MessageReadEvent> get _messageRead$ => _syncEvent$ //
       .where((event) => event is MessageReadEvent)
       .cast<MessageReadEvent>();
+
   Stream<MessageDeliveredEvent> get _messageDelivered$ => _syncEvent$ //
       .where((event) => event is MessageDeliveredEvent)
       .cast<MessageDeliveredEvent>();
+
   Stream<MessageDeletedEvent> get _messageDeleted$ => _syncEvent$ //
       .where((event) => event is MessageDeletedEvent)
       .cast<MessageDeletedEvent>();
+
   Stream<RoomClearedEvent> get _roomCleared$ => _syncEvent$ //
       .where((event) => event is RoomClearedEvent)
       .cast<RoomClearedEvent>();
+
   // endregion
 
   @override
@@ -113,11 +108,6 @@ class SyncServiceImpl implements IRealtimeService {
   ]) {
     return _sync$;
   }
-
-  @override
-  bool get isConnected => true;
-
-  Stream<Unit> get _interval$ => interval.interval();
 
   // region Not implemented on sync adapter
 
@@ -207,5 +197,12 @@ class SyncServiceImpl implements IRealtimeService {
   @override
   Task<Either<QError, void>> unsubscribe(String topic) =>
       Task.delay(() => left<QError, void>(QError('Not implemented')));
+
 // endregion
+
+  void _saveLastId(Tuple2<int, List<Message>> res) {
+    if (res.value1 > storage.lastMessageId) {
+      storage.lastMessageId = res.value1;
+    }
+  }
 }

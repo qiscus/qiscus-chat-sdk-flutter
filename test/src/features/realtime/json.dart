@@ -138,3 +138,78 @@ const syncJson = <String, dynamic>{
     ]
   }
 };
+
+const mqttChannelJson = <String, dynamic>{
+  'id': 3326,
+  'comment_before_id': 2920,
+  'message': 'Halo',
+  'username': 'Zetra',
+  'email': 'zetra1@gmail.com',
+  'user_avatar':
+      'https://qiscuss3.s3.amazonaws.com/uploads/d8cf89cba2be4953bcbb471778263e86/2.png',
+  'timestamp': '2016-10-28T08:23:03Z',
+  'unix_timestamp': 123456789,
+  'created_at': '2016-10-28T08:23:03.074Z',
+  'room_id': 207,
+  'room_name': 'room name',
+  'topic_id': 207,
+  'unique_temp_id': 'android_1477642981693c5458b0531df164',
+  'disable_link_preview': false,
+  'chat_type': 'group'
+};
+const mqttMessageJson = <String, dynamic>{
+  'id': 3326,
+  'comment_before_id': 2920,
+  'message': 'Halo',
+  'username': 'Zetra',
+  'email': 'zetra1@gmail.com',
+  'user_avatar':
+      'https://qiscuss3.s3.amazonaws.com/uploads/d8cf89cba2be4953bcbb471778263e86/2.png',
+  'timestamp': '2016-10-28T08:23:03Z',
+  'unix_timestamp': 123456789,
+  'created_at': '2016-10-28T08:23:03.074Z',
+  'room_id': 207,
+  'room_name': 'room name',
+  'topic_id': 207,
+  'unique_temp_id': 'android_1477642981693c5458b0531df164',
+  'disable_link_preview': false,
+  'chat_type': 'group'
+};
+
+const mqttDeleteMessageJson = <String, dynamic>{
+  'action_topic': 'delete_message',
+  'payload': {
+    'actor': {'id': 'user id', 'email': 'user email', 'name': 'user name'},
+    'data': {
+      'is_hard_delete': true,
+      'deleted_messages': [
+        {
+          'room_id': '0',
+          'message_unique_ids': ['abc', 'hdfjjhv']
+        }
+      ]
+    }
+  }
+};
+const mqttClearRoomJson = <String, dynamic>{
+  'action_topic': 'clear_room',
+  'payload': {
+    'actor': {'id': 'user id', 'email': 'user email', 'name': 'user name'},
+    'data': {
+      'deleted_rooms': [
+        {
+          'avatar_url':
+              'https://qiscuss3.s3.amazonaws.com/uploads/55c0c6ee486be6b686d52e5b9bbedbbf/2.png',
+          'chat_type': 'single',
+          'id': 80,
+          'id_str': '80',
+          'options': <String, dynamic>{},
+          'raw_room_name': 'asasmoyo@outlook.com kotak@outlook.com',
+          'room_name': 'kotak',
+          'unique_id': '72058999c5d64c61bca7dedd53963aa1',
+          'last_comment': null
+        }
+      ]
+    }
+  }
+};
