@@ -42,5 +42,5 @@ void main() {
       username: 'username',
     )).called(1);
     verifyNoMoreInteractions(qiscus);
-  }, skip: true);
+  });
 }

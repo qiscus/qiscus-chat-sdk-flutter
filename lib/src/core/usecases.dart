@@ -17,6 +17,7 @@ class NoRepository extends Equatable {
   @override
   List<Object> get props => [];
 }
+
 final noRepository = const NoRepository();
 
 abstract class UseCase<Repository, ReturnType, Params> {
@@ -27,4 +28,11 @@ abstract class UseCase<Repository, ReturnType, Params> {
   Repository get repository => _repository;
 
   Task<Either<QError, ReturnType>> call(Params params);
+}
+
+abstract class $$UseCase<Dependency, ReturnType, Params> {
+  final Dependency deps;
+  const $$UseCase(this.deps);
+
+  FutureOr<ReturnType> call(Params params);
 }

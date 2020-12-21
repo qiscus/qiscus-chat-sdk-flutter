@@ -159,6 +159,6 @@ extension StorageX on Storage {
         .distinct()
         .firstWhere((it) => it == true);
 
-    return Task(() async => s);
+    return Task(() => s);
   }
 }

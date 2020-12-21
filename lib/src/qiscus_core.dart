@@ -22,7 +22,6 @@ part 'injector.dart';
 
 class QiscusSDK {
   static final instance = QiscusSDK();
-
   final _injector = Injector();
 
   factory QiscusSDK() => QiscusSDK._internal();
@@ -102,21 +101,10 @@ class QiscusSDK {
   }
 
   String get appId => __<Storage>()?.appId;
-
   QAccount get currentUser => __<Storage>()?.currentUser?.toModel();
-
   bool get isLogin => __<Storage>()?.currentUser != null;
-
   String get token => __<Storage>()?.token;
-
-  Task<Either<QError, void>> get _authenticated {
-    final _isLogin = Stream<void>.periodic(const Duration(milliseconds: 300))
-        .map((_) => isLogin)
-        .distinct((p, n) => p == n)
-        .firstWhere((it) => it == true);
-    return Task(() => _isLogin).attempt().leftMapToQError('Not logged in');
-  }
-
+  Task<bool> get _authenticated => __<Storage>().authenticated$;
   IRoomRepository get _room$$ => __<IRoomRepository>();
 
   void addHttpInterceptors(RequestOptions Function(RequestOptions) onRequest) {
@@ -130,9 +118,8 @@ class QiscusSDK {
     @required List<String> userIds,
     @required void Function(List<QParticipant>, QError) callback,
   }) {
-    final addParticipant =
-        _authenticated.andThen(_room$$.addParticipant(roomId, userIds));
-    addParticipant
+    _room$$
+        .addParticipant(roomId, userIds)
         .rightMap((r) => r.map((m) => m.toModel()).toList())
         .toCallback_(callback);
   }
