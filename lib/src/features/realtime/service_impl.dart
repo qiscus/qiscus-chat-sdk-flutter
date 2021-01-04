@@ -10,19 +10,13 @@ class RealtimeServiceImpl implements IRealtimeService {
   bool get isConnected => _mqttService.isConnected;
 
   Task<Either<QError, void>> _subscribe(String topic) {
-    if (_mqttService.isConnected) {
-      return _mqttService.subscribe(topic);
-    } else {
-      return _syncService.subscribe(topic);
-    }
+    return _mqttService.subscribe(topic).andThen(_syncService.subscribe(topic));
   }
 
   Task<Either<QError, void>> _unsubscribe(String topic) {
-    if (_mqttService.isConnected) {
-      return _mqttService.subscribe(topic);
-    } else {
-      return _syncService.subscribe(topic);
-    }
+    return _mqttService
+        .unsubscribe(topic)
+        .andThen(_syncService.unsubscribe(topic));
   }
 
   @override
