@@ -11,7 +11,7 @@ class Logger {
 
   final Storage storage;
 
-  QLogLevel get level => QLogLevel.verbose;
+  QLogLevel get level => QLogLevel.log;
 
   bool get enabled => storage.debugEnabled;
 
