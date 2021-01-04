@@ -8,6 +8,13 @@ extension OptionDo<T> on Option<T> {
 }
 
 extension MqttClientX on MqttClient {
+  MqttConnectionState get state => connectionStatus.state;
+  bool get isConnected => state == MqttConnectionState.connected;
+
+  Subscription subscribe$(String topic) {
+    return subscribe(topic, MqttQos.atLeastOnce);
+  }
+
   Either<QError, void> publishEvent(MqttEventHandler event) {
     var topic = event.topic;
     var message = event.publish();
