@@ -59,10 +59,10 @@ extension DioXRequest on Dio {
   Future<Output> sendApiRequest<Output extends Map<String, dynamic>>(
     IApiRequest request,
   ) async {
-    var body = (request.body ?? <String, dynamic>{})
-      ..removeWhere((key, dynamic value) => value == null);
-    var params = (request.params ?? <String, dynamic>{})
-      ..removeWhere((key, dynamic value) => value == null);
+    var body = request.body;
+    body?.removeWhere((key, dynamic value) => value == null);
+    var params = request.params;
+    params?.removeWhere((key, dynamic value) => value == null);
 
     return this
         .request<Output>(
