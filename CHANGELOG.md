@@ -1,3 +1,10 @@
+# 1.0.7
+
+- fix error when deleting message and clearing room
+- fix not subscribing to mqtt event when it is still
+  in connecting state
+- fix sending empty json on some api request
+
 # 1.0.7-beta.2
 
 - fix keep on sending empty json
