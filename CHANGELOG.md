@@ -1,3 +1,7 @@
+# 1.0.7-beta.2
+
+- fix keep on sending empty json
+
 # 1.0.7-beta.1
 
 - fix error when deleting message and clearing room
