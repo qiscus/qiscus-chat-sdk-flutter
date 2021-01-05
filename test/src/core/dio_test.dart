@@ -35,8 +35,10 @@ void main() {
     expect(
         options.headers['qiscus-sdk-version'], '$sdkPlatformName-$sdkVersion');
   });
-  test('has 2 interceptor if debug enabled', () async {
+  test('has 2 interceptor if debug enabled and level are verbose', () async {
     storage.debugEnabled = true;
+    storage.logLevel = QLogLevel.verbose;
+    var logger = Logger(storage);
     var dio = getDio(storage, logger);
 
     expect(dio.interceptors.length, 2);

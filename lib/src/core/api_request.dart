@@ -68,8 +68,8 @@ extension DioXRequest on Dio {
         .request<Output>(
           request.url,
           options: Options(method: request.method.asString),
-          data: body,
-          queryParameters: params,
+          data: body.isNotEmpty ? body : null,
+          queryParameters: params.isNotEmpty ? params : null,
         )
         .then((it) => it.data);
   }
