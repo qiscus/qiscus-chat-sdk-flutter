@@ -1,3 +1,9 @@
+# 1.0.7-beta.1
+
+- fix error when deleting message and clearing room
+- fix not subscribing to mqtt event when it is still
+  in connecting state
+
 # 1.0.6
 
 - fix can not connect to mqtt broker
