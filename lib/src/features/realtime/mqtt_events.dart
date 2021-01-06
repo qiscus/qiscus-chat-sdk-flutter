@@ -9,7 +9,7 @@ class MqttTypingEvent extends MqttEventHandler<bool, UserTyping> {
 
   // r/{roomId}/{roomId}/{userId}/t
   @override
-  String get topic => 'r/$roomId/+/$userId/t';
+  String get topic => TopicBuilder.typing(roomId, userId);
   final String roomId;
   final String userId;
   final bool isTyping;

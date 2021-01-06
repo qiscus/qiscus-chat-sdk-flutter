@@ -31,13 +31,27 @@ extension MqttClientX on MqttClient {
     }
   }
 
+  Future<bool> get _isConnected =>
+      Stream.periodic(const Duration(milliseconds: 10), (_) => isConnected)
+          .distinct()
+          .firstWhere((it) => it);
+  static final List<Tuple2<String, String>> _publishBuffer = [];
   Either<QError, void> publish(String topic, String message) {
+    // print('mqtt.publish($topic, $message)');
+    _publishBuffer.add(tuple2(topic, message));
+
     return catching<void>(() {
-      var payload = MqttClientPayloadBuilder()..addString(message);
-      print(
-        'Mqtt.publishMessage($topic, MqttQos.atLeastOnce, ${payload.payload}, retain: false',
-      );
-      publishMessage(topic, MqttQos.atLeastOnce, payload.payload);
+      _isConnected.then((_) {
+        while (_publishBuffer.isNotEmpty) {
+          var data = _publishBuffer.removeAt(0);
+          if (data != null) {
+            var message = data.value2;
+            var topic = data.value1;
+            var payload = MqttClientPayloadBuilder()..addString(message);
+            publishMessage(topic, MqttQos.atLeastOnce, payload.payload);
+          }
+        }
+      });
     }).leftMapToQError();
   }
 

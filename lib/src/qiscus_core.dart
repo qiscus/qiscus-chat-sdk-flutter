@@ -218,7 +218,7 @@ class QiscusSDK {
 
   void enableDebugMode({
     @required bool enable,
-    QLogLevel level = QLogLevel.verbose,
+    QLogLevel level = QLogLevel.log,
   }) {
     __<Storage>()
       ..debugEnabled = enable
