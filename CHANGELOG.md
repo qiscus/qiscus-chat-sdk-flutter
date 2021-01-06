@@ -1,3 +1,7 @@
+# 1.0.8-beta.2
+
+- fix not calling callback on successful operation
+
 # 1.0.8-beta.1
 
 - fix error when publishing mqtt event while mqtt still connecting
