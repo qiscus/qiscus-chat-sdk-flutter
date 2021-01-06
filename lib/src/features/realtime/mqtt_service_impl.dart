@@ -398,12 +398,23 @@ class Notification extends Union2Impl<MessageDeleted, RoomCleared> {
 
   factory Notification.room_cleared({
     int roomId,
-  }) =>
-      Notification._(_factory.second(RoomCleared(
-        roomId: roomId,
-      )));
+  }) {
+    return Notification._(_factory.second(RoomCleared(
+      roomId: roomId,
+    )));
+  }
 
   Notification._(Union2<MessageDeleted, RoomCleared> union) : super(union);
+
+  @override
+  String toString() {
+    return join(
+      (data) => 'Notification.message_deleted('
+          'roomId: ${data.roomId}, '
+          'messageUniqueId: ${data.messageUniqueId})',
+      (data) => 'Notification.room_cleared(roomId: ${data.roomId})',
+    );
+  }
 }
 
 @sealed

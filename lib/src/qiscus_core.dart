@@ -466,7 +466,8 @@ class QiscusSDK {
 
   SubscriptionFn onMessageDeleted(Function1<QMessage, void> callback) {
     var subs = _authenticated
-        .andThen(__<OnMessageDeleted>().listen((m) => callback(m.toModel())))
+        .andThen(__<OnMessageDeleted>().subscribe(TokenParams(token)))
+        .map((stream) => stream.listen((m) => callback(m.toModel())))
         .run();
     return () => subs.then<void>((s) => s.cancel());
   }
