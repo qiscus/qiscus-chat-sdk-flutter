@@ -121,6 +121,15 @@ extension CEither<L, R> on Either<L, R> {
   }
 }
 
+extension TapTask<A> on Task<A> {
+  Task<A> tap(void Function(A) callback) {
+    return map((it) {
+      callback(it);
+      return it;
+    });
+  }
+}
+
 extension TaskE<L, R> on Task<Either<L, R>> {
   Task<Either<QError, R>> leftMapToQError([String message]) {
     return map((either) => either.leftMapToQError(message));
@@ -192,8 +201,8 @@ extension TaskX<L1, R1> on Task<Either<L1, R1>> {
   }
 
   Task<Either<void, void>> toCallback1(void Function(L1) callback) {
-    return leftMap((err) {
-      callback(err);
+    return map((either) {
+      return either.map((_) => callback(null)).leftMap((err) => callback(err));
     });
   }
 
