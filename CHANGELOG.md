@@ -1,3 +1,9 @@
+# 1.0.8-beta.1
+
+- fix error when publishing mqtt event while mqtt still connecting
+- fix not subscribing to message delete event
+- fix still reconnecting when user already logged out
+
 # 1.0.7
 
 - fix error when deleting message and clearing room
