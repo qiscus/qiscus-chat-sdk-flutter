@@ -1,3 +1,10 @@
+# 1.0.8
+
+- fix not calling callback on successful operation
+- fix error when publishing mqtt event while mqtt still connecting
+- fix not subscribing to message delete event
+- fix still reconnecting when user already logged out
+
 # 1.0.8-beta.2
 
 - fix not calling callback on successful operation
