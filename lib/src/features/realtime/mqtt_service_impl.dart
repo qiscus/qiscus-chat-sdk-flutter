@@ -296,6 +296,11 @@ class MqttServiceImpl implements IRealtimeService {
   }
 
   @override
+  Stream<Message> subscribeMessageUpdated() async* {
+    yield* _mqtt.subscribeEvent(MqttMessageUpdatedEvent(token: _s.token));
+  }
+
+  @override
   Stream<ChatRoom> subscribeRoomCleared() {
     return _notification
         .asyncMap(

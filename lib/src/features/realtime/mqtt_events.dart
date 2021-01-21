@@ -1,5 +1,23 @@
 part of qiscus_chat_sdk.usecase.realtime;
 
+class MqttMessageUpdatedEvent extends MqttEventHandler<Unit, Message> {
+  const MqttMessageUpdatedEvent({@required this.token});
+  final String token;
+
+  String get topic => TopicBuilder.messageUpdated(token);
+
+  @override
+  String publish() {
+    return '';
+  }
+
+  @override
+  Stream<Message> receive(Tuple2<String, String> message) async* {
+    var data = jsonDecode(message.payload.toString()) as Map<String, dynamic>;
+    yield Message.fromJson(data);
+  }
+}
+
 class MqttTypingEvent extends MqttEventHandler<bool, UserTyping> {
   const MqttTypingEvent({
     @required this.roomId,

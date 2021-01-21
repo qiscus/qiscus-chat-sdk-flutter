@@ -13,6 +13,7 @@ abstract class TopicBuilder {
   static String messageRead(String roomId) => 'r/$roomId/+/+/r';
 
   static String messageNew(String token) => '$token/c';
+  static String messageUpdated(String token) => '$token/update';
 
   static String channelMessageNew(String appId, String channelId) =>
       '$appId/$channelId/c';

@@ -92,6 +92,14 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
+  Stream<Message> subscribeMessageUpdated() {
+    return StreamGroup.merge([
+      _mqttService.subscribeMessageUpdated(),
+      _syncService.subscribeMessageUpdated(),
+    ]);
+  }
+
+  @override
   Stream<ChatRoom> subscribeRoomCleared() {
     return StreamGroup.merge([
       _mqttService.subscribeRoomCleared(),

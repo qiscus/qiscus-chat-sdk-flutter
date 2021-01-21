@@ -16,6 +16,7 @@ abstract class IRealtimeService {
   Stream<void> onDisconnected();
 
   Stream<Message> subscribeMessageReceived();
+  Stream<Message> subscribeMessageUpdated();
 
   Stream<Message> subscribeMessageDelivered({
     @required int roomId,

@@ -23,6 +23,8 @@ abstract class MessageRepository {
     int deliveredId,
   });
 
+  Task<Either<QError, Message>> updateMessage({@required QMessage message});
+
   Task<Either<QError, List<Message>>> deleteMessages({
     @required List<String> uniqueIds,
     bool isForEveryone = true,

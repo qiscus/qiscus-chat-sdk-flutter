@@ -52,6 +52,10 @@ extension XQiscusSDK on QiscusSDK {
     });
   }
 
+  Future<void> updateMessage$({@required QMessage message}) async {
+    return futurify1((cb) => updateMessage(message: message, callback: cb));
+  }
+
   Future<QChatRoom> updateChatRoom$({
     int roomId,
     String name,

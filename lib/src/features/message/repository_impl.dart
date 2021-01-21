@@ -61,6 +61,13 @@ class MessageRepositoryImpl implements MessageRepository {
     });
   }
 
+  Task<Either<QError, Message>> updateMessage({@required QMessage message}) {
+    return task(() async {
+      var request = UpdateMessageRequest(message: message);
+      return _dio.sendApiRequest(request).then((r) => request.format(r));
+    });
+  }
+
   @override
   Task<Either<QError, List<Message>>> deleteMessages({
     @required List<String> uniqueIds,

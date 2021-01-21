@@ -497,6 +497,14 @@ class QiscusSDK {
     return () => subs.then<void>((s) => s.cancel());
   }
 
+  SubscriptionFn onMessageUpdated(void Function(QMessage) callback) {
+    var subs = _authenticated
+        .andThen(__<OnMessageUpdated>().listen((m) => callback(m.toModel())))
+        .run();
+
+    return () => subs.then<void>((s) => s.cancel());
+  }
+
   SubscriptionFn onReconnecting(void Function() handler) {
     var ret = _authenticated
         .andThen(__<OnReconnecting>().subscribe(noParams))
@@ -677,11 +685,14 @@ class QiscusSDK {
   }
 
   Task<Either<QError, void>> _subscribes(String token) {
+    final params = TokenParams(token);
     final onMessageReceived = __<OnMessageReceived>();
     final realtimeService = __<IRealtimeService>();
+    final onMessageUpdated = __<OnMessageUpdated>();
 
     return onMessageReceived
-        .subscribe(TokenParams(token))
+        .subscribe(params)
+        .andThen(onMessageUpdated.subscribe(params))
         .andThen(realtimeService.subscribe(TopicBuilder.notification(token)));
   }
 
@@ -832,6 +843,21 @@ class QiscusSDK {
         .andThen(useCase(params))
         .rightMap((u) => u.toModel())
         .toCallback_(callback);
+  }
+
+  void updateMessage({
+    @required QMessage message,
+    @required void Function(QError) callback,
+  }) {
+    print('called');
+    var useCase = __<UpdateMessageUseCase>();
+    var params = MessageParams(message);
+    _authenticated
+        .tap((_) => print('after authenticated'))
+        .andThen(useCase(params))
+        .tap((data) => print('got data: $data'))
+        .toCallback1(callback)
+        .run();
   }
 
   void upload({

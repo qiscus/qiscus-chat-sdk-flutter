@@ -112,6 +112,11 @@ class SyncServiceImpl implements IRealtimeService {
   // region Not implemented on sync adapter
 
   @override
+  Stream<Message> subscribeMessageUpdated() {
+    return Stream.empty();
+  }
+
+  @override
   Stream<Message> subscribeChannelMessage({String uniqueId}) {
     return Stream.empty();
   }

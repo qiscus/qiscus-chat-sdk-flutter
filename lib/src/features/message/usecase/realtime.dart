@@ -124,6 +124,22 @@ class OnMessageReceived
   Option<String> topic(TokenParams p) => some(TopicBuilder.messageNew(p.token));
 }
 
+class OnMessageUpdated
+    with SubscriptionMixin<IRealtimeService, TokenParams, Message> {
+  OnMessageUpdated._(this.repository);
+
+  static OnMessageUpdated _instance;
+  final IRealtimeService repository;
+  factory OnMessageUpdated(IRealtimeService s) =>
+      _instance ??= OnMessageUpdated._(s);
+
+  @override
+  Stream<Message> mapStream(p) => repository.subscribeMessageUpdated();
+
+  @override
+  Option<String> topic(p) => some(TopicBuilder.messageUpdated(p.token));
+}
+
 class OnMessageDelivered
     with SubscriptionMixin<IRealtimeService, RoomIdParams, Message> {
   OnMessageDelivered._(this._service);

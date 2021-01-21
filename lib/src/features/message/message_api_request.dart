@@ -34,6 +34,40 @@ class SendMessageRequest extends IApiRequest<Message> {
   }
 }
 
+class UpdateMessageRequest extends IApiRequest<Message> {
+  UpdateMessageRequest({@required this.message});
+  final QMessage message;
+
+  @override
+  IRequestMethod get method => IRequestMethod.post;
+
+  @override
+  String get url => 'update_message';
+
+  @override
+  Message format(Map<String, dynamic> json) {
+    var data = json['results']['comment'] as Map<String, dynamic>;
+    return Message.fromJson(data);
+  }
+
+  @override
+  Map<String, dynamic> get body {
+    var m = message;
+    var data = <String, dynamic>{
+      'room_id': m.chatRoomId,
+      'unique_id': m.uniqueId,
+      'comment': m.text,
+    };
+    if (m.payload != null) {
+      data['payload'] = m.payload;
+    }
+    if (m.extras != null) {
+      data['extras'] = m.extras;
+    }
+    return data;
+  }
+}
+
 class GetMessagesRequest extends IApiRequest<List<Message>> {
   final int roomId;
   final int lastMessageId;

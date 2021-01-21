@@ -96,6 +96,7 @@ class Injector {
     factory_(() => GetMessageListUseCase(resolve()));
     factory_(() => SendMessageUseCase(resolve()));
     factory_(() => UpdateMessageStatusUseCase(resolve()));
+    factory_(() => UpdateMessageUseCase(resolve()));
     singleton(() => OnMessageReceived(
           resolve(),
           resolve<UpdateMessageStatusUseCase>(),
@@ -103,5 +104,6 @@ class Injector {
     singleton(() => OnMessageDelivered(resolve()));
     singleton(() => OnMessageRead(resolve()));
     singleton(() => OnMessageDeleted(resolve()));
+    singleton(() => OnMessageUpdated(resolve()));
   }
 }
