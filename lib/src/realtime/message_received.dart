@@ -1,24 +1,15 @@
 part of qiscus_chat_sdk.realtime;
 
-class MessageReceivedEvent with IRealtimeEvent<Message> {
-  final String userToken;
-  const MessageReceivedEvent({@required this.userToken});
+class MqttMessageReceived extends IMqttReceive<Message> {
+  const MqttMessageReceived({@required this.token}) : super();
+  final String token;
 
   @override
-  Option<String> get mqttData => none();
-  @override
-  Option<String> get mqttTopic => some('$userToken/c');
-  @override
-  Option<RealtimeSyncTopic> get syncTopic =>
-      some(RealtimeSyncTopic.messageReceived);
+  String get topic => TopicBuilder.messageNew(token);
 
   @override
-  Stream<Message> mqttMapper(String payload) async* {
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<Message> syncMapper(Map<String, dynamic> payload) async* {
-    throw UnimplementedError();
+  Stream<Message> receive(Tuple2<String, String> data) async* {
+    var message = jsonDecode(data.payload) as Map<String, dynamic>;
+    yield Message.fromJson(message);
   }
 }

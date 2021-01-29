@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:async/async.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/custom_event/custom_event.dart';
 import 'package:qiscus_chat_sdk/src/features/message/message.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/realtime/realtime.dart';
 import 'package:test/test.dart';
 
 import '../../../utils.dart';
@@ -54,14 +54,13 @@ void main() {
     final fn = () async => await service.connect();
     expect(fn, returnsNormally);
 
-    verify(mqtt.connect(any, any)).called(2);
+    verify(mqtt.connect(any, any)).called(1);
   });
 
   test('MqttServiceImpl.end()', () async {
     when(mqtt.disconnect()).thenReturn(null);
 
-    var res = service.end();
-    res.fold((err) => fail(err.message), (_) {});
+    await service.end();
 
     verify(mqtt.disconnect()).called(1);
     // verifyNoMoreInteractions(mqtt);
@@ -135,16 +134,12 @@ void main() {
 
     when(mqtt.publishMessage(any, any, any)).thenReturn(1);
 
-    var resp = service.publishCustomEvent(
+    await service.publishCustomEvent(
       roomId: 1,
       payload: <String, dynamic>{'key': 1},
     );
 
-    resp.fold((err) {
-      fail(err.message);
-    }, (_) {});
-
-    verify(mqtt.publishEvent(event)).called(1);
+    verify(mqtt.sendEvent(event)).called(1);
   });
 
   test('MqttServiceImpl.subscribeCustomEvent()', () {
@@ -227,21 +222,28 @@ void main() {
     makeMqttMessage(topic, jsonEncode(mqttClearRoomJson))(mqtt);
 
     service.subscribeRoomCleared().take(1).listen(expectAsync1((r) {
-      expect(r.id, some(80));
-      expect(r.uniqueId, none<String>());
-    }, count: 1));
+          expect(r.id, some(80));
+          expect(r.uniqueId, none<String>());
+        }, count: 1));
   }, timeout: Timeout(1.s));
 
   test('MqttServiceImpl.subscribeUserPresence()', () {
-    var event = UserPresenceEvent(userId: '123', lastSeen: DateTime.now(), isOnline: true,);
+    var event = UserPresenceEvent(
+      userId: '123',
+      lastSeen: DateTime.now(),
+      isOnline: true,
+    );
     var topic = TopicBuilder.presence(event.userId);
 
     makeMqttMessage(topic, '1:${event.lastSeen.millisecondsSinceEpoch}')(mqtt);
-    service.subscribeUserPresence(userId: event.userId).listen(expectAsync1((data) {
-      expect(data.userId, event.userId);
-      expect(data.isOnline, true);
-      expect(data.lastSeen.millisecondsSinceEpoch, event.lastSeen.millisecondsSinceEpoch);
-    }, count: 1));
+    service
+        .subscribeUserPresence(userId: event.userId)
+        .listen(expectAsync1((data) {
+          expect(data.userId, event.userId);
+          expect(data.isOnline, true);
+          expect(data.lastSeen.millisecondsSinceEpoch,
+              event.lastSeen.millisecondsSinceEpoch);
+        }, count: 1));
   });
 
   test('MqttServiceImpl.subscribeUserTyping()', () {
@@ -249,11 +251,13 @@ void main() {
     var topic = TopicBuilder.typing('${event.roomId}', event.userId);
 
     makeMqttMessage(topic, '1')(mqtt);
-    service.subscribeUserTyping(roomId: event.roomId).listen(expectAsync1((data) {
-      expect(data.userId, event.userId);
-      expect(data.isTyping, true);
-      expect(data.roomId, event.roomId);
-    }, count: 1));
+    service
+        .subscribeUserTyping(roomId: event.roomId)
+        .listen(expectAsync1((data) {
+          expect(data.userId, event.userId);
+          expect(data.isTyping, true);
+          expect(data.roomId, event.roomId);
+        }, count: 1));
   });
 
   test('MqttServiceImpl.subscribe()', () async {
@@ -262,9 +266,7 @@ void main() {
     when(mqtt.subscribe(any, any)).thenReturn(Subscription());
 
     final topic = 'topic';
-    var resp = await service.subscribe(topic).run();
-
-    resp.fold((err) => fail(err.message), (_) {});
+    await service.subscribe(topic);
 
     verify(mqtt.subscribe(topic, MqttQos.atLeastOnce)).called(1);
   });
@@ -274,7 +276,7 @@ void main() {
     when(mqtt.connectionStatus).thenReturn(
         MqttClientConnectionStatus()..state = MqttConnectionState.connected);
 
-    await service.unsubscribe('topic').run();
+    await service.unsubscribe('topic');
 
     verify(mqtt.unsubscribe('topic')).called(1);
   });
@@ -295,13 +297,11 @@ void main() {
     )).thenReturn(0);
 
     var date = DateTime.now();
-    var result = service.publishPresence(
+    await service.publishPresence(
       isOnline: true,
       lastSeen: date,
       userId: 'user-id',
     );
-
-    result.fold((err) => fail(err.message), (_) {});
 
     var topic = TopicBuilder.presence('user-id');
     verify(mqtt.publishMessage(
@@ -320,13 +320,12 @@ void main() {
       retain: anyNamed('retain'),
     )).thenReturn(0);
 
-    var result = service.publishTyping(
+    await service.publishTyping(
       isTyping: true,
       userId: 'user-id',
       roomId: 1,
     );
 
-    result.fold((err) => fail(err.message), (_) {});
     // var topic = TopicBuilder.typing('1', 'user-id');
     // verify(mqtt.publishMessage(
     //   topic,

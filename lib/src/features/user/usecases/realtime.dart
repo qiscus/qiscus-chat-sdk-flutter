@@ -1,42 +1,7 @@
 part of qiscus_chat_sdk.usecase.user;
 
-@sealed
-class Typing with EquatableMixin {
-  final bool isTyping;
-  final int roomId;
-  final String userId;
-
-  Typing({
-    this.isTyping,
-    this.roomId,
-    this.userId,
-  });
-
-  @override
-  List<Object> get props => [userId, roomId];
-
-  @override
-  bool get stringify => true;
-}
-
-@sealed
-class Presence with EquatableMixin {
-  final bool isOnline;
-  final DateTime lastSeen;
-  final String userId;
-
-  Presence({
-    this.isOnline,
-    this.lastSeen,
-    this.userId,
-  });
-
-  @override
-  List<Object> get props => [userId];
-}
-
-class TypingUseCase extends UseCase<IRealtimeService, void, Typing>
-    with SubscriptionMixin<IRealtimeService, Typing, Typing> {
+class TypingUseCase extends UseCase<IRealtimeService, void, UserTyping>
+    with SubscriptionMixin<IRealtimeService, UserTyping, UserTyping> {
   TypingUseCase._(IRealtimeService repository) : super(repository);
 
   factory TypingUseCase(IRealtimeService repo) =>
@@ -44,30 +9,32 @@ class TypingUseCase extends UseCase<IRealtimeService, void, Typing>
   static TypingUseCase _instance;
 
   @override
-  Task<Either<QError, void>> call(params) =>
-      Task.delay(() => repository.publishTyping(
-            isTyping: params.isTyping,
-            userId: params.userId,
-            roomId: params.roomId,
-          ));
+  Task<Either<QError, void>> call(params) {
+    return task(
+      () => repository.publishTyping(
+          isTyping: params.isTyping,
+          userId: params.userId,
+          roomId: params.roomId),
+    );
+  }
 
   @override
-  Stream<Typing> mapStream(params) => repository
+  Stream<UserTyping> mapStream(params) => repository
       .subscribeUserTyping(roomId: params.roomId)
-      .asyncMap((res) => Typing(
+      .asyncMap((res) => UserTyping(
             isTyping: res.isTyping,
             roomId: res.roomId,
             userId: res.userId,
           ));
 
   @override
-  Option<String> topic(Typing p) =>
+  Option<String> topic(UserTyping p) =>
       some(TopicBuilder.typing(p.roomId.toString(), p.userId));
 }
 
 @immutable
-class PresenceUseCase extends UseCase<IRealtimeService, void, Presence>
-    with SubscriptionMixin<IRealtimeService, Presence, Presence> {
+class PresenceUseCase extends UseCase<IRealtimeService, void, UserPresence>
+    with SubscriptionMixin<IRealtimeService, UserPresence, UserPresence> {
   PresenceUseCase._(IRealtimeService service) : super(service);
   static PresenceUseCase _instance;
 
@@ -75,22 +42,25 @@ class PresenceUseCase extends UseCase<IRealtimeService, void, Presence>
       _instance ??= PresenceUseCase._(service);
 
   @override
-  Task<Either<QError, void>> call(params) =>
-      Task.delay(() => repository.publishPresence(
-            isOnline: params.isOnline,
-            lastSeen: params.lastSeen,
-            userId: params.userId,
-          ));
+  Task<Either<QError, void>> call(params) {
+    return task(() {
+      return repository.publishPresence(
+        isOnline: params.isOnline,
+        lastSeen: params.lastSeen,
+        userId: params.userId,
+      );
+    });
+  }
 
   @override
-  Stream<Presence> mapStream(Presence params) => repository
+  Stream<UserPresence> mapStream(UserPresence params) => repository
       .subscribeUserPresence(userId: params.userId)
-      .asyncMap((res) => Presence(
+      .asyncMap((res) => UserPresence(
             userId: res.userId,
             lastSeen: res.lastSeen,
             isOnline: res.isOnline,
           ));
 
   @override
-  Option<String> topic(Presence p) => some(TopicBuilder.presence(p.userId));
+  Option<String> topic(UserPresence p) => some(TopicBuilder.presence(p.userId));
 }

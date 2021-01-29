@@ -1,17 +1,17 @@
 import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/realtime/realtime.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('MqttTypingEvent', () {
-    MqttTypingEvent event;
+    MqttUserTyping event;
     setUp(() {
-      event = MqttTypingEvent(roomId: '0', userId: '123', isTyping: true);
+      event = MqttUserTyping(roomId: '0', userId: '123', isTyping: true);
     });
     test('topic', () {
-      expect(event.topic, 'r/0/+/123/t');
+      expect(event.topic, 'r/0/0/123/t');
     });
     test('publish', () {
       var r = event.publish();
@@ -52,14 +52,14 @@ void main() {
   });
 
   group('MqttPresenceEvent', () {
-    MqttPresenceEvent event;
+    MqttUserPresence event;
     DateTime lastSeen;
     String payload;
 
     setUp(() {
       lastSeen = DateTime.now();
       payload = '1:${lastSeen.millisecondsSinceEpoch}';
-      event = MqttPresenceEvent(
+      event = MqttUserPresence(
         userId: '123',
         isOnline: true,
         lastSeen: lastSeen,
@@ -83,14 +83,13 @@ void main() {
   });
 
   group('MqttMessageReceivedEvent', () {
-    MqttMessageReceivedEvent event;
+    MqttMessageReceived event;
 
     setUp(() {
-      event = MqttMessageReceivedEvent(token: 'ini-token');
+      event = MqttMessageReceived(token: 'ini-token');
     });
 
     test('topic', () => expect(event.topic, 'ini-token/c'));
-    test('publish', () => expect(event.publish(), ''));
     test('receive', () {
       var json = <String, dynamic>{
         'id': 3326,
@@ -120,16 +119,14 @@ void main() {
   });
 
   group('MqttMessageReadEvent', () {
-    MqttMessageReadEvent event;
+    MqttMessageRead event;
 
     setUp(() {
-      event = MqttMessageReadEvent(roomId: '1', messageId: '1');
+      event = MqttMessageRead(roomId: '1');
     });
 
     test('topic', () => expect(event.topic, 'r/1/+/+/r'));
-    test('publish', () {
-      expect(() => event.publish(), throwsUnimplementedError);
-    });
+
     test('receive', () {});
   });
 }

@@ -17,7 +17,7 @@ void main() {
   });
 
   test('OnRoomMessagesCleared.subscribe', () async {
-    when(service.subscribe(any)).thenReturn(Task(() async => right(null)));
+    when(service.subscribe(any)).thenAnswer((_) => Future.value(null));
     when(service.subscribeRoomCleared()).thenAnswer((_) => Stream.periodic(
           const Duration(milliseconds: 1),
           (_) => ChatRoom(

@@ -9,24 +9,26 @@ class RealtimeServiceImpl implements IRealtimeService {
   @override
   bool get isConnected => _mqttService.isConnected;
 
-  Task<Either<QError, void>> _subscribe(String topic) {
-    return _mqttService.subscribe(topic).andThen(_syncService.subscribe(topic));
+  Future<void> _subscribe(String topic) {
+    return _mqttService
+        .subscribe(topic)
+        .then((_) => _syncService.subscribe(topic));
   }
 
-  Task<Either<QError, void>> _unsubscribe(String topic) {
+  Future<void> _unsubscribe(String topic) {
     return _mqttService
         .unsubscribe(topic)
-        .andThen(_syncService.unsubscribe(topic));
+        .then((_) => _syncService.unsubscribe(topic));
   }
 
   @override
-  Task<Either<QError, void>> subscribe(String topic) => _subscribe(topic);
+  Future<void> subscribe(String topic) => _subscribe(topic);
 
   @override
-  Task<Either<QError, void>> unsubscribe(String topic) => _unsubscribe(topic);
+  Future<void> unsubscribe(String topic) => _unsubscribe(topic);
 
   @override
-  Either<QError, void> publishPresence({
+  Future<void> publishPresence({
     bool isOnline,
     DateTime lastSeen,
     String userId,
@@ -39,7 +41,7 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
-  Either<QError, void> publishTyping({
+  Future<void> publishTyping({
     bool isTyping,
     String userId,
     int roomId,
@@ -118,8 +120,23 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
-  Either<QError, void> end() {
-    return right(null);
+  Stream<Notification> subscribeNotification() async* {
+    yield* StreamGroup.merge([
+      _mqttService.subscribeNotification(),
+      _syncService.subscribeNotification(),
+    ]);
+  }
+
+  @override
+  Future<void> connect() async {
+    await _mqttService.connect();
+    await _syncService.connect();
+  }
+
+  @override
+  Future<void> end() async {
+    await _mqttService.end();
+    await _syncService.end();
   }
 
   @override
@@ -136,7 +153,7 @@ class RealtimeServiceImpl implements IRealtimeService {
       _mqttService.subscribeCustomEvent(roomId: roomId);
 
   @override
-  Either<QError, void> publishCustomEvent({
+  Future<void> publishCustomEvent({
     @required int roomId,
     @required Map<String, dynamic> payload,
   }) {

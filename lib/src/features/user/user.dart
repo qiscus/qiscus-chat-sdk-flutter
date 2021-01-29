@@ -28,28 +28,34 @@ part 'user_api_request.dart';
 
 @sealed
 @immutable
-class UserTyping {
+class UserTyping with EquatableMixin {
   UserTyping({
     @required this.userId,
     @required this.roomId,
-    @required this.isTyping,
+    this.isTyping = true,
   });
 
   final String userId;
   final int roomId;
   final bool isTyping;
+
+  @override
+  List<Object> get props => [roomId, userId, isTyping];
 }
 
 @sealed
 @immutable
-class UserPresence {
+class UserPresence with EquatableMixin {
   UserPresence({
     @required this.userId,
-    @required this.lastSeen,
-    @required this.isOnline,
+    this.lastSeen,
+    this.isOnline,
   });
 
   final String userId;
   final DateTime lastSeen;
   final bool isOnline;
+
+  @override
+  List<Object> get props => [userId, lastSeen, isOnline];
 }

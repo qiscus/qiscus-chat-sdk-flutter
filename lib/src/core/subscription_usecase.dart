@@ -9,17 +9,21 @@ mixin SubscriptionMixin<Service extends IRealtimeService,
   final _subscriptions = HashMap<Params, StreamSubscription<Response>>();
 
   Service get repository;
-
   Stream<Response> mapStream(Params p);
-
   Option<String> topic(Params p);
-
   Stream<Response> get _stream => _controller.stream;
 
+  Future<void> clear() async {
+    _subscriptions.values.forEach((it) => it.cancel());
+    _subscriptions.clear();
+  }
+
   Task<void> unsubscribe(Params params) {
+    var removeSubscription =
+        Task(() => _subscriptions.remove(params)?.cancel());
     return topic(params)
-        .map((_) => repository.unsubscribe(_))
-        .map((_) => _.andThen(Task(() => _subscriptions[params]?.cancel())))
+        .map((it) => Task(() => repository.unsubscribe(it)))
+        .map((it) => it.andThen(removeSubscription))
         .getOrElse(() => Task(() async {}));
   }
 

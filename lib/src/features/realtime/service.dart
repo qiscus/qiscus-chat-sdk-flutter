@@ -3,12 +3,11 @@ part of qiscus_chat_sdk.usecase.realtime;
 abstract class IRealtimeService {
   bool get isConnected;
 
-  Either<QError, void> end();
+  Future<void> connect();
+  Future<void> end();
 
-  Task<Either<QError, void>> subscribe(String topic);
-
-  Task<Either<QError, void>> unsubscribe(String topic);
-
+  Future<void> subscribe(String topic);
+  Future<void> unsubscribe(String topic);
   Stream<void> onConnected();
 
   Stream<void> onReconnecting();
@@ -45,20 +44,21 @@ abstract class IRealtimeService {
   Stream<UserPresence> subscribeUserPresence({
     @required String userId,
   });
+  Stream<Notification> subscribeNotification();
 
-  Either<QError, void> publishTyping({
+  Future<void> publishTyping({
     @required bool isTyping,
     @required String userId,
     @required int roomId,
   });
 
-  Either<QError, void> publishPresence({
+  Future<void> publishPresence({
     bool isOnline,
     DateTime lastSeen,
     String userId,
   });
 
-  Either<QError, void> publishCustomEvent({
+  Future<void> publishCustomEvent({
     @required int roomId,
     @required Map<String, dynamic> payload,
   });

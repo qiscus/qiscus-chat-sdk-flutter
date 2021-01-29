@@ -11,12 +11,9 @@ class CustomEventUseCase extends UseCase<IRealtimeService, void, CustomEvent>
 
   @override
   Task<Either<QError, void>> call(CustomEvent p) {
-    return Task.delay<Either<QError, void>>(() {
-      return repository.publishCustomEvent(
-        roomId: p.roomId,
-        payload: p.payload,
-      );
-    });
+    return task(
+      () => repository.publishCustomEvent(roomId: p.roomId, payload: p.payload),
+    );
   }
 
   @override

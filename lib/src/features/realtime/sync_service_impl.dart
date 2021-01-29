@@ -120,6 +120,10 @@ class SyncServiceImpl implements IRealtimeService {
   Stream<Message> subscribeChannelMessage({String uniqueId}) {
     return Stream.empty();
   }
+  @override
+  Stream<Notification> subscribeNotification() async* {
+    yield* Stream.empty();
+  }
 
   @override
   Stream<Message> subscribeMessageDeleted() {
@@ -147,8 +151,7 @@ class SyncServiceImpl implements IRealtimeService {
   }
 
   @override
-  Task<Either<QError, void>> subscribe(String topic) =>
-      Task.delay(() => left(QError('Not supported')));
+  Future<void> subscribe(String topic) async {}
 
   @override
   Stream<UserTyping> subscribeUserTyping({String userId, int roomId}) {
@@ -156,27 +159,27 @@ class SyncServiceImpl implements IRealtimeService {
   }
 
   @override
-  Either<QError, void> publishPresence({
+  Future<void> publishPresence({
     bool isOnline,
     DateTime lastSeen,
     String userId,
-  }) {
-    return left(QError('Not available for this service'));
-  }
+  }) async {}
 
   @override
-  Either<QError, void> publishTyping({
+  Future<void> publishTyping({
     bool isTyping,
     String userId,
     int roomId,
-  }) {
-    return left(QError('Not available for this service'));
+  }) async {}
+
+  @override
+  Future<void> connect() async {
+    interval.start();
   }
 
   @override
-  Either<QError, void> end() {
+  Future<void> end() async {
     interval.stop();
-    return right(null);
   }
 
   @override
@@ -192,16 +195,13 @@ class SyncServiceImpl implements IRealtimeService {
   Stream<CustomEvent> subscribeCustomEvent({int roomId}) => Stream.empty();
 
   @override
-  Either<QError, void> publishCustomEvent({
+  Future<void> publishCustomEvent({
     int roomId,
     Map<String, dynamic> payload,
-  }) {
-    return left<QError, void>(QError('Not implemented'));
-  }
+  }) async {}
 
   @override
-  Task<Either<QError, void>> unsubscribe(String topic) =>
-      Task.delay(() => left<QError, void>(QError('Not implemented')));
+  Future<void> unsubscribe(String topic) async {}
 
 // endregion
 

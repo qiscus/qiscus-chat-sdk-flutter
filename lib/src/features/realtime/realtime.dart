@@ -15,9 +15,9 @@ import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 import 'package:sealed_unions/sealed_unions.dart';
 
 import '../../core.dart';
+import '../../realtime/realtime.dart';
 
 part 'interval.dart';
-part 'mqtt_events.dart';
 part 'mqtt_service_impl.dart';
 part 'realtime_api_request.dart';
 part 'realtime_model.dart';

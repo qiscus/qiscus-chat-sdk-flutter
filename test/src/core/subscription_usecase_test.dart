@@ -32,10 +32,8 @@ void prepareTest(MockRepo mockRepo, MockClass mockClass, {String topic}) {
   when(mockClass.mapStream(any)).thenAnswer(
     (_) => Stream.periodic(Duration(milliseconds: 100), (id) => id),
   );
-  when(mockRepo.subscribe(any))
-      .thenAnswer((_) => Task(() async => right(null)));
-  when(mockRepo.unsubscribe(any))
-      .thenAnswer((_) => Task(() async => right(null)));
+  when(mockRepo.subscribe(any)).thenAnswer((_) => Future.value(null));
+  when(mockRepo.unsubscribe(any)).thenAnswer((_) => Future.value(null));
 }
 
 void main() {
@@ -100,8 +98,8 @@ void main() {
 
       var counter = 0;
       var subs = stream.then((s) => s.listen(expectAsync1((data) {
-        expect(data, counter++);
-      }, count: 6)));
+            expect(data, counter++);
+          }, count: 6)));
       a.elapse(600.milliseconds);
       subs.then((s) => s.cancel());
       a.elapse(1.s);

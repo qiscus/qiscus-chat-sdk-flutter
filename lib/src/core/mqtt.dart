@@ -30,7 +30,7 @@ MqttConnectMessage getConnectionMessage(String clientId, String userId) {
       ;
 }
 
-abstract class MqttEventHandler<InData, OutData> {
+abstract class MqttEventHandler<OutData> {
   const MqttEventHandler();
   String get topic;
   String publish();

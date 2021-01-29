@@ -93,6 +93,7 @@ class QiscusSDK {
   }
 
   QiscusSDK._internal() {
+    _injector.configureCore();
     _injector.setup();
   }
 
@@ -101,10 +102,15 @@ class QiscusSDK {
   }
 
   String get appId => __<Storage>()?.appId;
+
   QAccount get currentUser => __<Storage>()?.currentUser?.toModel();
+
   bool get isLogin => __<Storage>()?.currentUser != null;
+
   String get token => __<Storage>()?.token;
+
   Task<bool> get _authenticated => __<Storage>().authenticated$;
+
   IRoomRepository get _room$$ => __<IRoomRepository>();
 
   void addHttpInterceptors(RequestOptions Function(RequestOptions) onRequest) {
@@ -159,13 +165,23 @@ class QiscusSDK {
         .run();
   }
 
-  void clearUser({
-    @required void Function(QError) callback,
-  }) {
+  void clearUser({@required void Function(QError) callback}) {
+    var clearSubscription = Future.wait([
+      __<OnMessageDelivered>().clear(),
+      __<OnMessageRead>().clear(),
+      __<OnMessageReceived>().clear(),
+      __<OnMessageDeleted>().clear(),
+      __<OnMessageUpdated>().clear(),
+      __<TypingUseCase>().clear(),
+      __<PresenceUseCase>().clear(),
+      __<CustomEventUseCase>().clear(),
+    ])
+        .then((_) => print('done cleanup'))
+        .catchError((Object err) => print('got error instead: $err'));
     _authenticated
+        .andThen(Task(() => clearSubscription))
         .andThen(Task.delay(() => __<Storage>().clear()))
-        .andThen(Task.delay(() => __<MqttServiceImpl>().end()))
-        .andThen(Task.delay(() => __<SyncServiceImpl>().end()))
+        .andThen(task(() => __<IRealtimeService>().end()))
         .toCallback_((_, error) => callback(error));
   }
 
@@ -554,7 +570,7 @@ class QiscusSDK {
     @required void Function(QError) callback,
   }) {
     _authenticated
-        .andThen(__<PresenceUseCase>()(Presence(
+        .andThen(__<PresenceUseCase>()(UserPresence(
           userId: __<Storage>().userId,
           isOnline: isOnline,
           lastSeen: DateTime.now(),
@@ -568,7 +584,7 @@ class QiscusSDK {
     bool isTyping,
   }) {
     _authenticated
-        .andThen(__<TypingUseCase>()(Typing(
+        .andThen(__<TypingUseCase>()(UserTyping(
           userId: __<Storage>().userId,
           roomId: roomId,
           isTyping: isTyping,
@@ -693,7 +709,9 @@ class QiscusSDK {
     return onMessageReceived
         .subscribe(params)
         .andThen(onMessageUpdated.subscribe(params))
-        .andThen(realtimeService.subscribe(TopicBuilder.notification(token)));
+        .andThen(task(
+          () => realtimeService.subscribe(TopicBuilder.notification(token)),
+        ));
   }
 
   void setUser({
@@ -712,11 +730,27 @@ class QiscusSDK {
       avatarUrl: avatarUrl,
       extras: extras,
     );
+
+    var taskIdErr = (QError it) =>
+        Task(() async => left<QError, Tuple2<String, Account>>(it));
+
     authenticate(params)
-        .bind((either) => either.fold(
-            (e) => Task(() async => left<QError, Tuple2<String, Account>>(e)),
-            (tuple) => _subscribes(tuple.value1).andThen(Task(
-                () async => right<QError, Tuple2<String, Account>>(tuple)))))
+        .bind((either) {
+          return Task(() {
+            if (__<Storage>().isRealtimeEnabled) {
+              return __<IRealtimeService>().connect().then((_) => either);
+            } else {
+              return Future.value(either);
+            }
+          });
+        })
+        .bind((either) {
+          return either.fold(taskIdErr, (tuple) {
+            return _subscribes(tuple.value1).andThen(Task(() async {
+              return right<QError, Tuple2<String, Account>>(tuple);
+            }));
+          });
+        })
         .rightMap((it) => it.value2.toModel())
         .toCallback_(callback);
   }
@@ -736,7 +770,7 @@ class QiscusSDK {
 
     final read = __<OnMessageRead>().unsubscribe(params);
     final delivered = __<OnMessageDelivered>().unsubscribe(params);
-    final typing = __<TypingUseCase>().unsubscribe(Typing(
+    final typing = __<TypingUseCase>().unsubscribe(UserTyping(
       roomId: room.id,
       userId: '+',
     ));
@@ -749,7 +783,7 @@ class QiscusSDK {
 
     final read = __<OnMessageRead>().subscribe(params);
     final delivered = __<OnMessageDelivered>().subscribe(params);
-    final typing = __<TypingUseCase>().subscribe(Typing(
+    final typing = __<TypingUseCase>().subscribe(UserTyping(
       roomId: room.id,
       userId: '+',
     ));
@@ -769,7 +803,7 @@ class QiscusSDK {
 
   void subscribeUserOnlinePresence(String userId) {
     _authenticated
-        .andThen(__<PresenceUseCase>().subscribe(Presence(userId: userId)))
+        .andThen(__<PresenceUseCase>().subscribe(UserPresence(userId: userId)))
         .run();
   }
 
@@ -805,7 +839,8 @@ class QiscusSDK {
 
   void unsubscribeUserOnlinePresence(String userId) {
     _authenticated
-        .andThen(__<PresenceUseCase>().unsubscribe(Presence(userId: userId)))
+        .andThen(
+            __<PresenceUseCase>().unsubscribe(UserPresence(userId: userId)))
         .run();
   }
 

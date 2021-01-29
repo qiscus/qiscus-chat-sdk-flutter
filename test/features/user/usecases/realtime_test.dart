@@ -24,7 +24,7 @@ void main() {
       });
 
       test('publish typing data', () async {
-        var data = Typing(
+        var data = UserTyping(
           isTyping: true,
           roomId: 123,
           userId: 'userId',
@@ -34,7 +34,7 @@ void main() {
           isTyping: anyNamed('isTyping'),
           userId: anyNamed('userId'),
           roomId: anyNamed('roomId'),
-        )).thenReturn(right(null));
+        )).thenAnswer((_) => Future.value(null));
 
         var resp = await useCase.call(data).run();
         resp.fold((l) => fail(l.message), (r) {});
@@ -48,14 +48,12 @@ void main() {
       });
 
       test('subscribe typing', () async {
-        var param = Typing(roomId: 123, userId: '123');
+        var param = UserTyping(roomId: 123, userId: '123');
         final topic = TopicBuilder.typing(
           param.roomId.toString(),
           param.userId,
         );
-        when(service.subscribe(any)).thenReturn(Task(() async {
-          return right(null);
-        }));
+        when(service.subscribe(any)).thenAnswer((_) => Future.value(null));
 
         when(service.subscribeUserTyping(roomId: param.roomId)).thenAnswer((_) {
           return Stream.fromIterable([
@@ -69,11 +67,11 @@ void main() {
         var stream = await useCase.subscribe(param).run();
         await expectLater(
           stream,
-          emitsAnyOf(<Typing>[
-            Typing(userId: 'user-id-1', roomId: 1, isTyping: true),
-            Typing(userId: 'user-id-2', roomId: 1, isTyping: true),
-            Typing(userId: 'user-id-3', roomId: 1, isTyping: true),
-            Typing(userId: 'user-id-4', roomId: 1, isTyping: true),
+          emitsAnyOf(<UserTyping>[
+            UserTyping(userId: 'user-id-1', roomId: 1, isTyping: true),
+            UserTyping(userId: 'user-id-2', roomId: 1, isTyping: true),
+            UserTyping(userId: 'user-id-3', roomId: 1, isTyping: true),
+            UserTyping(userId: 'user-id-4', roomId: 1, isTyping: true),
           ]),
         );
 
@@ -92,7 +90,7 @@ void main() {
       });
 
       test('publish presence data successfully', () async {
-        var params = Presence(
+        var params = UserPresence(
           userId: 'user-id',
           lastSeen: DateTime.now(),
           isOnline: true,
@@ -102,7 +100,7 @@ void main() {
           isOnline: anyNamed('isOnline'),
           lastSeen: anyNamed('lastSeen'),
           userId: anyNamed('userId'),
-        )).thenAnswer((_) => right(null));
+        )).thenAnswer((_) => Future.value(null));
 
         var resp = await useCase.call(params).run();
         resp.fold((l) => fail(l.message), (r) {});
@@ -116,7 +114,7 @@ void main() {
       });
 
       test('subscribe presence data successfully', () async {
-        var params = Presence(
+        var params = UserPresence(
           userId: 'user-id',
           lastSeen: DateTime.now(),
           isOnline: true,
@@ -124,7 +122,7 @@ void main() {
         var topic = TopicBuilder.presence(params.userId);
         final date = DateTime.now();
 
-        when(service.subscribe(any)).thenReturn(Task.delay(() => right(null)));
+        when(service.subscribe(any)).thenAnswer((_) => Future.value(null));
         when(service.subscribeUserPresence(
           userId: anyNamed('userId'),
         )).thenAnswer((_) {

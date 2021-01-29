@@ -21,9 +21,7 @@ extension MqttClientX on MqttClient {
     return publish(topic, message);
   }
 
-  Stream<Output> subscribeEvent<Input, Output>(
-    MqttEventHandler<Input, Output> event,
-  ) async* {
+  Stream<O> subscribeEvent<O>(MqttEventHandler<O> event) async* {
     var topic = event.topic;
 
     await for (var data in forTopic(topic)) {

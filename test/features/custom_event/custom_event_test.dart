@@ -25,7 +25,7 @@ void main() {
     when(service.publishCustomEvent(
       roomId: anyNamed('roomId'),
       payload: anyNamed('payload'),
-    )).thenReturn(right<QError, void>(null));
+    )).thenAnswer((_) => Future.value(null));
 
     var resp = await useCase
         .call(CustomEvent(
@@ -49,8 +49,7 @@ void main() {
     };
     var topic = TopicBuilder.customEvent(roomId);
 
-    when(service.subscribe(any))
-        .thenAnswer((_) => Task(() async => right(null)));
+    when(service.subscribe(any)).thenAnswer((_) => Future.value(null));
     when(service.subscribeCustomEvent(roomId: anyNamed('roomId'))).thenAnswer(
         (_) => Stream.fromIterable(
             [CustomEvent(roomId: roomId, payload: payload)]));

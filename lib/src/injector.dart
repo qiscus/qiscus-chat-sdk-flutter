@@ -21,13 +21,17 @@ class Injector {
   }
 
   void setup() {
+    c.allowReassignment = true;
     _configure();
   }
 
-  void _configure() {
+  void configureCore() {
     // core
     singleton(() => Storage());
     factory_(() => Logger(resolve()));
+  }
+
+  void _configure() {
     singleton<Dio>(() => getDio(resolve(), resolve()));
     factory_<MqttClient>(() => getMqttClient(resolve()));
     singleton(() => AppConfigRepository(dio: resolve()));
@@ -105,5 +109,8 @@ class Injector {
     singleton(() => OnMessageRead(resolve()));
     singleton(() => OnMessageDeleted(resolve()));
     singleton(() => OnMessageUpdated(resolve()));
+
+    // custom event
+    singleton(() => CustomEventUseCase(resolve()));
   }
 }
