@@ -61,9 +61,10 @@ extension MqttClientX on MqttClient {
           .updates
           ?.expand((events) => events)
           ?.asyncMap((event) {
-        var _payload = event.payload as MqttPublishMessage;
-        var payload =
-            MqttPublishPayload.bytesToStringAsString(_payload.payload.message);
+        var p = event.payload as MqttPublishMessage;
+        var m = p.payload.message;
+        var payload = utf8.decode(m);
+
         return tuple2(event.topic, payload);
       });
     }

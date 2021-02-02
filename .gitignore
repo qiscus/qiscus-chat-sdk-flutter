@@ -19,3 +19,4 @@ doc/api/
 /example/
 /coverage/
 /bin/
+.DS_Store
