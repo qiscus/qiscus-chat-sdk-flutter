@@ -1,3 +1,8 @@
+# 1.0.9
+
+- add update message feature
+- fix not getting mqtt event after calling `clearUser` and then `setUser`
+
 # 1.0.8
 
 - fix not calling callback on successful operation
