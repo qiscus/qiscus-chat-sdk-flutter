@@ -1,3 +1,7 @@
+# 1.0.10
+
+- fix not decoding emoji correctly when receiving message containing emoji
+
 # 1.0.9
 
 - add update message feature
