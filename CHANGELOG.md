@@ -1,3 +1,7 @@
+# 1.0.11
+
+- fix not connecting to mqtt when using `setUserWithIdentityToken` as authentication method
+
 # 1.0.10
 
 - fix not decoding emoji correctly when receiving message containing emoji
