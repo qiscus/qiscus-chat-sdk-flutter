@@ -700,7 +700,11 @@ class QiscusSDK {
         .toCallback_((_, e) => callback(e));
   }
 
-  Task<Either<QError, void>> _subscribes(String token) {
+  Task<Either<QError, Tuple2<String, Account>>> taskIdErr(QError it) {
+    return Task(() async => left<QError, Tuple2<String, Account>>(it));
+  }
+
+  Task<Either<QError, void>> __subscribes(String token) {
     final params = TokenParams(token);
     final onMessageReceived = __<OnMessageReceived>();
     final realtimeService = __<IRealtimeService>();
@@ -712,6 +716,15 @@ class QiscusSDK {
         .andThen(task(
           () => realtimeService.subscribe(TopicBuilder.notification(token)),
         ));
+  }
+
+  Task<Either<QError, Tuple2<String, Account>>> _subscribes(
+      Either<QError, Tuple2<String, Account>> either) {
+    return either.fold(taskIdErr, (tuple) {
+      return __subscribes(tuple.value1).andThen(Task(() async {
+        return right<QError, Tuple2<String, Account>>(tuple);
+      }));
+    });
   }
 
   void setUser({
@@ -731,26 +744,9 @@ class QiscusSDK {
       extras: extras,
     );
 
-    var taskIdErr = (QError it) =>
-        Task(() async => left<QError, Tuple2<String, Account>>(it));
-
     authenticate(params)
-        .bind((either) {
-          return Task(() {
-            if (__<Storage>().isRealtimeEnabled) {
-              return __<IRealtimeService>().connect().then((_) => either);
-            } else {
-              return Future.value(either);
-            }
-          });
-        })
-        .bind((either) {
-          return either.fold(taskIdErr, (tuple) {
-            return _subscribes(tuple.value1).andThen(Task(() async {
-              return right<QError, Tuple2<String, Account>>(tuple);
-            }));
-          });
-        })
+        .bind((either) => _connectMqtt(either))
+        .bind(_subscribes)
         .rightMap((it) => it.value2.toModel())
         .toCallback_(callback);
   }
@@ -759,10 +755,25 @@ class QiscusSDK {
     @required String token,
     @required void Function(QAccount, QError) callback,
   }) {
-    __<AuthenticateUserWithTokenUseCase>()
-        .call(AuthenticateWithTokenParams(token))
-        .rightMap((user) => user.toModel())
+    var authenticate = __<AuthenticateUserWithTokenUseCase>();
+    var params = AuthenticateWithTokenParams(token);
+
+    authenticate(params)
+        .map((either) => either.map((account) => tuple2(token, account)))
+        .bind((either) => _connectMqtt(either))
+        .bind(_subscribes)
+        .rightMap((data) => data.value2.toModel())
         .toCallback_(callback);
+  }
+
+  Task<T> _connectMqtt<T>(T it) {
+    return Task<T>(() async {
+      if (__<Storage>().isRealtimeEnabled) {
+        await __<IRealtimeService>().connect();
+        return it;
+      }
+      return it;
+    });
   }
 
   void unsubscribeChatRoom(QChatRoom room) {
