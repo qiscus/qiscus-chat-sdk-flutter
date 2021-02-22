@@ -7,7 +7,12 @@ class AppConfigUseCase
   final Storage _storage;
 
   @override
-  Task<Either<QError, AppConfig>> call(_) {
-    return repository.getConfig().tap((c) => c.hydrateStorage(_storage));
+  Future<Either<QError, AppConfig>> call(_) async {
+    return repository.getConfig().then((it) {
+      it.hydrateStorage(_storage);
+      return Either.right(it);
+    }, onError: (Object error) {
+      return Either.left(QError(error.toString()));
+    });
   }
 }

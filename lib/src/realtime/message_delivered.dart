@@ -9,13 +9,13 @@ class MqttMessageDelivered extends IMqttReceive<Message> {
 
   @override
   Stream<Message> receive(Tuple2<String, String> data) async* {
-    var payload = data.payload.split(':');
-    var commentId = optionOf(payload[0]).map((it) => int.parse(it));
-    var commentUniqueId = optionOf(payload[1]);
+    var payload = data.second.split(':');
+    var commentId = Option.of(payload[0]).map((it) => int.parse(it));
+    var commentUniqueId = Option.of(payload[1]);
     yield Message(
       id: commentId,
       uniqueId: commentUniqueId,
-      chatRoomId: some(roomId).map((it) => int.parse(it)),
+      chatRoomId: Option.some(roomId).map((it) => int.parse(it)),
     );
   }
 }

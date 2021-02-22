@@ -9,28 +9,28 @@ class AuthenticateUserUseCase extends UseCase<IUserRepository,
       : super(repository);
 
   @override
-  Task<Either<QError, Tuple2<String, Account>>> call(AuthenticateParams p) {
-    return repository
-        .authenticate(
+  Future<Either<QError, Tuple2<String, Account>>> call(
+    AuthenticateParams p,
+  ) async {
+    var resp = await repository.authenticate(
       userId: p.userId,
       userKey: p.userKey,
       name: p.name,
       avatarUrl: p.avatarUrl,
       extras: p.extras,
-    )
-        .tap(
-      (resp) {
-        var token = resp.value1;
-        var user = resp.value2;
-        _storage
-          ..token = token
-          ..currentUser = user
-          ..lastMessageId = user.lastMessageId //
-              .getOrElse(() => _storage.lastMessageId)
-          ..lastEventId = user.lastEventId //
-              .getOrElse(() => _storage.lastEventId);
-      },
     );
+    resp.map((it) {
+      var token = it.first;
+      var user = it.second;
+      _storage
+        ..token = token
+        ..currentUser = user
+        ..lastMessageId =
+            user.lastMessageId.getOrElse(() => _storage.lastMessageId)
+        ..lastEventId = user.lastEventId.getOrElse(() => _storage.lastEventId);
+    });
+
+    return resp;
   }
 }
 

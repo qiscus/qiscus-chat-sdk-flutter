@@ -18,52 +18,41 @@ mixin SubscriptionMixin<Service extends IRealtimeService,
     _subscriptions.clear();
   }
 
-  Task<void> unsubscribe(Params params) {
-    var removeSubscription =
-        Task(() => _subscriptions.remove(params)?.cancel());
+  Future<void> unsubscribe(Params params) {
+    var removeSubscription = () => _subscriptions.remove(params)?.cancel();
     return topic(params)
-        .map((it) => Task(() => repository.unsubscribe(it)))
-        .map((it) => it.andThen(removeSubscription))
-        .getOrElse(() => Task(() async {}));
+        .map((it) => repository.unsubscribe(it))
+        .map((_) => removeSubscription())
+        .getOrElse(() => Future.value(null));
   }
 
-  Task<Stream<Response>> subscribe(Params params) {
-    var listen = () => mapStream(params).listen(_controller.sink.add);
+  Stream<Response> subscribe(Params params) async* {
+    var subs = () => mapStream(params).listen(_controller.sink.add);
+    var ifAbsent = () => Future.value(_subscriptions.putIfAbsent(params, subs))
+        .then((_) => _stream);
+    var ifEmpty = () => topic(params)
+        .map((t) => repository.subscribe(t))
+        .map((_) => ifAbsent())
+        .getOrElse(() => ifAbsent());
 
-    var putIfAbsent =
-        Task(() async => _subscriptions.putIfAbsent(params, listen))
-            .andThen(Task(() async => _stream));
+    var stream = await Option.of(_subscriptions[params])
+        .map((_) => Future.value(_stream))
+        .getOrElse(ifEmpty);
 
-    var orIfEmpty = () => topic(params)
-        .map((topic) => repository.subscribe(topic))
-        .map((_) => putIfAbsent)
-        .getOrElse(() => putIfAbsent);
-
-    return _subscriptions
-        .getValue(params)
-        .map((_) => Task(() async => _stream))
-        .getOrElse(orIfEmpty);
+    yield* stream;
   }
 
-  Task<StreamSubscription<Response>> listen(
+  StreamSubscription<Response> listen(
     void Function(Response) onResponse, {
     Function onError,
     bool cancelOnError,
     void Function() onDone,
   }) {
-    return Task(() async {
-      return _stream.listen(
-        onResponse,
-        onError: onError,
-        cancelOnError: cancelOnError,
-        onDone: onDone,
-      );
-    });
-  }
-}
-
-extension HashMapX<Key, Value> on HashMap<Key, Value> {
-  Option<Value> getValue(Key key) {
-    return optionOf(this[key]);
+    return _stream.listen(
+      onResponse,
+      onError: onError,
+      cancelOnError: cancelOnError,
+      onDone: onDone,
+    );
   }
 }

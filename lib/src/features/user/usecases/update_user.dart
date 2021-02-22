@@ -19,17 +19,20 @@ class UpdateUserUseCase
       : super(repository);
 
   @override
-  Task<Either<QError, Account>> call(UpdateUserParams p) {
-    return repository
-        .updateUser(
-          name: p.name,
-          avatarUrl: p.avatarUrl,
-          extras: p.extras,
-        )
-        .tap((user) => _storage.currentUser = _storage.currentUser.copy(
-              name: user.name ?? immutable,
-              avatarUrl: user.avatarUrl ?? immutable,
-              extras: user.extras ?? immutable,
-            ));
+  Future<Either<QError, Account>> call(UpdateUserParams p) async {
+    var resp = await repository.updateUser(
+      name: p.name,
+      avatarUrl: p.avatarUrl,
+      extras: p.extras,
+    );
+    resp.map((user) {
+      _storage.currentUser = _storage.currentUser.copy(
+        name: user.name ?? immutable,
+        avatarUrl: user.avatarUrl ?? immutable,
+        extras: user.extras ?? immutable,
+      );
+    });
+
+    return resp;
   }
 }

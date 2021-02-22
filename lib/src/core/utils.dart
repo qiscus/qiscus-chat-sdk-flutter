@@ -34,24 +34,22 @@ Stream<Out> streamify<Out>(
   yield* controller.stream;
 }
 
-Task<Either<QError, T>> task<T>(Future<T> Function() cb) {
-  return Task(cb).attempt().leftMapToQError();
-}
-
 Option<Map<String, dynamic>> decodeJson(Object json) {
-  return optionOf(json).bind((it) {
-    if (it is Map && it.isEmpty) return none<Map<String, dynamic>>();
-    if (it is Map && it.isNotEmpty) return some(it as Map<String, dynamic>);
-
-    if (it is String && it.isEmpty) return none<Map<String, dynamic>>();
-    if (it is String && it.isNotEmpty) {
-      return catching(() => jsonDecode(it) as Map<String, dynamic>)
-          .toOption()
-          .bind((it) => optionOf(it).bind<Map<String, dynamic>>((it) {
-                if (it.isEmpty) return none();
-                return some(it);
-              }));
+  return Option.of(json).flatMap((it) {
+    if (it is Map && it.isEmpty) return Option.none();
+    if (it is Map && it.isNotEmpty) {
+      return Option.some(it as Map<String, dynamic>);
     }
-    return none<Map<String, dynamic>>();
+
+    if (it is String && it.isEmpty) return Option.none();
+    if (it is String && it.isNotEmpty) {
+      return Either.tryCatch(() => jsonDecode(it) as Map<String, dynamic>)
+          .join((l) => Option.none(), (r) => Option.some(r.value))
+          .flatMap((it) => Option.of(it as Map<String, dynamic>))
+          .flatMap(
+            (it) => it is Map && it.isEmpty ? Option.none() : Option.some(it),
+          );
+    }
+    return Option.none();
   });
 }

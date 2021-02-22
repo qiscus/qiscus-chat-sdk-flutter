@@ -8,16 +8,18 @@ class AuthenticateUserWithTokenUseCase
       : super(repository);
 
   @override
-  Task<Either<QError, Account>> call(AuthenticateWithTokenParams p) {
-    return repository
-        .authenticateWithToken(identityToken: p.identityToken)
-        .tap((res) => _s.currentUser = res.value2)
-        .tap((res) => _s.token = res.value1)
-        .tap((res) => res.value2.lastEventId.do_((id) => _s.lastEventId = id))
-        .tap((res) => res.value2.lastMessageId.do_(
-              (id) => _s.lastMessageId = id,
-            ))
-        .rightMap((res) => res.value2);
+  Future<Either<QError, Account>> call(AuthenticateWithTokenParams p) async {
+    var it =
+        await repository.authenticateWithToken(identityToken: p.identityToken);
+
+    return it.map((it) {
+      _s.currentUser = it.second;
+      _s.token = it.first;
+      _s.lastEventId = it.second.lastEventId.getOrElse(() => _s.lastEventId);
+      _s.lastMessageId =
+          it.second.lastMessageId.getOrElse(() => _s.lastMessageId);
+      return it.second;
+    });
   }
 }
 

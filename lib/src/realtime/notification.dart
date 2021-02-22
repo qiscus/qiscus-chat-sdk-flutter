@@ -9,7 +9,7 @@ class MqttNotification extends IMqttReceive<Notification> {
 
   @override
   Stream<Notification> receive(Tuple2<String, String> event) async* {
-    var json = jsonDecode(event.payload) as Map<String, dynamic>;
+    var json = jsonDecode(event.second) as Map<String, dynamic>;
     var actionType = json['action_topic'] as String;
     var payload = json['payload'] as Map<String, dynamic>;
 

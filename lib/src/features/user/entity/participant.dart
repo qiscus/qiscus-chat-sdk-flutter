@@ -35,7 +35,7 @@ class Participant {
   final String id;
   final Option<String> name, avatarUrl;
   final Option<int> lastReadMessageId, lastReceivedMessageId;
-  final Option<IMap<String, dynamic>> extras;
+  final Option<Map<String, dynamic>> extras;
   Participant._({
     @required this.id,
     this.name,
@@ -51,29 +51,29 @@ class Participant {
     Option<String> avatarUrl,
     Option<int> lastReadMessageId,
     Option<int> lastReceivedMessageId,
-    Option<IMap<String, dynamic>> extras,
+    Option<Map<String, dynamic>> extras,
   }) {
     return Participant._(
       id: id,
-      name: name ?? none(),
-      avatarUrl: avatarUrl ?? none(),
-      lastReadMessageId: lastReadMessageId ?? none(),
-      lastReceivedMessageId: lastReceivedMessageId ?? none(),
-      extras: extras ?? none(),
+      name: name ?? Option.none(),
+      avatarUrl: avatarUrl ?? Option.none(),
+      lastReadMessageId: lastReadMessageId ?? Option.none(),
+      lastReceivedMessageId: lastReceivedMessageId ?? Option.none(),
+      extras: extras ?? Option.none(),
     );
   }
 
   factory Participant.fromJson(Map<String, dynamic> json) {
     return Participant(
       id: json['email'] as String,
-      name: optionOf(json['username'] as String),
-      avatarUrl: optionOf(json['avatar_url'] as String),
-      lastReceivedMessageId: optionOf(
+      name: Option.of(json['username'] as String),
+      avatarUrl: Option.of(json['avatar_url'] as String),
+      lastReceivedMessageId: Option.of(
         json['last_received_comment_id'] as String,
       ).map((it) => int.tryParse(it)),
-      lastReadMessageId: optionOf(json['last_read_comment_id'] as String)
+      lastReadMessageId: Option.of(json['last_read_comment_id'] as String)
           .map((it) => int.tryParse(it)),
-      extras: optionOf(json['extras'] as Object).bind(decodeJson).map(imap),
+      extras: Option.of(json['extras'] as Object).flatMap(decodeJson),
     );
   }
 
@@ -83,13 +83,6 @@ class Participant {
         avatarUrl: avatarUrl.toNullable(),
         lastReadMessageId: lastReadMessageId.toNullable(),
         lastReceivedMessageId: lastReceivedMessageId.toNullable(),
-        extras: extras.map((it) => it.toMap()).toNullable(),
+        extras: extras.toNullable(),
       );
-
-  static final participantOrder = order<Participant>((p1, p2) {
-    return comparableOrder<String>().order(
-      p1.name.getOrElse(() => ''),
-      p2.name.getOrElse(() => ''),
-    );
-  });
 }

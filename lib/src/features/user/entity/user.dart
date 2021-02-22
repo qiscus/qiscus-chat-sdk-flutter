@@ -23,7 +23,7 @@ class QUser {
 
 class User {
   final Option<String> id, name, avatarUrl;
-  final Option<IMap<String, dynamic>> extras;
+  final Option<Map<String, dynamic>> extras;
   User._({
     @required this.id,
     this.name,
@@ -34,29 +34,31 @@ class User {
     Option<String> id,
     Option<String> name,
     Option<String> avatarUrl,
-    Option<IMap<String, dynamic>> extras,
+    Option<Map<String, dynamic>> extras,
   }) {
     return User._(
       id: id,
-      name: name ?? none(),
-      avatarUrl: avatarUrl ?? none(),
-      extras: extras ?? none(),
+      name: name ?? Option.none(),
+      avatarUrl: avatarUrl ?? Option.none(),
+      extras: extras ?? Option.none(),
     );
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: optionOf(json['email'] as String),
-      name: optionOf(json['username'] as String),
-      avatarUrl: optionOf(json['avatar_url'] as String),
-      extras: optionOf(json['extras'] as Object).bind(decodeJson).map(imap),
+      id: Option.of(json['email'] as String),
+      name: Option.of(json['username'] as String),
+      avatarUrl: Option.of(json['avatar_url'] as String),
+      extras: Option.of(json['extras'] as Object).flatMap(decodeJson),
     );
   }
 
-  QUser toModel() => QUser(
+  QUser toModel() {
+    return QUser(
         id: id.toNullable(),
         name: name.toNullable(),
         avatarUrl: avatarUrl.toNullable(),
-        extras: extras.map((it) => it.toMap()).toNullable(),
+        extras: extras.toNullable(),
       );
+  }
 }

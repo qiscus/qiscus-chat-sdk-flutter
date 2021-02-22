@@ -4,12 +4,12 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 
 import 'features/realtime/realtime.dart';
 import 'features/user/user.dart';

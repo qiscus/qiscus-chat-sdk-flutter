@@ -17,7 +17,7 @@ class SyncServiceImpl implements IRealtimeService {
   bool get isConnected => true;
   int get _messageId => storage.lastMessageId ?? 0;
   int get _eventId => storage.lastEventId ?? 0;
-  Stream<Unit> get _interval$ => interval.interval();
+  Stream<void> get _interval$ => interval.interval();
 
   void log(String str) => logger.log('SyncServiceImpl::- $str');
 
@@ -28,8 +28,8 @@ class SyncServiceImpl implements IRealtimeService {
           )).asStream())
       .flatten()
       .tap((_) => log('QiscusSyncAdapter: synchronize-event'))
-      .map((data) => data.value2)
-      .expand(id)
+      .map((data) => data.second)
+      .expand((it) => it)
       .asBroadcastStream();
 
   Stream<Message> get _sync$ => _interval$
@@ -37,8 +37,8 @@ class SyncServiceImpl implements IRealtimeService {
       .flatten()
       .tap(_saveLastId)
       .tap((_) => log('QiscusSyncAdapter: synchronize'))
-      .map((it) => it.value2)
-      .expand(id)
+      .map((it) => it.second)
+      .expand((it) => it)
       .asBroadcastStream();
 
   Stream<MessageReadEvent> get _messageRead$ => _syncEvent$ //
@@ -62,11 +62,11 @@ class SyncServiceImpl implements IRealtimeService {
   @override
   Stream<Message> subscribeMessageRead({int roomId}) {
     return _messageRead$.asyncMap((event) => Message(
-          id: event.messageId.toOption(),
-          uniqueId: event.messageUniqueId.toOption(),
-          chatRoomId: event.roomId.toOption(),
-          sender: some(User(
-            id: event.userId.toOption(),
+          id: Option.of(event.messageId),
+          uniqueId: Option.of(event.messageUniqueId),
+          chatRoomId: Option.of(event.roomId),
+          sender: Option.of(User(
+            id: Option.of(event.userId),
           )),
         ));
   }
@@ -79,25 +79,21 @@ class SyncServiceImpl implements IRealtimeService {
   @override
   Stream<ChatRoom> subscribeRoomCleared() {
     return _roomCleared$.map((event) => ChatRoom(
-          id: event.roomId.toOption(),
+          id: Option.of(event.roomId),
         ));
   }
 
   @override
-  Task<Either<QError, Unit>> synchronize([int lastMessageId]) {
-    return task(() async {
-      var request = SynchronizeRequest(lastMessageId: lastMessageId);
-      return dio.sendApiRequest(request).then(request.format);
-    }).rightMap((_) => unit);
+  Future<Either<QError, void>> synchronize([int lastMessageId]) {
+    var request = SynchronizeRequest(lastMessageId: lastMessageId);
+    return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Task<Either<QError, Unit>> synchronizeEvent([String eventId]) {
-    return task(() async {
-      var request =
-          SynchronizeEventRequest(lastEventId: int.tryParse(eventId) ?? 0);
-      return dio.sendApiRequest(request).then(request.format);
-    }).rightMap((_) => unit);
+  Future<Either<QError, void>> synchronizeEvent([String eventId]) {
+    var request =
+        SynchronizeEventRequest(lastEventId: int.tryParse(eventId) ?? 0);
+    return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   Stream<Message> _synchronize([
@@ -125,20 +121,22 @@ class SyncServiceImpl implements IRealtimeService {
 
   @override
   Stream<Message> subscribeMessageDeleted() {
-    return _messageDeleted$.map((event) => Message(
-          chatRoomId: event.roomId.toOption(),
-          uniqueId: event.messageUniqueId.toOption(),
-        ));
+    return _messageDeleted$.map(
+      (event) => Message(
+        chatRoomId: Option.of(event.roomId),
+        uniqueId: Option.of(event.messageUniqueId),
+      ),
+    );
   }
 
   @override
   Stream<Message> subscribeMessageDelivered({int roomId}) {
     return _messageDelivered$.map((event) {
       return Message(
-        chatRoomId: event.roomId.toOption(),
-        id: event.messageId.toOption(),
-        uniqueId: event.messageUniqueId.toOption(),
-        sender: User(id: event.userId.toOption()).toOption(),
+        chatRoomId: Option.of(event.roomId),
+        id: Option.of(event.messageId),
+        uniqueId: Option.of(event.messageUniqueId),
+        sender: Option.of(User(id: Option.of(event.userId))),
       );
     });
   }
@@ -204,8 +202,8 @@ class SyncServiceImpl implements IRealtimeService {
 // endregion
 
   void _saveLastId(Tuple2<int, List<Message>> res) {
-    if (res.value1 > storage.lastMessageId) {
-      storage.lastMessageId = res.value1;
+    if (res.first > storage.lastMessageId) {
+      storage.lastMessageId = res.first;
     }
   }
 }

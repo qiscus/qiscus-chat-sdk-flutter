@@ -22,7 +22,7 @@ class Interval {
     if (!_stopped) _stopped = true;
   }
 
-  Stream<Unit> interval([Stream<Duration> interval]) async* {
+  Stream<void> interval([Stream<Duration> interval]) async* {
     var accumulator = 0.milliseconds;
     var interval$ = interval ??
         Stream.periodic(
@@ -34,7 +34,7 @@ class Interval {
       accumulator += it;
       if (!_stopped && accumulator > _interval) {
         accumulator = 0.milliseconds;
-        yield unit;
+        yield null;
       }
     }
   }

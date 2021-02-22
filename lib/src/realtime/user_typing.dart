@@ -16,8 +16,8 @@ class MqttUserTyping
 
   @override
   Stream<UserTyping> receive(Tuple2<String, String> message) async* {
-    var payload = message.value2.toString();
-    var topic = message.value1.split('/');
+    var payload = message.second.toString();
+    var topic = message.first.split('/');
     var roomId = int.parse(topic[1]);
     var userId = topic[3];
     yield UserTyping(

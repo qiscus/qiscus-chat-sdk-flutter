@@ -10,7 +10,7 @@ class MqttRoomCleared extends IMqttReceive<int> {
 
   @override
   Stream<int> receive(Tuple2<String, String> event) async* {
-    var json = jsonDecode(event.payload) as Map<String, dynamic>;
+    var json = jsonDecode(event.second) as Map<String, dynamic>;
     var actionType = json['action_topic'] as String;
     var payload = json['payload'] as Map<String, dynamic>;
 

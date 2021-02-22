@@ -9,7 +9,7 @@ class MqttMessageReceived extends IMqttReceive<Message> {
 
   @override
   Stream<Message> receive(Tuple2<String, String> data) async* {
-    var message = jsonDecode(data.payload) as Map<String, dynamic>;
+    var message = jsonDecode(data.second) as Map<String, dynamic>;
     yield Message.fromJson(message);
   }
 }

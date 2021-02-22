@@ -228,7 +228,7 @@ class MqttServiceImpl implements IRealtimeService {
     return _forTopic(TopicBuilder.channelMessageNew(_s.appId, uniqueId))
         .asyncMap((event) {
       // appId/channelId/c;
-      var messageData = event.payload.toString();
+      var messageData = event.second.toString();
       var messageJson = jsonDecode(messageData) as Map<String, dynamic>;
       return Message.fromJson(messageJson);
     });
@@ -243,9 +243,9 @@ class MqttServiceImpl implements IRealtimeService {
   Stream<Message> subscribeMessageDeleted() {
     return _onEvent(MqttMessageDeleted(token: _s.token))?.map((tuple) {
       return Message(
-        id: none(),
-        chatRoomId: some(tuple.value1),
-        uniqueId: some(tuple.value2),
+        id: Option.none(),
+        chatRoomId: Option.some(tuple.first),
+        uniqueId: Option.some(tuple.second),
       );
     });
   }
@@ -253,20 +253,20 @@ class MqttServiceImpl implements IRealtimeService {
   @override
   Stream<Message> subscribeMessageDelivered({int roomId}) {
     return _forTopic(TopicBuilder.messageDelivered(roomId.toString()))
-        ?.where((it) => int.parse(it.topic.split('/')[1]) == roomId)
+        ?.where((it) => int.parse(it.first.split('/')[1]) == roomId)
         ?.asyncMap((msg) {
       // r/{roomId}/{roomId}/{userId}/d
       // {commentId}:{commentUniqueId}
-      var payload = msg.payload.toString().split(':');
-      var commentId = optionOf(payload[0]);
-      var commentUniqueId = optionOf(payload[1]);
-      var userId = optionOf(msg.topic.split('/')[3]);
-      var roomId = optionOf(msg.topic.split('/')[1]);
+      var payload = msg.second.toString().split(':');
+      var commentId = Option.of(payload[0]);
+      var commentUniqueId = Option.of(payload[1]);
+      var userId = Option.of(msg.first.split('/')[3]);
+      var roomId = Option.of(msg.first.split('/')[1]);
 
       return Message(
         id: commentId.map((a) => int.parse(a)),
         uniqueId: commentUniqueId,
-        sender: some(User(
+        sender: Option.some(User(
           id: userId,
         )),
         chatRoomId: roomId.map(int.parse),
@@ -292,7 +292,7 @@ class MqttServiceImpl implements IRealtimeService {
   @override
   Stream<ChatRoom> subscribeRoomCleared() async* {
     yield* _onEvent(MqttRoomCleared(token: _s.token))
-        .map((it) => ChatRoom(id: some(it)));
+        .map((it) => ChatRoom(id: Option.some(it)));
   }
 
   @override
@@ -311,13 +311,13 @@ class MqttServiceImpl implements IRealtimeService {
   }
 
   @override
-  Task<Either<QError, Unit>> synchronize([int lastMessageId]) {
-    return Task.delay(() => left(QError('Not implemented')));
+  Future<Either<QError, void>> synchronize([int lastMessageId]) async {
+    return Either.left(QError('Not implemented'));
   }
 
   @override
-  Task<Either<QError, Unit>> synchronizeEvent([String lastEventId]) {
-    return Task.delay(() => left(QError('Not implemented')));
+  Future<Either<QError, void>> synchronizeEvent([String lastEventId]) async {
+    return Either.left(QError('Not implemented'));
   }
 
   @override
@@ -427,5 +427,5 @@ class RoomCleared {
     this.roomId,
   });
 
-  ChatRoom toResponse() => ChatRoom(id: some(roomId));
+  ChatRoom toResponse() => ChatRoom(id: Option.some(roomId));
 }

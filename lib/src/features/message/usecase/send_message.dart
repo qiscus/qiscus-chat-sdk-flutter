@@ -10,15 +10,15 @@ class SendMessageUseCase
   SendMessageUseCase(MessageRepository repository) : super(repository);
 
   @override
-  Task<Either<QError, Message>> call(params) {
+  Future<Either<QError, Message>> call(params) async {
     if (params.message.chatRoomId == null) {
-      return Task(() async => left(QError('`roomId` can not be null')));
+      return Either.left(QError('`roomId` can not be null'));
     }
     if (params.message.text == null) {
-      return Task(() async => left(QError('`text` can not be null')));
+      return Either.left(QError('`text` can not be null'));
     }
     if (params.message.type == null) {
-      return Task(() async => left(QError('`type` can not be null')));
+      return Either.left(QError('`type` can not be null'));
     }
 
     return repository.sendMessage(

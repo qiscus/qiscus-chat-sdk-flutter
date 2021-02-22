@@ -4,11 +4,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:async/async.dart';
-import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+import '../../type_utils.dart';
 import 'package:qiscus_chat_sdk/src/features/custom_event/custom_event.dart';
 import 'package:qiscus_chat_sdk/src/features/message/message.dart';
 import 'package:qiscus_chat_sdk/src/features/room/room.dart';
