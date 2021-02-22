@@ -12,7 +12,7 @@ class RegisterDeviceTokenUseCase
   RegisterDeviceTokenUseCase(IUserRepository repository) : super(repository);
 
   @override
-  Task<Either<QError, bool>> call(DeviceTokenParams p) {
+  Future<Either<QError, bool>> call(DeviceTokenParams p) {
     return repository.registerDeviceToken(
       token: p.token,
       isDevelopment: p.isDevelopment,
@@ -25,7 +25,7 @@ class UnregisterDeviceTokenUseCase
   UnregisterDeviceTokenUseCase(IUserRepository repository) : super(repository);
 
   @override
-  Task<Either<QError, bool>> call(DeviceTokenParams p) {
+  Future<Either<QError, bool>> call(DeviceTokenParams p) {
     return repository.unregisterDeviceToken(
       token: p.token,
       isDevelopment: p.isDevelopment,

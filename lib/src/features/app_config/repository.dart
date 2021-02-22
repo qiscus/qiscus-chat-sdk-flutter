@@ -5,11 +5,8 @@ class AppConfigRepository {
 
   final Dio dio;
 
-  Task<Either<QError, AppConfig>> getConfig() {
-    return task(() {
-      final request = GetConfigRequest();
-
-      return dio.sendApiRequest(request).then(request.format);
-    });
+  Future<AppConfig> getConfig() {
+    final request = GetConfigRequest();
+    return dio.sendApiRequest(request).then(request.format);
   }
 }

@@ -1,9 +1,9 @@
 library qiscus_chat_sdk.usecase.app_config;
 
-import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 
+import '../../type_utils.dart';
 import '../../core.dart';
 
 part 'api.dart';

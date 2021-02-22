@@ -10,10 +10,10 @@ class CustomEventUseCase extends UseCase<IRealtimeService, void, CustomEvent>
       _instance ??= CustomEventUseCase._(s);
 
   @override
-  Task<Either<QError, void>> call(CustomEvent p) {
-    return task(
-      () => repository.publishCustomEvent(roomId: p.roomId, payload: p.payload),
-    );
+  Future<Either<QError, void>> call(CustomEvent p) {
+    return repository
+        .publishCustomEvent(roomId: p.roomId, payload: p.payload)
+        .toEither();
   }
 
   @override
@@ -22,6 +22,7 @@ class CustomEventUseCase extends UseCase<IRealtimeService, void, CustomEvent>
   }
 
   @override
-  Option<String> topic(RoomIdParams p) =>
-      some(TopicBuilder.customEvent(p.roomId));
+  Option<String> topic(RoomIdParams p) {
+    return Option.some(TopicBuilder.customEvent(p.roomId));
+  }
 }

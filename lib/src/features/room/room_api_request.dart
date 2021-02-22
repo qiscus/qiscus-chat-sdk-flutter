@@ -219,7 +219,7 @@ class CreateGroupRequest extends IApiRequest<ChatRoom> {
   }
 }
 
-class ClearMessagesRequest extends IApiRequest<Unit> {
+class ClearMessagesRequest extends IApiRequest<void> {
   ClearMessagesRequest({
     @required this.roomUniqueIds,
   });
@@ -232,7 +232,7 @@ class ClearMessagesRequest extends IApiRequest<Unit> {
       };
 
   @override
-  format(_) => unit;
+  void format(_) => null;
 }
 
 class GetRoomInfoRequest extends IApiRequest<List<ChatRoom>> {

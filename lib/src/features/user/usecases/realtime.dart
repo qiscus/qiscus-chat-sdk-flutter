@@ -9,13 +9,14 @@ class TypingUseCase extends UseCase<IRealtimeService, void, UserTyping>
   static TypingUseCase _instance;
 
   @override
-  Task<Either<QError, void>> call(params) {
-    return task(
-      () => repository.publishTyping(
+  Future<Either<QError, void>> call(params) {
+    return repository
+        .publishTyping(
           isTyping: params.isTyping,
           userId: params.userId,
-          roomId: params.roomId),
-    );
+          roomId: params.roomId,
+        )
+        .toEither();
   }
 
   @override
@@ -28,8 +29,9 @@ class TypingUseCase extends UseCase<IRealtimeService, void, UserTyping>
           ));
 
   @override
-  Option<String> topic(UserTyping p) =>
-      some(TopicBuilder.typing(p.roomId.toString(), p.userId));
+  Option<String> topic(UserTyping p) {
+    return Option.some(TopicBuilder.typing(p.roomId.toString(), p.userId));
+  }
 }
 
 @immutable
@@ -42,25 +44,29 @@ class PresenceUseCase extends UseCase<IRealtimeService, void, UserPresence>
       _instance ??= PresenceUseCase._(service);
 
   @override
-  Task<Either<QError, void>> call(params) {
-    return task(() {
-      return repository.publishPresence(
-        isOnline: params.isOnline,
-        lastSeen: params.lastSeen,
-        userId: params.userId,
-      );
-    });
+  Future<Either<QError, void>> call(params) {
+    return repository
+        .publishPresence(
+          isOnline: params.isOnline,
+          lastSeen: params.lastSeen,
+          userId: params.userId,
+        )
+        .toEither();
   }
 
   @override
-  Stream<UserPresence> mapStream(UserPresence params) => repository
-      .subscribeUserPresence(userId: params.userId)
-      .asyncMap((res) => UserPresence(
-            userId: res.userId,
-            lastSeen: res.lastSeen,
-            isOnline: res.isOnline,
-          ));
+  Stream<UserPresence> mapStream(UserPresence params) {
+    return repository
+        .subscribeUserPresence(userId: params.userId)
+        .asyncMap((res) => UserPresence(
+              userId: res.userId,
+              lastSeen: res.lastSeen,
+              isOnline: res.isOnline,
+            ));
+  }
 
   @override
-  Option<String> topic(UserPresence p) => some(TopicBuilder.presence(p.userId));
+  Option<String> topic(UserPresence p) {
+    return Option.some(TopicBuilder.presence(p.userId));
+  }
 }

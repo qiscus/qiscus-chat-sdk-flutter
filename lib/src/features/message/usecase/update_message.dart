@@ -5,7 +5,7 @@ class UpdateMessageUseCase
   UpdateMessageUseCase(MessageRepository repository) : super(repository);
 
   @override
-  Task<Either<QError, Message>> call(params) {
+  Future<Either<QError, Message>> call(params) {
     return repository.updateMessage(message: params.message);
   }
 }

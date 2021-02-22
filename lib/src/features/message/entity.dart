@@ -101,7 +101,7 @@ class Message {
   final Option<String> uniqueId, text;
   final Option<QMessageStatus> status;
   final Option<QMessageType> type;
-  final Option<IMap<String, dynamic>> extras, payload;
+  final Option<Map<String, dynamic>> extras, payload;
   final Option<User> sender;
   final Option<DateTime> timestamp;
 
@@ -127,35 +127,35 @@ class Message {
     Option<String> text,
     Option<QMessageStatus> status,
     Option<QMessageType> type,
-    Option<IMap<String, dynamic>> extras,
-    Option<IMap<String, dynamic>> payload,
+    Option<Map<String, dynamic>> extras,
+    Option<Map<String, dynamic>> payload,
     Option<User> sender,
     Option<DateTime> timestamp,
   }) =>
       Message._(
-        id: id ?? none(),
-        chatRoomId: chatRoomId ?? none(),
-        previousMessageId: previousMessageId ?? none(),
-        uniqueId: uniqueId ?? none(),
-        text: text ?? none(),
-        status: status ?? none(),
-        type: type ?? none(),
-        extras: extras ?? none(),
-        payload: payload ?? none(),
-        sender: sender ?? none(),
-        timestamp: timestamp ?? none(),
+        id: id ?? Option.none(),
+        chatRoomId: chatRoomId ?? Option.none(),
+        previousMessageId: previousMessageId ?? Option.none(),
+        uniqueId: uniqueId ?? Option.none(),
+        text: text ?? Option.none(),
+        status: status ?? Option.none(),
+        type: type ?? Option.none(),
+        extras: extras ?? Option.none(),
+        payload: payload ?? Option.none(),
+        sender: sender ?? Option.none(),
+        timestamp: timestamp ?? Option.none(),
       );
 
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
-      id: optionOf(json['id'] as int),
-      chatRoomId: optionOf(json['room_id'] as int),
-      previousMessageId: optionOf(
+      id: Option.of(json['id'] as int),
+      chatRoomId: Option.of(json['room_id'] as int),
+      previousMessageId: Option.of(
         json['comment_before_id'] as int,
       ),
-      uniqueId: optionOf(json['unique_temp_id'] as String),
-      text: optionOf(json['message'] as String),
-      status: optionOf(json['status'] as String).map((status) {
+      uniqueId: Option.of(json['unique_temp_id'] as String),
+      text: Option.of(json['message'] as String),
+      status: Option.of(json['status'] as String).map((status) {
         switch (status) {
           case 'read':
             return QMessageStatus.read;
@@ -166,7 +166,7 @@ class Message {
             return QMessageStatus.sent;
         }
       }),
-      type: optionOf(json['type'] as String).map((type) {
+      type: Option.of(json['type'] as String).map((type) {
         switch (type) {
           case 'custom':
             return QMessageType.custom;
@@ -177,18 +177,18 @@ class Message {
             return QMessageType.text;
         }
       }),
-      extras: optionOf(json['extras'] as Object).bind(decodeJson).map(imap),
-      payload: optionOf(json['payload'] as Object).bind(decodeJson).map(imap),
-      timestamp: optionOf(json['unix_nano_timestamp'] as int).map(
+      extras: Option.of(json['extras'] as Object).flatMap(decodeJson),
+      payload: Option.of(json['payload'] as Object).flatMap(decodeJson),
+      timestamp: Option.of(json['unix_nano_timestamp'] as int).map(
         (it) => DateTime.fromMillisecondsSinceEpoch(
           (it / 1e6).round(),
           isUtc: true,
         ),
       ),
-      sender: optionOf(User(
-        id: optionOf(json['email'] as String),
-        name: optionOf(json['username'] as String),
-        avatarUrl: optionOf(json['user_avatar_url'] as String),
+      sender: Option.of(User(
+        id: Option.of(json['email'] as String),
+        name: Option.of(json['username'] as String),
+        avatarUrl: Option.of(json['user_avatar_url'] as String),
       )),
     );
   }
@@ -199,12 +199,12 @@ class Message {
         uniqueId: uniqueId.toNullable(),
         previousMessageId: previousMessageId.toNullable(),
         chatRoomId: chatRoomId.toNullable(),
-        extras: extras.map((it) => it.toMap()).toNullable(),
+        extras: extras.toNullable(),
         type: type.map((it) => it).toNullable(),
         timestamp: timestamp.toNullable(),
         text: text.toNullable(),
         status: status.toNullable(),
-        payload: payload.map((it) => it.toMap()).toNullable(),
+        payload: payload.toNullable(),
       );
 
   @override

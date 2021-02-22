@@ -98,7 +98,7 @@ class GetMessagesRequest extends IApiRequest<List<Message>> {
   }
 }
 
-class UpdateMessageStatusRequest extends IApiRequest<Unit> {
+class UpdateMessageStatusRequest extends IApiRequest<void> {
   final int roomId;
   final int lastReadId;
   final int lastDeliveredId;
@@ -117,8 +117,8 @@ class UpdateMessageStatusRequest extends IApiRequest<Unit> {
         'last_comment_received_id': lastDeliveredId?.toString(),
       };
 
-  Unit format(json) {
-    return unit;
+  void format(json) {
+    return null;
   }
 }
 

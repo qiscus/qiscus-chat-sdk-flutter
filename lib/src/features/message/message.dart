@@ -2,13 +2,13 @@ library qiscus_chat_sdk.usecase.message;
 
 import 'dart:async';
 
-import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 
 import '../../core.dart';
+import '../../type_utils.dart';
 import '../../features/user/user.dart';
 
 part 'entity.dart';

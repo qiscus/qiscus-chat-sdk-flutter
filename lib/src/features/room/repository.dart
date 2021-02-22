@@ -1,32 +1,32 @@
 part of qiscus_chat_sdk.usecase.room;
 
 abstract class IRoomRepository {
-  Task<Either<QError, ChatRoom>> getRoomWithUserId({
+  Future<Either<QError, ChatRoom>> getRoomWithUserId({
     @required String userId,
     Map<String, dynamic> extras,
   });
 
-  Task<Either<QError, Tuple2<ChatRoom, List<Message>>>> getRoomWithId(
+  Future<Either<QError, Tuple2<ChatRoom, List<Message>>>> getRoomWithId(
       int roomId);
 
-  Task<Either<QError, List<Participant>>> addParticipant(
+  Future<Either<QError, List<Participant>>> addParticipant(
     int roomId,
     List<String> participantIds,
   );
 
-  Task<Either<QError, List<String>>> removeParticipant(
+  Future<Either<QError, List<String>>> removeParticipant(
     int roomId,
     List<String> participantIds,
   );
 
-  Task<Either<QError, List<Participant>>> getParticipants(
+  Future<Either<QError, List<Participant>>> getParticipants(
     String uniqueId, {
     int page,
     int limit,
     String sorting,
   });
 
-  Task<Either<QError, List<ChatRoom>>> getAllRooms({
+  Future<Either<QError, List<ChatRoom>>> getAllRooms({
     bool withParticipants,
     bool withEmptyRoom,
     bool withRemovedRoom,
@@ -34,25 +34,25 @@ abstract class IRoomRepository {
     int page,
   });
 
-  Task<Either<QError, ChatRoom>> getOrCreateChannel({
+  Future<Either<QError, ChatRoom>> getOrCreateChannel({
     @required String uniqueId,
     String name,
     String avatarUrl,
     Map<String, dynamic> options,
   });
 
-  Task<Either<QError, ChatRoom>> createGroup({
+  Future<Either<QError, ChatRoom>> createGroup({
     @required String name,
     @required List<String> userIds,
     String avatarUrl,
     Map<String, dynamic> extras,
   });
 
-  Task<Either<QError, Unit>> clearMessages({
+  Future<Either<QError, void>> clearMessages({
     @required List<String> uniqueIds,
   });
 
-  Task<Either<QError, List<ChatRoom>>> getRoomInfo({
+  Future<Either<QError, List<ChatRoom>>> getRoomInfo({
     List<int> roomIds,
     List<String> uniqueIds,
     bool withParticipants,
@@ -60,9 +60,9 @@ abstract class IRoomRepository {
     int page,
   });
 
-  Task<Either<QError, int>> getTotalUnreadCount();
+  Future<Either<QError, int>> getTotalUnreadCount();
 
-  Task<Either<QError, ChatRoom>> updateRoom({
+  Future<Either<QError, ChatRoom>> updateRoom({
     @required int roomId,
     String name,
     String avatarUrl,

@@ -2,6 +2,7 @@ part of qiscus_chat_sdk.core;
 
 T1 _makeGetter<T1>(Map s, String name, [T1 valueIfEmpty]) =>
     s[name] as T1 ?? valueIfEmpty;
+
 void _makeSetter<T2>(Map s, String name, T2 value) =>
     s.update(name, (dynamic _) => value, ifAbsent: () => value);
 
@@ -153,12 +154,9 @@ class Storage {
 }
 
 extension StorageX on Storage {
-  Task<bool> get authenticated$ {
-    var s = Stream<bool>.periodic(const Duration(milliseconds: 130))
-        .map((_) => currentUser != null)
-        .distinct()
-        .firstWhere((it) => it == true);
-
-    return Task(() => s);
-  }
+  Future<bool> get authenticated$ =>
+      Stream<bool>.periodic(const Duration(milliseconds: 130))
+          .map((_) => currentUser != null)
+          .distinct()
+          .firstWhere((it) => it == true);
 }

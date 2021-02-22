@@ -8,11 +8,11 @@ class UpdateStatusParams {
 }
 
 class UpdateMessageStatusUseCase
-    extends UseCase<MessageRepository, Unit, UpdateStatusParams> {
+    extends UseCase<MessageRepository, void, UpdateStatusParams> {
   UpdateMessageStatusUseCase(MessageRepository repository) : super(repository);
 
   @override
-  Task<Either<QError, Unit>> call(p) {
+  Future<Either<QError, void>> call(p) async {
     switch (p.status) {
       case QMessageStatus.delivered:
         return repository.updateStatus(
@@ -25,9 +25,9 @@ class UpdateMessageStatusUseCase
           readId: p.messageId,
         );
       default:
-        return Task.delay(() => left(QError(
-              'Can not update status for message with status: ${p.status}',
-            )));
+        return Either.left(
+          QError('Can not update status for message with status: ${p.status}'),
+        );
     }
   }
 }

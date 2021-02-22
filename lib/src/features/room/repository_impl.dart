@@ -10,187 +10,174 @@ class RoomRepositoryImpl implements IRoomRepository {
   });
 
   @override
-  Task<Either<QError, ChatRoom>> getRoomWithUserId({
+  Future<Either<QError, ChatRoom>> getRoomWithUserId({
     @required String userId,
     Map<String, dynamic> extras,
-  }) {
-    return storage.authenticated$.andThen(task(() async {
-      var request = ChatTargetRequest(
-        userId: userId,
-        extras: extras,
-      );
-      return dio.sendApiRequest(request).then(request.format);
-    }));
+  }) async {
+    await storage.authenticated$;
+    var request = ChatTargetRequest(
+      userId: userId,
+      extras: extras,
+    );
+    return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Task<Either<QError, Tuple2<ChatRoom, List<Message>>>> getRoomWithId(
-      int roomId) {
-    return storage.authenticated$.andThen(task(() async {
-      var request = GetRoomByIdRequest(roomId: roomId);
-      return dio.sendApiRequest(request).then(request.format);
-    }));
+  Future<Either<QError, Tuple2<ChatRoom, List<Message>>>> getRoomWithId(
+    int roomId,
+  ) async {
+    await storage.authenticated$;
+    var request = GetRoomByIdRequest(roomId: roomId);
+    return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Task<Either<QError, List<Participant>>> addParticipant(
+  Future<Either<QError, List<Participant>>> addParticipant(
     int roomId,
     List<String> participantIds,
-  ) {
-    return storage.authenticated$.andThen(task(() async {
-      var request = AddParticipantRequest(
-        roomId: roomId,
-        userIds: participantIds,
-      );
-      return dio.sendApiRequest(request).then(request.format);
-    }));
+  ) async {
+    await storage.authenticated$;
+    var request = AddParticipantRequest(
+      roomId: roomId,
+      userIds: participantIds,
+    );
+    return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Task<Either<QError, List<String>>> removeParticipant(
+  Future<Either<QError, List<String>>> removeParticipant(
     int roomId,
     List<String> participantIds,
-  ) {
-    return storage.authenticated$.andThen(task(() async {
-      var request = RemoveParticipantRequest(
-        roomId: roomId,
-        userIds: participantIds,
-      );
-      return dio.sendApiRequest(request).then(request.format);
-    }));
+  ) async {
+    await storage.authenticated$;
+    var request = RemoveParticipantRequest(
+      roomId: roomId,
+      userIds: participantIds,
+    );
+    return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Task<Either<QError, List<Participant>>> getParticipants(
+  Future<Either<QError, List<Participant>>> getParticipants(
     String uniqueId, {
     int page,
     int limit,
     String sorting,
-  }) {
-    return storage.authenticated$.andThen(task(() async {
-      var request = GetParticipantRequest(
-        roomUniqueId: uniqueId,
-        page: page,
-        limit: limit,
-        sorting: sorting,
-      );
-      return dio.sendApiRequest(request).then(request.format);
-    }));
+  }) async {
+    await storage.authenticated$;
+    var request = GetParticipantRequest(
+      roomUniqueId: uniqueId,
+      page: page,
+      limit: limit,
+      sorting: sorting,
+    );
+    return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Task<Either<QError, List<ChatRoom>>> getAllRooms({
+  Future<Either<QError, List<ChatRoom>>> getAllRooms({
     bool withParticipants,
     bool withEmptyRoom,
     bool withRemovedRoom,
     int limit,
     int page,
-  }) {
-    return storage.authenticated$.andThen(task(() async {
-      var request = GetAllRoomRequest(
-        withParticipants: withParticipants,
-        withEmptyRoom: withEmptyRoom,
-        withRemovedRoom: withRemovedRoom,
-        limit: limit,
-        page: page,
-      );
+  }) async {
+    await storage.authenticated$;
+    var request = GetAllRoomRequest(
+      withParticipants: withParticipants,
+      withEmptyRoom: withEmptyRoom,
+      withRemovedRoom: withRemovedRoom,
+      limit: limit,
+      page: page,
+    );
 
-      return dio
-          .sendApiRequest(request) //
-          .then(request.format);
-    }));
+    return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Task<Either<QError, ChatRoom>> getOrCreateChannel({
+  Future<Either<QError, ChatRoom>> getOrCreateChannel({
     String uniqueId,
     String name,
     String avatarUrl,
     Map<String, dynamic> options,
-  }) {
-    return storage.authenticated$.andThen(task(() async {
-      var request = GetOrCreateChannelRequest(
-        uniqueId: uniqueId,
-        name: name,
-        avatarUrl: avatarUrl,
-        extras: options,
-      );
-      return dio.sendApiRequest(request).then(request.format);
-    }));
+  }) async {
+    await storage.authenticated$;
+    var request = GetOrCreateChannelRequest(
+      uniqueId: uniqueId,
+      name: name,
+      avatarUrl: avatarUrl,
+      extras: options,
+    );
+    return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Task<Either<QError, ChatRoom>> createGroup({
+  Future<Either<QError, ChatRoom>> createGroup({
     String name,
     List<String> userIds,
     String avatarUrl,
     Map<String, dynamic> extras,
-  }) {
-    return storage.authenticated$.andThen(task(() async {
-      var request = CreateGroupRequest(
-        name: name,
-        userIds: userIds,
-        avatarUrl: avatarUrl,
-        extras: extras,
-      );
-      return dio.sendApiRequest(request).then(request.format);
-    }));
+  }) async {
+    await storage.authenticated$;
+    var request = CreateGroupRequest(
+      name: name,
+      userIds: userIds,
+      avatarUrl: avatarUrl,
+      extras: extras,
+    );
+    return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Task<Either<QError, Unit>> clearMessages({
+  Future<Either<QError, void>> clearMessages({
     @required List<String> uniqueIds,
-  }) {
-    return storage.authenticated$.andThen(task(() async {
-      var request = ClearMessagesRequest(roomUniqueIds: uniqueIds);
-      return dio.sendApiRequest(request).then(request.format);
-    }));
+  }) async {
+    await storage.authenticated$;
+    var request = ClearMessagesRequest(roomUniqueIds: uniqueIds);
+    return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Task<Either<QError, List<ChatRoom>>> getRoomInfo({
+  Future<Either<QError, List<ChatRoom>>> getRoomInfo({
     List<int> roomIds,
     List<String> uniqueIds,
     bool withParticipants,
     bool withRemoved,
     int page,
-  }) {
-    return storage.authenticated$.andThen(task(() async {
-      var r = GetRoomInfoRequest(
-        roomIds: roomIds,
-        uniqueIds: uniqueIds,
-        withParticipants: withParticipants,
-        withRemoved: withRemoved,
-        page: page,
-      );
-      return dio.sendApiRequest(r).then(r.format);
-    }));
+  }) async {
+    await storage.authenticated$;
+    var r = GetRoomInfoRequest(
+      roomIds: roomIds,
+      uniqueIds: uniqueIds,
+      withParticipants: withParticipants,
+      withRemoved: withRemoved,
+      page: page,
+    );
+    return dio.sendApiRequest(r).then(r.format).toEither();
   }
 
   @override
-  Task<Either<QError, int>> getTotalUnreadCount() {
-    return storage.authenticated$.andThen(task(() async {
-      var r = GetTotalUnreadCountRequest();
-      return dio.sendApiRequest(r).then(r.format);
-    }));
+  Future<Either<QError, int>> getTotalUnreadCount() async {
+    await storage.authenticated$;
+    var r = GetTotalUnreadCountRequest();
+    return dio.sendApiRequest(r).then(r.format).toEither();
   }
 
   @override
-  Task<Either<QError, ChatRoom>> updateRoom({
+  Future<Either<QError, ChatRoom>> updateRoom({
     @required int roomId,
     String name,
     String avatarUrl,
     Map<String, dynamic> extras,
-  }) {
-    return storage.authenticated$.andThen(task(() async {
-      var r = UpdateRoomRequest(
-        roomId: roomId.toString(),
-        name: name,
-        avatarUrl: avatarUrl,
-        extras: extras,
-      );
+  }) async {
+    await storage.authenticated$;
+    var r = UpdateRoomRequest(
+      roomId: roomId.toString(),
+      name: name,
+      avatarUrl: avatarUrl,
+      extras: extras,
+    );
 
-      return dio.sendApiRequest(r).then(r.format);
-    }));
+    return dio.sendApiRequest(r).then(r.format).toEither();
   }
 }

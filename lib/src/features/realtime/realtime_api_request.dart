@@ -24,7 +24,7 @@ class SynchronizeRequest extends IApiRequest<Tuple2<int, List<Message>>> {
         .map((it) => Message.fromJson(it))
         .toList();
 
-    return tuple2(lastId, messages);
+    return Tuple2(lastId, messages);
   }
 }
 
@@ -48,6 +48,6 @@ class SynchronizeEventRequest
   Tuple2<int, List<RealtimeEvent>> format(json) {
     final data = (json['events'] as List).cast<Map<String, dynamic>>();
     final id = data.isNotEmpty ? data.last['id'] as int : 0;
-    return tuple2(id, RealtimeEvent.fromJson(json));
+    return Tuple2(id, RealtimeEvent.fromJson(json));
   }
 }

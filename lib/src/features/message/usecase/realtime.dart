@@ -42,7 +42,7 @@ class OnMessageDeleted
   IRealtimeService get repository => _service;
 
   @override
-  Option<String> topic(p) => some(TopicBuilder.notification(p.token));
+  Option<String> topic(p) => Option.some(TopicBuilder.notification(p.token));
 }
 
 class OnMessageRead
@@ -60,8 +60,9 @@ class OnMessageRead
   }
 
   @override
-  Option<String> topic(p) =>
-      some(TopicBuilder.messageRead(p.roomId.toString()));
+  Option<String> topic(p) {
+    return Option.some(TopicBuilder.messageRead(p.roomId.toString()));
+  }
 
   @override
   IRealtimeService get repository => _service;
@@ -82,35 +83,35 @@ class TokenParams with EquatableMixin {
 class OnMessageReceived
     with SubscriptionMixin<IRealtimeService, TokenParams, Message> {
   OnMessageReceived._(this._service, this._updateMessageStatus) {
-    _receiveMessage = StreamTransformer //
-        .fromHandlers(
+    _receiveMessage = StreamTransformer.fromHandlers(
       handleData: (message, sink) async {
         sink.add(message);
 
         var roomId = message.chatRoomId;
         var messageId = message.id;
         var status = QMessageStatus.delivered;
-        var res = roomId.fold<Task<Either<QError, Unit>>>(
-            () => Task.delay(() => right(unit)),
-            (roomId) => _updateMessageStatus.call(UpdateStatusParams(
-                  roomId,
-                  messageId.toNullable(),
-                  status,
-                )));
-        await res.run();
+
+        await roomId.fold(() async {}, (roomId) {
+          return _updateMessageStatus(
+            UpdateStatusParams(roomId, messageId.toNullable(), status),
+          );
+        });
       },
     );
   }
 
   final IRealtimeService _service;
   final UpdateMessageStatusUseCase _updateMessageStatus;
+  StreamTransformer<Message, Message> _receiveMessage;
 
   factory OnMessageReceived(
-          IRealtimeService s, UpdateMessageStatusUseCase us) =>
-      _instance ??= OnMessageReceived._(s, us);
-  static OnMessageReceived _instance;
+    IRealtimeService s,
+    UpdateMessageStatusUseCase us,
+  ) {
+    return _instance ??= OnMessageReceived._(s, us);
+  }
 
-  StreamTransformer<Message, Message> _receiveMessage;
+  static OnMessageReceived _instance;
 
   @override
   Stream<Message> mapStream(p) => repository //
@@ -121,7 +122,9 @@ class OnMessageReceived
   IRealtimeService get repository => _service;
 
   @override
-  Option<String> topic(TokenParams p) => some(TopicBuilder.messageNew(p.token));
+  Option<String> topic(TokenParams p) {
+    return Option.some(TopicBuilder.messageNew(p.token));
+  }
 }
 
 class OnMessageUpdated
@@ -130,6 +133,7 @@ class OnMessageUpdated
 
   static OnMessageUpdated _instance;
   final IRealtimeService repository;
+
   factory OnMessageUpdated(IRealtimeService s) =>
       _instance ??= OnMessageUpdated._(s);
 
@@ -137,7 +141,9 @@ class OnMessageUpdated
   Stream<Message> mapStream(p) => repository.subscribeMessageUpdated();
 
   @override
-  Option<String> topic(p) => some(TopicBuilder.messageUpdated(p.token));
+  Option<String> topic(p) {
+    return Option.some(TopicBuilder.messageUpdated(p.token));
+  }
 }
 
 class OnMessageDelivered
@@ -160,6 +166,6 @@ class OnMessageDelivered
 
   @override
   Option<String> topic(p) {
-    return some(TopicBuilder.messageDelivered(p.roomId.toString()));
+    return Option.some(TopicBuilder.messageDelivered(p.roomId.toString()));
   }
 }

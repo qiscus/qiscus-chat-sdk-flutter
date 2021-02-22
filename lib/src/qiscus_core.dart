@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:dartz/dartz.dart';
+import 'package:async/async.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meta/meta.dart';
@@ -17,6 +17,7 @@ import 'features/message/message.dart';
 import 'features/realtime/realtime.dart';
 import 'features/room/room.dart';
 import 'features/user/user.dart';
+import 'type_utils.dart';
 
 part 'injector.dart';
 
@@ -40,7 +41,7 @@ class QiscusSDK {
     String brokerLbUrl = Storage.defaultBrokerLbUrl,
     int syncInterval = Storage.defaultSyncInterval,
     int syncIntervalWhenConnected = Storage.defaultSyncIntervalWhenConnected,
-    @required Function1<QError, void> callback,
+    @required void Function(QError) callback,
   }) {
     return QiscusSDK()
       ..setupWithCustomServer(
@@ -97,20 +98,12 @@ class QiscusSDK {
     _injector.setup();
   }
 
-  T __<T>([String name]) {
-    return _injector.get<T>(name);
-  }
-
+  T __<T>([String name]) => _injector.get<T>(name);
   String get appId => __<Storage>()?.appId;
-
   QAccount get currentUser => __<Storage>()?.currentUser?.toModel();
-
   bool get isLogin => __<Storage>()?.currentUser != null;
-
   String get token => __<Storage>()?.token;
-
-  Task<bool> get _authenticated => __<Storage>().authenticated$;
-
+  Future<bool> get _authenticated => __<Storage>().authenticated$;
   IRoomRepository get _room$$ => __<IRoomRepository>();
 
   void addHttpInterceptors(RequestOptions Function(RequestOptions) onRequest) {
@@ -124,10 +117,10 @@ class QiscusSDK {
     @required List<String> userIds,
     @required void Function(List<QParticipant>, QError) callback,
   }) {
-    _room$$
-        .addParticipant(roomId, userIds)
-        .rightMap((r) => r.map((m) => m.toModel()).toList())
-        .toCallback_(callback);
+    Future.sync(() async {
+      var res = await _room$$.addParticipant(roomId, userIds);
+      return res.map((m) => m.map((it) => it.toModel()).toList()).toFuture();
+    }).toCallback2(callback);
   }
 
   void blockUser({
@@ -135,54 +128,57 @@ class QiscusSDK {
     @required void Function(QUser, QError) callback,
   }) {
     final blockUser = __<BlockUserUseCase>();
-    _authenticated
-        .andThen(blockUser(BlockUserParams(userId)))
-        .rightMap((it) => it.toModel())
-        .toCallback_(callback);
+    Future.sync(() async {
+      await _authenticated;
+      var res = await blockUser(BlockUserParams(userId));
+      return res.map((it) => it.toModel()).toFuture();
+    }).toCallback2(callback);
   }
 
   void chatUser({
     @required String userId,
     Map<String, dynamic> extras,
-    @required Function2<QChatRoom, QError, void> callback,
+    @required void Function(QChatRoom, QError) callback,
   }) {
-    _authenticated
-        .andThen(_room$$.getRoomWithUserId(
-          userId: userId,
-          extras: extras,
-        ))
-        .rightMap((r) => r.toModel())
-        .toCallback_(callback);
+    Future.sync(() async {
+      await _authenticated;
+      var res = await _room$$.getRoomWithUserId(userId: userId, extras: extras);
+      return res.map((it) => it.toModel()).toFuture();
+    }).toCallback2(callback);
   }
 
   void clearMessagesByChatRoomId({
     @required List<String> roomUniqueIds,
     @required void Function(QError) callback,
   }) {
-    _authenticated
-        .andThen(_room$$.clearMessages(uniqueIds: roomUniqueIds))
-        .toCallback1(callback)
-        .run();
+    Future.sync(() async {
+      await _authenticated;
+      var res = await _room$$.clearMessages(uniqueIds: roomUniqueIds);
+      return res.toFuture();
+    }).toCallback1(callback);
   }
 
   void clearUser({@required void Function(QError) callback}) {
-    var clearSubscription = Future.wait([
-      __<OnMessageDelivered>().clear(),
-      __<OnMessageRead>().clear(),
-      __<OnMessageReceived>().clear(),
-      __<OnMessageDeleted>().clear(),
-      __<OnMessageUpdated>().clear(),
-      __<TypingUseCase>().clear(),
-      __<PresenceUseCase>().clear(),
-      __<CustomEventUseCase>().clear(),
-    ])
-        .then((_) => print('done cleanup'))
-        .catchError((Object err) => print('got error instead: $err'));
-    _authenticated
-        .andThen(Task(() => clearSubscription))
-        .andThen(Task.delay(() => __<Storage>().clear()))
-        .andThen(task(() => __<IRealtimeService>().end()))
-        .toCallback_((_, error) => callback(error));
+    var clearSubscription = () => Future.wait([
+          __<OnMessageDelivered>().clear(),
+          __<OnMessageRead>().clear(),
+          __<OnMessageReceived>().clear(),
+          __<OnMessageDeleted>().clear(),
+          __<OnMessageUpdated>().clear(),
+          __<TypingUseCase>().clear(),
+          __<PresenceUseCase>().clear(),
+          __<CustomEventUseCase>().clear(),
+          __<OnDisconnected>().clear(),
+          __<OnConnected>().clear(),
+          __<OnReconnecting>().clear(),
+        ]);
+
+    Future.sync(() async {
+      await _authenticated;
+      await clearSubscription();
+      await __<Storage>().clear();
+      await __<IRealtimeService>().end();
+    }).toCallback1(callback);
   }
 
   void createChannel({
@@ -192,15 +188,17 @@ class QiscusSDK {
     Map<String, dynamic> extras,
     @required void Function(QChatRoom, QError) callback,
   }) {
-    _authenticated
-        .andThen(_room$$.getOrCreateChannel(
-          uniqueId: uniqueId,
-          name: name,
-          avatarUrl: avatarUrl,
-          options: extras,
-        ))
-        .rightMap((room) => room.toModel())
-        .toCallback_(callback);
+    Future.sync(() async {
+      await _authenticated;
+      var res = await _room$$.getOrCreateChannel(
+        uniqueId: uniqueId,
+        name: name,
+        avatarUrl: avatarUrl,
+        options: extras,
+      );
+
+      return res.map((room) => room.toModel()).toFuture();
+    }).toCallback2(callback);
   }
 
   void createGroupChat({
@@ -210,15 +208,16 @@ class QiscusSDK {
     Map<String, dynamic> extras,
     @required void Function(QChatRoom, QError) callback,
   }) {
-    _authenticated
-        .andThen(_room$$.createGroup(
-          name: name,
-          userIds: userIds,
-          avatarUrl: avatarUrl,
-          extras: extras,
-        ))
-        .rightMap((r) => r.toModel())
-        .toCallback_(callback);
+    Future.sync(() async {
+      await _authenticated;
+      var res = await _room$$.createGroup(
+        name: name,
+        userIds: userIds,
+        avatarUrl: avatarUrl,
+        extras: extras,
+      );
+      return res.map((r) => r.toModel()).toFuture();
+    }).toCallback2(callback);
   }
 
   void deleteMessages({
@@ -226,10 +225,14 @@ class QiscusSDK {
     @required void Function(List<QMessage>, QError) callback,
   }) {
     final deleteMessages = __<DeleteMessageUseCase>();
-    _authenticated
-        .andThen(deleteMessages(DeleteMessageParams(messageUniqueIds)))
-        .rightMap((it) => it.map((i) => i.toModel()).toList())
-        .toCallback_(callback);
+    Future.sync(() async {
+      await _authenticated;
+      var res = await deleteMessages(DeleteMessageParams(messageUniqueIds));
+      return res
+          .map((i) => i.map((it) => it.toModel()))
+          .map((it) => it.toList())
+          .toFuture();
+    }).toCallback2(callback);
   }
 
   void enableDebugMode({
@@ -249,16 +252,17 @@ class QiscusSDK {
     int page,
     @required void Function(List<QChatRoom>, QError) callback,
   }) {
-    _authenticated
-        .andThen(_room$$.getAllRooms(
-          withParticipants: showParticipant,
-          withRemovedRoom: showRemoved,
-          withEmptyRoom: showEmpty,
-          limit: limit,
-          page: page,
-        ))
-        .rightMap((r) => r.map((c) => c.toModel()).toList())
-        .toCallback_(callback);
+    Future.sync(() async {
+      await _authenticated;
+      var res = await _room$$.getAllRooms(
+        withParticipants: showParticipant,
+        withRemovedRoom: showRemoved,
+        withEmptyRoom: showEmpty,
+        limit: limit,
+        page: page,
+      );
+      return res.map((r) => r.map((c) => c.toModel()).toList()).toFuture();
+    }).toCallback2(callback);
   }
 
   void getBlockedUsers({
@@ -268,20 +272,23 @@ class QiscusSDK {
   }) {
     final params = GetBlockedUserParams(page: page, limit: limit);
     final useCase = __<GetBlockedUserUseCase>();
-    _authenticated
-        .andThen(useCase(params))
-        .rightMap((it) => it.map((u) => u.toModel()).toList())
-        .toCallback_(callback);
+
+    Future.sync(() async {
+      await _authenticated;
+      var res = await useCase(params);
+      return res.map((u) => u.map((u) => u.toModel()).toList()).toFuture();
+    }).toCallback2(callback);
   }
 
   void getChannel({
     @required String uniqueId,
     @required void Function(QChatRoom, QError) callback,
   }) {
-    _authenticated
-        .andThen(_room$$.getOrCreateChannel(uniqueId: uniqueId))
-        .rightMap((r) => r.toModel())
-        .toCallback_(callback);
+    Future.sync(() async {
+      await _authenticated;
+      var res = await _room$$.getOrCreateChannel(uniqueId: uniqueId);
+      return res.map((r) => r.toModel()).toFuture();
+    }).toCallback2(callback);
   }
 
   void getChatRooms({
@@ -293,42 +300,49 @@ class QiscusSDK {
     @required void Function(List<QChatRoom>, QError) callback,
   }) {
     const errorMessage = 'Please specify either `roomIds` or `uniqueIds`';
-    // Throw error if both roomIds and uniqueIds are null
-    if (roomIds == null && uniqueIds == null) {
-      return callback(null, QError(errorMessage));
-    }
-    if (roomIds != null && uniqueIds != null) {
-      return callback(null, QError(errorMessage));
-    }
 
-    _authenticated
-        .andThen(_room$$.getRoomInfo(
-          roomIds: roomIds,
-          uniqueIds: uniqueIds,
-          withRemoved: showRemoved,
-          withParticipants: showParticipants,
-          page: page,
-        ))
-        .rightMap((r) => r.map((it) => it.toModel()).toList())
-        .toCallback_(callback);
+    Future.sync(() async {
+      if ([roomIds, uniqueIds].every((it) => it == null)) {
+        throw QError(errorMessage);
+      }
+      if ([roomIds, uniqueIds].every((it) => it != null)) {
+        throw QError(errorMessage);
+      }
+
+      await _authenticated;
+      var res = await _room$$.getRoomInfo(
+        roomIds: roomIds,
+        uniqueIds: uniqueIds,
+        withRemoved: showRemoved,
+        withParticipants: showParticipants,
+        page: page,
+      );
+      return res.map((r) => r.map((it) => it.toModel()).toList()).toFuture();
+    }).toCallback2(callback);
   }
 
   void getChatRoomWithMessages({
     @required int roomId,
     @required void Function(QChatRoom, List<QMessage>, QError) callback,
   }) {
-    _authenticated //
-        .andThen(_room$$.getRoomWithId(roomId))
-        .rightMap((data) => data
-            .map1((room) => room.toModel())
-            .map2((messages) => messages.map((m) => m.toModel()).toList()))
-        .toCallback_(
-          (data, error) => callback(data.value1, data.value2, error),
-        );
+    Future.sync(() async {
+      await _authenticated;
+      var res = await _room$$.getRoomWithId(roomId);
+      return res.map((data) {
+        var room = data.first.toModel();
+        var messages = data.second.map((it) => it.toModel()).toList();
+        return Tuple2(room, messages);
+      }).toFuture();
+    }).toCallback2((data, error) {
+      callback(data.first, data.second, error);
+    });
   }
 
-  void getJWTNonce({Callback1<String> callback}) {
-    __<GetNonceUseCase>()(NoParams()).toCallback_(callback);
+  void getJWTNonce({void Function(String, QError) callback}) {
+    Future.sync(() async {
+      var res = await __<GetNonceUseCase>().call(noParams);
+      return res.toFuture();
+    }).toCallback2(callback);
   }
 
   void getNextMessagesById({
@@ -340,10 +354,12 @@ class QiscusSDK {
     final useCase = __<GetMessageListUseCase>();
     final params =
         GetMessageListParams(roomId, messageId, after: true, limit: limit);
-    _authenticated
-        .andThen(useCase(params))
-        .rightMap((it) => it.map((it) => it.toModel()).toList())
-        .toCallback_(callback);
+
+    Future.sync(() async {
+      await _authenticated;
+      var res = await useCase(params);
+      return res.map((it) => it.map((it) => it.toModel()).toList()).toFuture();
+    }).toCallback2(callback);
   }
 
   void getParticipants({
@@ -353,46 +369,48 @@ class QiscusSDK {
     String sorting,
     @required void Function(List<QParticipant>, QError) callback,
   }) {
-    _authenticated
-        .andThen(_room$$.getParticipants(
-          roomUniqueId,
-          page: page,
-          limit: limit,
-        ))
-        .rightMap((r) => r.map((p) => p.toModel()).toList())
-        .toCallback_(callback);
+    Future.sync(() async {
+      await _authenticated;
+      var res = await _room$$.getParticipants(
+        roomUniqueId,
+        page: page,
+        limit: limit,
+      );
+      return res.map((r) => r.map((p) => p.toModel()).toList()).toFuture();
+    }).toCallback2(callback);
   }
 
   void getPreviousMessagesById({
     @required int roomId,
     int limit,
     int messageId,
-    @required Function2<List<QMessage>, QError, void> callback,
+    @required void Function(List<QMessage>, QError) callback,
   }) {
     _authenticated
-        .andThen(__<GetMessageListUseCase>()(
+        .chain(__<GetMessageListUseCase>()(
           GetMessageListParams(roomId, messageId, after: false, limit: limit),
         ))
-        .rightMap((it) => it.map((m) => m.toModel()).toList())
-        .toCallback_(callback);
+        .then((r) => r.toFuture())
+        .then((r) => r.map((m) => m.toModel()).toList())
+        .toCallback2(callback);
   }
 
   String getThumbnailURL(String url) => url;
 
-  void getTotalUnreadCount({
-    @required void Function(int, QError) callback,
-  }) {
-    _authenticated.andThen(_room$$.getTotalUnreadCount()).toCallback_(callback);
+  void getTotalUnreadCount({@required void Function(int, QError) callback}) {
+    _authenticated
+        .chain(_room$$.getTotalUnreadCount())
+        .then((r) => r.toFuture())
+        .toCallback2(callback);
   }
 
-  void getUserData({
-    @required void Function(QAccount, QError) callback,
-  }) {
+  void getUserData({@required void Function(QAccount, QError) callback}) {
     var useCase = __<GetUserDataUseCase>();
     _authenticated
-        .andThen(useCase(noParams))
-        .rightMap((u) => u.toModel())
-        .toCallback_(callback);
+        .chain(useCase(noParams))
+        .then((r) => r.toFuture())
+        .then((u) => u.toModel())
+        .toCallback2(callback);
   }
 
   void getUsers({
@@ -407,10 +425,11 @@ class QiscusSDK {
       limit: limit,
     );
     final getUsers = __<GetUsersUseCase>();
-    return _authenticated
-        .andThen(getUsers(params))
-        .rightMap((u) => u.map((u) => u.toModel()).toList())
-        .toCallback_(callback);
+    _authenticated
+        .chain(getUsers(params))
+        .then((r) => r.toFuture())
+        .then((u) => u.map((u) => u.toModel()).toList())
+        .toCallback2(callback);
   }
 
   void hasSetupUser({
@@ -422,7 +441,9 @@ class QiscusSDK {
   void intercept({
     @required String interceptor,
     @required Future<QMessage> Function(QMessage) callback,
-  }) {}
+  }) {
+    // FIXME: Work on this thing!
+  }
 
   void markAsDelivered({
     @required int roomId,
@@ -430,13 +451,14 @@ class QiscusSDK {
     @required void Function(QError) callback,
   }) {
     _authenticated
-        .andThen(__<UpdateMessageStatusUseCase>()(UpdateStatusParams(
+        .chain(__<UpdateMessageStatusUseCase>()(UpdateStatusParams(
           roomId,
           messageId,
           QMessageStatus.delivered,
         )))
-        .rightMap((_) => null)
-        .toCallback_((_, e) => callback(e));
+        .then((r) => r.toFuture())
+        .then((_) => null)
+        .toCallback1(callback);
   }
 
   void markAsRead({
@@ -445,107 +467,98 @@ class QiscusSDK {
     @required void Function(QError) callback,
   }) {
     _authenticated
-        .andThen(__<UpdateMessageStatusUseCase>()(UpdateStatusParams(
+        .chain(__<UpdateMessageStatusUseCase>()(UpdateStatusParams(
           roomId,
           messageId,
           QMessageStatus.read,
         )))
-        .toCallback_((_, e) => callback(e));
+        .toCallback1(callback);
   }
 
   SubscriptionFn onChatRoomCleared(void Function(int) handler) {
+    var params = TokenParams(__<Storage>()?.token);
     var ret = _authenticated
-        .andThen(__<OnRoomMessagesCleared>()
-            .subscribe(TokenParams(__<Storage>()?.token)))
-        .bind((s) => Task.delay(() => s //
-            .where((it) => it.isSome())
-            .listen((it) => handler(it.toNullable()))))
-        .run();
+        .chain(__<OnRoomMessagesCleared>().subscribe(params))
+        .then((s) => s.where((r) => r.toNullable() != null))
+        .then((s) => s.listen((it) => handler(it.toNullable())));
+
     return () => ret.then<void>((s) => s.cancel());
   }
 
   SubscriptionFn onConnected(void Function() handler) {
     var ret = _authenticated
-        .andThen(__<OnConnected>().subscribe(noParams))
-        .bind((stream) => Task.delay(() => stream.listen((_) => handler())))
-        .run();
+        .chain(__<OnConnected>().subscribe(noParams))
+        .then((stream) => stream.listen((_) => handler()));
     return () => ret.then<void>((s) => s.cancel());
   }
 
   SubscriptionFn onDisconnected(void Function() handler) {
     var ret = _authenticated
-        .andThen(__<OnDisconnected>().subscribe(noParams))
-        .bind((s) => Task.delay(() => s.listen((_) => handler())))
-        .run();
+        .chain(__<OnDisconnected>().subscribe(noParams))
+        .then((s) => s.listen((_) => handler()));
+
     return () => ret.then<void>((s) => s.cancel());
   }
 
-  SubscriptionFn onMessageDeleted(Function1<QMessage, void> callback) {
+  SubscriptionFn onMessageDeleted(void Function(QMessage) callback) {
     var subs = _authenticated
-        .andThen(__<OnMessageDeleted>().subscribe(TokenParams(token)))
-        .map((stream) => stream.listen((m) => callback(m.toModel())))
-        .run();
+        .chain(__<OnMessageDeleted>().subscribe(TokenParams(token)))
+        .then((stream) => stream.listen((m) => callback(m.toModel())));
+
     return () => subs.then<void>((s) => s.cancel());
   }
 
   SubscriptionFn onMessageDelivered(void Function(QMessage) callback) {
     final subs = _authenticated
-        .andThen(__<OnMessageDelivered>().listen((m) => callback(m.toModel())))
-        .run();
+        .chain(__<OnMessageDelivered>().listen((m) => callback(m.toModel())));
     return () => subs.then<void>((s) => s.cancel());
   }
 
   SubscriptionFn onMessageRead(void Function(QMessage) callback) {
     final subs = _authenticated
-        .andThen(__<OnMessageRead>().listen((m) => callback(m.toModel())))
-        .run();
+        .chain(__<OnMessageRead>().listen((m) => callback(m.toModel())));
+
     return () => subs.then<void>((s) => s.cancel());
   }
 
   SubscriptionFn onMessageReceived(void Function(QMessage) callback) {
-    var token = __<Storage>().token;
-    var listenable = __<OnMessageReceived>()
-        .subscribe(TokenParams(token))
-        .bind<StreamSubscription<Message>>((stream) =>
-            Task.delay(() => stream.listen((m) => callback(m.toModel()))));
+    var subs = _authenticated
+        .chain(Future.value(__<Storage>().token))
+        .then((t) => TokenParams(t))
+        .then((token) => __<OnMessageReceived>().subscribe(token))
+        .then((s) => s.listen((m) => callback(m.toModel())));
 
-    var subs = _authenticated.andThen(listenable).run();
     return () => subs.then<void>((s) => s.cancel());
   }
 
   SubscriptionFn onMessageUpdated(void Function(QMessage) callback) {
     var subs = _authenticated
-        .andThen(__<OnMessageUpdated>().listen((m) => callback(m.toModel())))
-        .run();
+        .chain(__<OnMessageUpdated>().listen((m) => callback(m.toModel())));
 
     return () => subs.then<void>((s) => s.cancel());
   }
 
   SubscriptionFn onReconnecting(void Function() handler) {
     var ret = _authenticated
-        .andThen(__<OnReconnecting>().subscribe(noParams))
-        .bind((s) => Task.delay(() => s.listen((_) => handler())))
-        .run();
+        .chain(__<OnReconnecting>().subscribe(noParams))
+        .then((s) => s.listen((_) => handler()));
+
     return () => ret.then<void>((s) => s.cancel());
   }
 
   SubscriptionFn onUserOnlinePresence(
     void Function(String, bool, DateTime) handler,
   ) {
-    final subs = _authenticated //
-        .andThen(__<PresenceUseCase>().listen((data) {
-          handler(data.userId, data.isOnline, data.lastSeen);
-        }))
-        .run();
+    final subs = _authenticated.chain(__<PresenceUseCase>().listen(
+      (data) => handler(data.userId, data.isOnline, data.lastSeen),
+    ));
     return () => subs.then<void>((s) => s.cancel());
   }
 
   SubscriptionFn onUserTyping(void Function(String, int, bool) handler) {
-    var subs = _authenticated
-        .andThen(__<TypingUseCase>().listen((data) {
-          handler(data.userId, data.roomId, data.isTyping);
-        }))
-        .run();
+    var subs = _authenticated.chain(__<TypingUseCase>().listen((data) {
+      handler(data.userId, data.roomId, data.isTyping);
+    }));
     return () => subs.then<void>((s) => s.cancel());
   }
 
@@ -555,14 +568,14 @@ class QiscusSDK {
     @required void Function(QError) callback,
   }) {
     _authenticated
-        .andThen(
+        .chain(
           __<CustomEventUseCase>()(CustomEvent(
             roomId: roomId,
             payload: payload,
           )),
         )
-        .map((either) => either.fold((e) => callback(e), (_) {}))
-        .run();
+        .then((r) => r.toFuture())
+        .toCallback1(callback);
   }
 
   void publishOnlinePresence({
@@ -570,13 +583,13 @@ class QiscusSDK {
     @required void Function(QError) callback,
   }) {
     _authenticated
-        .andThen(__<PresenceUseCase>()(UserPresence(
+        .chain(__<PresenceUseCase>()(UserPresence(
           userId: __<Storage>().userId,
           isOnline: isOnline,
           lastSeen: DateTime.now(),
         )))
-        .leftMap((error) => callback(error))
-        .run();
+        .then((r) => r.toFuture())
+        .toCallback1(callback);
   }
 
   void publishTyping({
@@ -584,12 +597,12 @@ class QiscusSDK {
     bool isTyping,
   }) {
     _authenticated
-        .andThen(__<TypingUseCase>()(UserTyping(
+        .chain(__<TypingUseCase>()(UserTyping(
           userId: __<Storage>().userId,
           roomId: roomId,
           isTyping: isTyping,
         )))
-        .run();
+        .then((r) => r.toFuture());
   }
 
   void registerDeviceToken({
@@ -599,7 +612,10 @@ class QiscusSDK {
   }) {
     var useCase = __<RegisterDeviceTokenUseCase>();
     var params = DeviceTokenParams(token, isDevelopment);
-    return _authenticated.andThen(useCase(params)).toCallback_(callback);
+    return _authenticated
+        .chain(useCase(params))
+        .then((r) => r.toFuture())
+        .toCallback2(callback);
   }
 
   void removeDeviceToken({
@@ -609,7 +625,10 @@ class QiscusSDK {
   }) {
     var useCase = __<UnregisterDeviceTokenUseCase>();
     var params = DeviceTokenParams(token, isDevelopment);
-    return _authenticated.andThen(useCase(params)).toCallback_(callback);
+    return _authenticated
+        .chain(useCase(params))
+        .then((r) => r.toFuture())
+        .toCallback2(callback);
   }
 
   void removeParticipants({
@@ -618,8 +637,9 @@ class QiscusSDK {
     @required void Function(List<String>, QError) callback,
   }) {
     _authenticated
-        .andThen(_room$$.removeParticipant(roomId, userIds))
-        .toCallback_(callback);
+        .chain(_room$$.removeParticipant(roomId, userIds))
+        .then((r) => r.toFuture())
+        .toCallback2(callback);
   }
 
   void sendFileMessage({
@@ -652,13 +672,14 @@ class QiscusSDK {
     @required void Function(QMessage, QError) callback,
   }) {
     _authenticated
-        .andThen(Task.delay(() {
+        .chain(Future.sync(() {
           message.sender = __<Storage>().currentUser?.toModel()?.asUser();
           return message;
         }))
-        .bind((message) => __<SendMessageUseCase>()(MessageParams(message)))
-        .rightMap((it) => it.toModel())
-        .toCallback_(callback);
+        .then((message) => __<SendMessageUseCase>()(MessageParams(message)))
+        .then((r) => r.toFuture())
+        .then((it) => it.toModel())
+        .toCallback2(callback);
   }
 
   void setCustomHeader(Map<String, String> headers) {
@@ -672,7 +693,7 @@ class QiscusSDK {
 
   void setup(
     String appId, {
-    @required Function1<QError, void> callback,
+    @required void Function(QError) callback,
   }) {
     setupWithCustomServer(appId, callback: callback);
   }
@@ -684,8 +705,8 @@ class QiscusSDK {
     String brokerLbUrl = Storage.defaultBrokerLbUrl,
     int syncInterval = Storage.defaultSyncInterval,
     int syncIntervalWhenConnected = Storage.defaultSyncIntervalWhenConnected,
-    @required Function1<QError, void> callback,
-  }) {
+    @required void Function(QError) callback,
+  }) async {
     final storage = __<Storage>();
     storage
       ..appId = appId
@@ -695,36 +716,37 @@ class QiscusSDK {
       ..syncInterval = syncInterval.milliseconds
       ..syncIntervalWhenConnected = syncIntervalWhenConnected.milliseconds;
 
-    __<AppConfigUseCase>() //
-        .call(noParams)
-        .toCallback_((_, e) => callback(e));
+    await __<AppConfigUseCase>()(noParams)
+        .then((it) => it.toCallback1(callback));
   }
 
-  Task<Either<QError, Tuple2<String, Account>>> taskIdErr(QError it) {
-    return Task(() async => left<QError, Tuple2<String, Account>>(it));
-  }
-
-  Task<Either<QError, void>> __subscribes(String token) {
+  Future<Either<QError, void>> __subscribes(String token) async {
     final params = TokenParams(token);
     final onMessageReceived = __<OnMessageReceived>();
     final realtimeService = __<IRealtimeService>();
     final onMessageUpdated = __<OnMessageUpdated>();
 
-    return onMessageReceived
-        .subscribe(params)
-        .andThen(onMessageUpdated.subscribe(params))
-        .andThen(task(
-          () => realtimeService.subscribe(TopicBuilder.notification(token)),
-        ));
+    var stream = StreamGroup.merge<void>([
+      onMessageReceived.subscribe(params).map((_) => null),
+      onMessageUpdated.subscribe(params).map((_) => null),
+      realtimeService.subscribe(TopicBuilder.notification(token)).asStream(),
+    ]);
+
+    return stream.first.toEither();
   }
 
-  Task<Either<QError, Tuple2<String, Account>>> _subscribes(
-      Either<QError, Tuple2<String, Account>> either) {
-    return either.fold(taskIdErr, (tuple) {
-      return __subscribes(tuple.value1).andThen(Task(() async {
-        return right<QError, Tuple2<String, Account>>(tuple);
-      }));
-    });
+  Future<Either<QError, Tuple2<String, Account>>> _subscribes(
+    Either<QError, Tuple2<String, Account>> either,
+  ) async {
+    var value = await either.map((data) async {
+      await __subscribes(data.first);
+      return data;
+    }).fold(
+      (l) => Future.value(Either.left(l)),
+      (r) => r.then((r) => Either.right(r)),
+    );
+
+    return value as Either<QError, Tuple2<String, Account>>;
   }
 
   void setUser({
@@ -744,11 +766,13 @@ class QiscusSDK {
       extras: extras,
     );
 
-    authenticate(params)
-        .bind((either) => _connectMqtt(either))
-        .bind(_subscribes)
-        .rightMap((it) => it.value2.toModel())
-        .toCallback_(callback);
+    authenticate
+        .call(params)
+        .then((either) => _connectMqtt(either))
+        .then(_subscribes)
+        .then((r) => r.toFuture())
+        .then((it) => it.second.toModel())
+        .toCallback2(callback);
   }
 
   void setUserWithIdentityToken({
@@ -759,21 +783,20 @@ class QiscusSDK {
     var params = AuthenticateWithTokenParams(token);
 
     authenticate(params)
-        .map((either) => either.map((account) => tuple2(token, account)))
-        .bind((either) => _connectMqtt(either))
-        .bind(_subscribes)
-        .rightMap((data) => data.value2.toModel())
-        .toCallback_(callback);
+        .then((either) => either.map((account) => Tuple2(token, account)))
+        .then((either) => _connectMqtt(either))
+        .then(_subscribes)
+        .then((r) => r.toFuture())
+        .then((it) => it.second.toModel())
+        .toCallback2(callback);
   }
 
-  Task<T> _connectMqtt<T>(T it) {
-    return Task<T>(() async {
-      if (__<Storage>().isRealtimeEnabled) {
-        await __<IRealtimeService>().connect();
-        return it;
-      }
+  Future<T> _connectMqtt<T>(T it) async {
+    if (__<Storage>().isRealtimeEnabled) {
+      await __<IRealtimeService>().connect();
       return it;
-    });
+    }
+    return it;
   }
 
   void unsubscribeChatRoom(QChatRoom room) {
@@ -786,7 +809,7 @@ class QiscusSDK {
       userId: '+',
     ));
 
-    _authenticated.andThen(read).andThen(delivered).andThen(typing).run();
+    _authenticated.chain(read).chain(delivered).chain(typing);
   }
 
   void subscribeChatRoom(QChatRoom room) {
@@ -798,7 +821,7 @@ class QiscusSDK {
       roomId: room.id,
       userId: '+',
     ));
-    _authenticated.andThen(read).andThen(delivered).andThen(typing).run();
+    _authenticated.chain(read).chain(delivered).chain(typing);
   }
 
   void subscribeCustomEvent({
@@ -806,30 +829,27 @@ class QiscusSDK {
     @required void Function(Map<String, dynamic>) callback,
   }) {
     _authenticated
-        .andThen(__<CustomEventUseCase>().subscribe(RoomIdParams(roomId)))
-        .bind((stream) =>
-            Task.delay(() => stream.listen((data) => callback(data.payload))))
-        .run();
+        .chain(__<CustomEventUseCase>().subscribe(RoomIdParams(roomId)))
+        .then((stream) => stream.listen((data) => callback(data.payload)))
+        .toCallback1((_) {});
   }
 
   void subscribeUserOnlinePresence(String userId) {
     _authenticated
-        .andThen(__<PresenceUseCase>().subscribe(UserPresence(userId: userId)))
-        .run();
+        .chain(__<PresenceUseCase>().subscribe(UserPresence(userId: userId)))
+        .toCallback1((_) {});
   }
 
   void synchronize({String lastMessageId}) {
     _authenticated
-        .andThen(__<IRealtimeService>().synchronize(int.parse(lastMessageId)))
-        .run()
-        .catchError((dynamic _) {});
+        .chain(__<IRealtimeService>().synchronize(int.parse(lastMessageId)))
+        .toCallback1((_) {});
   }
 
   void synchronizeEvent({String lastEventId}) {
     _authenticated
-        .andThen(__<IRealtimeService>().synchronizeEvent(lastEventId))
-        .run()
-        .catchError((dynamic _) {});
+        .chain(__<IRealtimeService>().synchronizeEvent(lastEventId))
+        .toCallback1((_) {});
   }
 
   void unblockUser({
@@ -837,22 +857,22 @@ class QiscusSDK {
     @required void Function(QUser, QError) callback,
   }) {
     _authenticated
-        .andThen(__<UnblockUserUseCase>().call(UnblockUserParams(userId)))
-        .rightMap((u) => u.toModel())
-        .toCallback_(callback);
+        .chain(__<UnblockUserUseCase>().call(UnblockUserParams(userId)))
+        .then((r) => r.toFuture())
+        .then((u) => u.toModel())
+        .toCallback2(callback);
   }
 
   void unsubscribeCustomEvent({@required int roomId}) {
     _authenticated
-        .andThen(__<CustomEventUseCase>().unsubscribe(RoomIdParams(roomId)))
-        .run();
+        .chain(__<CustomEventUseCase>().unsubscribe(RoomIdParams(roomId)))
+        .toCallback1((_) {});
   }
 
   void unsubscribeUserOnlinePresence(String userId) {
     _authenticated
-        .andThen(
-            __<PresenceUseCase>().unsubscribe(UserPresence(userId: userId)))
-        .run();
+        .chain(__<PresenceUseCase>().unsubscribe(UserPresence(userId: userId)))
+        .toCallback1((_) {});
   }
 
   void updateChatRoom({
@@ -863,14 +883,15 @@ class QiscusSDK {
     @required void Function(QChatRoom, QError) callback,
   }) {
     _authenticated
-        .andThen(_room$$.updateRoom(
+        .chain(_room$$.updateRoom(
           roomId: roomId,
           name: name,
           avatarUrl: avatarUrl,
           extras: extras,
         ))
-        .rightMap((r) => r.toModel())
-        .toCallback_(callback);
+        .then((r) => r.toFuture())
+        .then((r) => r.toModel())
+        .toCallback2(callback);
   }
 
   void updateUser({
@@ -886,24 +907,22 @@ class QiscusSDK {
       extras: extras,
     );
     _authenticated
-        .andThen(useCase(params))
-        .rightMap((u) => u.toModel())
-        .toCallback_(callback);
+        .chain(useCase(params))
+        .then((r) => r.toFuture())
+        .then((u) => u.toModel())
+        .toCallback2(callback);
   }
 
   void updateMessage({
     @required QMessage message,
     @required void Function(QError) callback,
   }) {
-    print('called');
     var useCase = __<UpdateMessageUseCase>();
     var params = MessageParams(message);
     _authenticated
-        .tap((_) => print('after authenticated'))
-        .andThen(useCase(params))
-        .tap((data) => print('got data: $data'))
-        .toCallback1(callback)
-        .run();
+        .chain(useCase(params))
+        .then((r) => r.toFuture())
+        .toCallback1(callback);
   }
 
   void upload({

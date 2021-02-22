@@ -4,6 +4,7 @@ version: 1.0.11
 homepage: https://sdk.qiscus.com
 repository: https://github.com/qiscus/qiscus-chat-sdk-flutter
 issue_tracker: https://github.com/qiscus/qiscus-chat-sdk-flutter/issues
+publish_to: none
 
 environment:
   sdk: '>=2.7.0 <3.0.0'
@@ -14,12 +15,15 @@ dependencies:
   sealed_unions: ^3.0.2+2
   async: ^2.4.1
   meta: ^1.1.8
-  dartz: ^0.9.1
+#  dartz: ^0.9.1
   mqtt_client: ^6.0.0
   dio: ^3.0.8
   equatable: ^1.1.1
   pretty_dio_logger: ^1.1.1
   get_it: ^4.0.2
+  javelin:
+    path: ../../projects/javelin
+
 
 dev_dependencies:
   flutter_test:

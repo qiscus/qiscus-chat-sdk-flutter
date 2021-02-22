@@ -16,16 +16,16 @@ class MqttUserPresence
 
   @override
   Stream<UserPresence> receive(Tuple2<String, String> msg) async* {
-    var payload = msg.value2.toString().split(':');
-    var userId_ = msg.value1.split('/')[1];
-    var onlineStatus = optionOf(payload[0]) //
+    var payload = msg.second.toString().split(':');
+    var userId_ = msg.first.split('/')[1];
+    var onlineStatus = Option.of(payload[0]) //
         .map((str) => str == '1' ? true : false);
-    var timestamp = optionOf(payload[1])
+    var timestamp = Option.of(payload[1])
         .map((str) => DateTime.fromMillisecondsSinceEpoch(int.parse(str)));
     yield UserPresence(
       userId: userId_,
-      isOnline: onlineStatus.unwrap('onlineStatus are null'),
-      lastSeen: timestamp.unwrap('lastSeen are null'),
+      isOnline: onlineStatus.getOrElse(() => false),
+      lastSeen: timestamp.getOrElse(() => null),
     );
   }
 

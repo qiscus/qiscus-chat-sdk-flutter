@@ -15,7 +15,7 @@ class OnConnected with SubscriptionMixin<IRealtimeService, NoParams, void> {
   IRealtimeService get repository => _repo;
 
   @override
-  Option<String> topic(NoParams p) => none();
+  Option<String> topic(NoParams p) => Option.none();
 }
 
 class OnDisconnected with SubscriptionMixin<IRealtimeService, NoParams, void> {
@@ -33,7 +33,7 @@ class OnDisconnected with SubscriptionMixin<IRealtimeService, NoParams, void> {
   Stream<void> mapStream(_) => repository.onDisconnected();
 
   @override
-  Option<String> topic(NoParams p) => none();
+  Option<String> topic(NoParams p) => Option.none();
 }
 
 class OnReconnecting with SubscriptionMixin<IRealtimeService, NoParams, void> {
@@ -52,5 +52,5 @@ class OnReconnecting with SubscriptionMixin<IRealtimeService, NoParams, void> {
   Stream<void> mapStream(_) => repository.onReconnecting();
 
   @override
-  Option<String> topic(NoParams p) => none();
+  Option<String> topic(NoParams p) => Option.none();
 }

@@ -27,7 +27,8 @@ abstract class RealtimeEvent {
       return result;
     });
 
-    return results.expand(id).toList();
+
+    return results.expand((it) => it).toList();
   }
 
   Out fold<Out>({
@@ -146,9 +147,10 @@ class MessageDeletedEvent extends RealtimeEvent with EquatableMixin {
 
   static List<MessageDeletedEvent> fromJson(Map<String, dynamic> json) {
     var data = json['payload'] as Map<String, dynamic>;
-    var deletedMsgs = (data['deleted_messages'] as List) //
+    var deletedMessages = (data['deleted_messages'] as List) //
         .cast<Map<String, dynamic>>();
-    return deletedMsgs
+
+    return deletedMessages
         .map((it) {
           return (it['message_unique_ids'] as List).cast<String>().map((id) {
             return MessageDeletedEvent(
@@ -157,7 +159,7 @@ class MessageDeletedEvent extends RealtimeEvent with EquatableMixin {
             );
           });
         })
-        .expand(id)
+        .expand((it) => it)
         .toList();
   }
 }

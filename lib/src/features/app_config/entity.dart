@@ -2,9 +2,9 @@ part of qiscus_chat_sdk.usecase.app_config;
 
 Option<T> optionFromJson<T>(T json) {
   if ((json is String) && json.isEmpty) {
-    return none();
+    return Option<T>.none();
   }
-  return optionOf(json);
+  return Option<T>.of(json);
 }
 
 @immutable
@@ -46,21 +46,21 @@ class AppConfig {
         if ((extras is String) && extras.isNotEmpty) {
           return decodeJson(extras);
         } else {
-          return none<Map<String, dynamic>>();
+          return Option<Map<String, dynamic>>.none();
         }
       })(json['extras'] as String),
     );
   }
 
   void hydrateStorage(Storage s) {
-    baseUrl.do_((it) => s.baseUrl = it);
-    brokerLbUrl.do_((it) => s.brokerLbUrl = it);
-    brokerUrl.map((it) => s.brokerUrl = it);
-    enableEventReport.do_((it) => s.enableEventReport = it);
-    enableRealtime.do_((it) => s.isRealtimeEnabled = it);
-    enableRealtimeCheck.do_((it) => s.isRealtimeCheckEnabled = it);
-    syncInterval.do_((it) => s.syncInterval = it.milliseconds);
-    syncOnConnect.do_((it) => s.syncIntervalWhenConnected = it.milliseconds);
-    extras.do_((it) => s.configExtras = it);
+    baseUrl.fold(() {}, (it) => s.baseUrl = it);
+    brokerLbUrl.fold(() {}, (it) => s.brokerLbUrl = it);
+    brokerUrl.fold(() {}, (it) => s.brokerUrl = it);
+    enableEventReport.fold(() {}, (it) => s.enableEventReport = it);
+    enableRealtime.fold(() {}, (it) => s.isRealtimeEnabled = it);
+    enableRealtimeCheck.fold(() {}, (it) => s.isRealtimeCheckEnabled = it);
+    syncInterval.fold(() {}, (it) => s.syncInterval = it.milliseconds);
+    syncOnConnect.fold(() {}, (it) => s.syncIntervalWhenConnected = it.milliseconds);
+    extras.fold(() {}, (it) => s.configExtras = it);
   }
 }

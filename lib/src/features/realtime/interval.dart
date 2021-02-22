@@ -22,7 +22,7 @@ class Interval {
     if (!_stopped) _stopped = true;
   }
 
-  Stream<Unit> interval([Stream<Duration> interval]) async* {
+  Stream<void> interval([Stream<Duration> interval]) async* {
     var interval$ = interval ??
         Stream.periodic(
           _storage.accSyncInterval,
@@ -31,7 +31,7 @@ class Interval {
 
     await for (var it in interval$) {
       if (!_stopped && it > _interval) {
-        yield unit;
+        yield null;
       }
     }
   }
