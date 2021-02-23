@@ -6,7 +6,7 @@ class UserRepositoryImpl implements IUserRepository {
   UserRepositoryImpl(this.dio);
 
   @override
-  Future<Either<QError, Tuple2<String, Account>>> authenticate({
+  Future<Either<Error, Tuple2<String, Account>>> authenticate({
     String userId,
     String userKey,
     String name,
@@ -25,7 +25,7 @@ class UserRepositoryImpl implements IUserRepository {
   }
 
   @override
-  Future<Either<QError, Tuple2<String, Account>>> authenticateWithToken({
+  Future<Either<Error, Tuple2<String, Account>>> authenticateWithToken({
     String identityToken,
   }) {
     var request = AuthenticateWithTokenRequest(
@@ -35,31 +35,31 @@ class UserRepositoryImpl implements IUserRepository {
   }
 
   @override
-  Future<Either<QError, User>> blockUser({@required String userId}) {
+  Future<Either<Error, User>> blockUser({@required String userId}) {
     var request = BlockUserRequest(userId: userId);
     return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Future<Either<QError, List<User>>> getBlockedUser({int page, int limit}) {
+  Future<Either<Error, List<User>>> getBlockedUser({int page, int limit}) {
     var request = GetBlockedUsersRequest(page: page, limit: limit);
     return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Future<Either<QError, String>> getNonce() {
+  Future<Either<Error, String>> getNonce() {
     var request = GetNonceRequest();
     return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Future<Either<QError, Account>> getUserData() {
+  Future<Either<Error, Account>> getUserData() {
     var request = GetUserDataRequest();
     return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Future<Either<QError, List<User>>> getUsers({
+  Future<Either<Error, List<User>>> getUsers({
     @Deprecated('will be removed on next release') String query,
     int page,
     int limit,
@@ -73,7 +73,7 @@ class UserRepositoryImpl implements IUserRepository {
   }
 
   @override
-  Future<Either<QError, bool>> registerDeviceToken({
+  Future<Either<Error, bool>> registerDeviceToken({
     String token,
     bool isDevelopment,
   }) {
@@ -85,13 +85,13 @@ class UserRepositoryImpl implements IUserRepository {
   }
 
   @override
-  Future<Either<QError, User>> unblockUser({String userId}) {
+  Future<Either<Error, User>> unblockUser({String userId}) {
     var request = UnblockUserRequest(userId: userId);
     return dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Future<Either<QError, bool>> unregisterDeviceToken({
+  Future<Either<Error, bool>> unregisterDeviceToken({
     String token,
     bool isDevelopment,
   }) {
@@ -103,7 +103,7 @@ class UserRepositoryImpl implements IUserRepository {
   }
 
   @override
-  Future<Either<QError, Account>> updateUser({
+  Future<Either<Error, Account>> updateUser({
     String name,
     String avatarUrl,
     Map<String, dynamic> extras,

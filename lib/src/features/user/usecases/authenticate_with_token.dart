@@ -8,7 +8,7 @@ class AuthenticateUserWithTokenUseCase
       : super(repository);
 
   @override
-  Future<Either<QError, Account>> call(AuthenticateWithTokenParams p) async {
+  Future<Either<Error, Account>> call(AuthenticateWithTokenParams p) async {
     var it =
         await repository.authenticateWithToken(identityToken: p.identityToken);
 

@@ -29,7 +29,7 @@ class QiscusSDK {
 
   factory QiscusSDK.withAppId(
     String appId, {
-    @required void Function(QError) callback,
+    @required void Function(Error) callback,
   }) {
     return QiscusSDK()..setup(appId, callback: callback);
   }
@@ -41,7 +41,7 @@ class QiscusSDK {
     String brokerLbUrl = Storage.defaultBrokerLbUrl,
     int syncInterval = Storage.defaultSyncInterval,
     int syncIntervalWhenConnected = Storage.defaultSyncIntervalWhenConnected,
-    @required void Function(QError) callback,
+    @required void Function(Error) callback,
   }) {
     return QiscusSDK()
       ..setupWithCustomServer(
@@ -115,7 +115,7 @@ class QiscusSDK {
   void addParticipants({
     @required int roomId,
     @required List<String> userIds,
-    @required void Function(List<QParticipant>, QError) callback,
+    @required void Function(List<QParticipant>, Error) callback,
   }) {
     Future.sync(() async {
       var res = await _room$$.addParticipant(roomId, userIds);
@@ -125,7 +125,7 @@ class QiscusSDK {
 
   void blockUser({
     @required String userId,
-    @required void Function(QUser, QError) callback,
+    @required void Function(QUser, Error) callback,
   }) {
     final blockUser = __<BlockUserUseCase>();
     Future.sync(() async {
@@ -138,7 +138,7 @@ class QiscusSDK {
   void chatUser({
     @required String userId,
     Map<String, dynamic> extras,
-    @required void Function(QChatRoom, QError) callback,
+    @required void Function(QChatRoom, Error) callback,
   }) {
     Future.sync(() async {
       await _authenticated;
@@ -149,7 +149,7 @@ class QiscusSDK {
 
   void clearMessagesByChatRoomId({
     @required List<String> roomUniqueIds,
-    @required void Function(QError) callback,
+    @required void Function(Error) callback,
   }) {
     Future.sync(() async {
       await _authenticated;
@@ -158,7 +158,7 @@ class QiscusSDK {
     }).toCallback1(callback);
   }
 
-  void clearUser({@required void Function(QError) callback}) {
+  void clearUser({@required void Function(Error) callback}) {
     var clearSubscription = () => Future.wait([
           __<OnMessageDelivered>().clear(),
           __<OnMessageRead>().clear(),
@@ -186,7 +186,7 @@ class QiscusSDK {
     String name,
     String avatarUrl,
     Map<String, dynamic> extras,
-    @required void Function(QChatRoom, QError) callback,
+    @required void Function(QChatRoom, Error) callback,
   }) {
     Future.sync(() async {
       await _authenticated;
@@ -206,7 +206,7 @@ class QiscusSDK {
     @required List<String> userIds,
     String avatarUrl,
     Map<String, dynamic> extras,
-    @required void Function(QChatRoom, QError) callback,
+    @required void Function(QChatRoom, Error) callback,
   }) {
     Future.sync(() async {
       await _authenticated;
@@ -222,7 +222,7 @@ class QiscusSDK {
 
   void deleteMessages({
     @required List<String> messageUniqueIds,
-    @required void Function(List<QMessage>, QError) callback,
+    @required void Function(List<QMessage>, Error) callback,
   }) {
     final deleteMessages = __<DeleteMessageUseCase>();
     Future.sync(() async {
@@ -250,7 +250,7 @@ class QiscusSDK {
     bool showEmpty,
     int limit,
     int page,
-    @required void Function(List<QChatRoom>, QError) callback,
+    @required void Function(List<QChatRoom>, Error) callback,
   }) {
     Future.sync(() async {
       await _authenticated;
@@ -268,7 +268,7 @@ class QiscusSDK {
   void getBlockedUsers({
     int page,
     int limit,
-    @required void Function(List<QUser>, QError) callback,
+    @required void Function(List<QUser>, Error) callback,
   }) {
     final params = GetBlockedUserParams(page: page, limit: limit);
     final useCase = __<GetBlockedUserUseCase>();
@@ -282,7 +282,7 @@ class QiscusSDK {
 
   void getChannel({
     @required String uniqueId,
-    @required void Function(QChatRoom, QError) callback,
+    @required void Function(QChatRoom, Error) callback,
   }) {
     Future.sync(() async {
       await _authenticated;
@@ -297,16 +297,16 @@ class QiscusSDK {
     int page,
     bool showRemoved,
     bool showParticipants,
-    @required void Function(List<QChatRoom>, QError) callback,
+    @required void Function(List<QChatRoom>, Error) callback,
   }) {
     const errorMessage = 'Please specify either `roomIds` or `uniqueIds`';
 
     Future.sync(() async {
       if ([roomIds, uniqueIds].every((it) => it == null)) {
-        throw QError(errorMessage);
+        throw ArgumentError(errorMessage);
       }
       if ([roomIds, uniqueIds].every((it) => it != null)) {
-        throw QError(errorMessage);
+        throw ArgumentError(errorMessage);
       }
 
       await _authenticated;
@@ -323,7 +323,7 @@ class QiscusSDK {
 
   void getChatRoomWithMessages({
     @required int roomId,
-    @required void Function(QChatRoom, List<QMessage>, QError) callback,
+    @required void Function(QChatRoom, List<QMessage>, Error) callback,
   }) {
     Future.sync(() async {
       await _authenticated;
@@ -334,11 +334,11 @@ class QiscusSDK {
         return Tuple2(room, messages);
       }).toFuture();
     }).toCallback2((data, error) {
-      callback(data.first, data.second, error);
+      callback(data?.first, data?.second, error);
     });
   }
 
-  void getJWTNonce({void Function(String, QError) callback}) {
+  void getJWTNonce({void Function(String, Error) callback}) {
     Future.sync(() async {
       var res = await __<GetNonceUseCase>().call(noParams);
       return res.toFuture();
@@ -349,7 +349,7 @@ class QiscusSDK {
     @required int roomId,
     @required int messageId,
     int limit,
-    @required void Function(List<QMessage>, QError) callback,
+    @required void Function(List<QMessage>, Error) callback,
   }) {
     final useCase = __<GetMessageListUseCase>();
     final params =
@@ -367,7 +367,7 @@ class QiscusSDK {
     int page,
     int limit,
     String sorting,
-    @required void Function(List<QParticipant>, QError) callback,
+    @required void Function(List<QParticipant>, Error) callback,
   }) {
     Future.sync(() async {
       await _authenticated;
@@ -384,7 +384,7 @@ class QiscusSDK {
     @required int roomId,
     int limit,
     int messageId,
-    @required void Function(List<QMessage>, QError) callback,
+    @required void Function(List<QMessage>, Error) callback,
   }) {
     _authenticated
         .chain(__<GetMessageListUseCase>()(
@@ -397,14 +397,14 @@ class QiscusSDK {
 
   String getThumbnailURL(String url) => url;
 
-  void getTotalUnreadCount({@required void Function(int, QError) callback}) {
+  void getTotalUnreadCount({@required void Function(int, Error) callback}) {
     _authenticated
         .chain(_room$$.getTotalUnreadCount())
         .then((r) => r.toFuture())
         .toCallback2(callback);
   }
 
-  void getUserData({@required void Function(QAccount, QError) callback}) {
+  void getUserData({@required void Function(QAccount, Error) callback}) {
     var useCase = __<GetUserDataUseCase>();
     _authenticated
         .chain(useCase(noParams))
@@ -417,7 +417,7 @@ class QiscusSDK {
     @deprecated String searchUsername,
     int page,
     int limit,
-    @required void Function(List<QUser>, QError) callback,
+    @required void Function(List<QUser>, Error) callback,
   }) {
     final params = GetUserParams(
       query: searchUsername,
@@ -448,7 +448,7 @@ class QiscusSDK {
   void markAsDelivered({
     @required int roomId,
     @required int messageId,
-    @required void Function(QError) callback,
+    @required void Function(Error) callback,
   }) {
     _authenticated
         .chain(__<UpdateMessageStatusUseCase>()(UpdateStatusParams(
@@ -464,7 +464,7 @@ class QiscusSDK {
   void markAsRead({
     @required int roomId,
     @required int messageId,
-    @required void Function(QError) callback,
+    @required void Function(Error) callback,
   }) {
     _authenticated
         .chain(__<UpdateMessageStatusUseCase>()(UpdateStatusParams(
@@ -565,7 +565,7 @@ class QiscusSDK {
   void publishCustomEvent({
     @required int roomId,
     @required Map<String, dynamic> payload,
-    @required void Function(QError) callback,
+    @required void Function(Error) callback,
   }) {
     _authenticated
         .chain(
@@ -580,7 +580,7 @@ class QiscusSDK {
 
   void publishOnlinePresence({
     @required bool isOnline,
-    @required void Function(QError) callback,
+    @required void Function(Error) callback,
   }) {
     _authenticated
         .chain(__<PresenceUseCase>()(UserPresence(
@@ -608,7 +608,7 @@ class QiscusSDK {
   void registerDeviceToken({
     @required String token,
     bool isDevelopment,
-    @required void Function(bool, QError) callback,
+    @required void Function(bool, Error) callback,
   }) {
     var useCase = __<RegisterDeviceTokenUseCase>();
     var params = DeviceTokenParams(token, isDevelopment);
@@ -621,7 +621,7 @@ class QiscusSDK {
   void removeDeviceToken({
     @required String token,
     bool isDevelopment,
-    @required void Function(bool, QError) callback,
+    @required void Function(bool, Error) callback,
   }) {
     var useCase = __<UnregisterDeviceTokenUseCase>();
     var params = DeviceTokenParams(token, isDevelopment);
@@ -634,7 +634,7 @@ class QiscusSDK {
   void removeParticipants({
     @required int roomId,
     @required List<String> userIds,
-    @required void Function(List<String>, QError) callback,
+    @required void Function(List<String>, Error) callback,
   }) {
     _authenticated
         .chain(_room$$.removeParticipant(roomId, userIds))
@@ -645,7 +645,7 @@ class QiscusSDK {
   void sendFileMessage({
     @required QMessage message,
     @required File file,
-    @required void Function(QError, double, QMessage) callback,
+    @required void Function(Error, double, QMessage) callback,
   }) {
     upload(
       file: file,
@@ -669,7 +669,7 @@ class QiscusSDK {
 
   void sendMessage({
     @required QMessage message,
-    @required void Function(QMessage, QError) callback,
+    @required void Function(QMessage, Error) callback,
   }) {
     _authenticated
         .chain(Future.sync(() {
@@ -693,7 +693,7 @@ class QiscusSDK {
 
   void setup(
     String appId, {
-    @required void Function(QError) callback,
+    @required void Function(Error) callback,
   }) {
     setupWithCustomServer(appId, callback: callback);
   }
@@ -705,7 +705,7 @@ class QiscusSDK {
     String brokerLbUrl = Storage.defaultBrokerLbUrl,
     int syncInterval = Storage.defaultSyncInterval,
     int syncIntervalWhenConnected = Storage.defaultSyncIntervalWhenConnected,
-    @required void Function(QError) callback,
+    @required void Function(Error) callback,
   }) async {
     final storage = __<Storage>();
     storage
@@ -720,7 +720,7 @@ class QiscusSDK {
         .then((it) => it.toCallback1(callback));
   }
 
-  Future<Either<QError, void>> __subscribes(String token) async {
+  Future<Either<Error, void>> __subscribes(String token) async {
     final params = TokenParams(token);
     final onMessageReceived = __<OnMessageReceived>();
     final realtimeService = __<IRealtimeService>();
@@ -735,18 +735,18 @@ class QiscusSDK {
     return stream.first.toEither();
   }
 
-  Future<Either<QError, Tuple2<String, Account>>> _subscribes(
-    Either<QError, Tuple2<String, Account>> either,
+  Future<Either<Error, Tuple2<String, Account>>> _subscribes(
+    Either<Error, Tuple2<String, Account>> either,
   ) async {
-    var value = await either.map((data) async {
+    var r = await either.map((data) async {
       await __subscribes(data.first);
       return data;
-    }).fold(
+    });
+    var v = r.fold<Future<Either<Error, Tuple2<String, Account>>>>(
       (l) => Future.value(Either.left(l)),
       (r) => r.then((r) => Either.right(r)),
     );
-
-    return value as Either<QError, Tuple2<String, Account>>;
+    return v;
   }
 
   void setUser({
@@ -755,7 +755,7 @@ class QiscusSDK {
     String username,
     String avatarUrl,
     Map<String, dynamic> extras,
-    @required void Function(QAccount, QError) callback,
+    @required void Function(QAccount, Error) callback,
   }) {
     final authenticate = __<AuthenticateUserUseCase>();
     final params = AuthenticateParams(
@@ -777,7 +777,7 @@ class QiscusSDK {
 
   void setUserWithIdentityToken({
     @required String token,
-    @required void Function(QAccount, QError) callback,
+    @required void Function(QAccount, Error) callback,
   }) {
     var authenticate = __<AuthenticateUserWithTokenUseCase>();
     var params = AuthenticateWithTokenParams(token);
@@ -854,7 +854,7 @@ class QiscusSDK {
 
   void unblockUser({
     @required String userId,
-    @required void Function(QUser, QError) callback,
+    @required void Function(QUser, Error) callback,
   }) {
     _authenticated
         .chain(__<UnblockUserUseCase>().call(UnblockUserParams(userId)))
@@ -880,7 +880,7 @@ class QiscusSDK {
     String name,
     String avatarUrl,
     Map<String, dynamic> extras,
-    @required void Function(QChatRoom, QError) callback,
+    @required void Function(QChatRoom, Error) callback,
   }) {
     _authenticated
         .chain(_room$$.updateRoom(
@@ -898,7 +898,7 @@ class QiscusSDK {
     String name,
     String avatarUrl,
     Map<String, dynamic> extras,
-    @required void Function(QAccount, QError) callback,
+    @required void Function(QAccount, Error) callback,
   }) {
     var useCase = __<UpdateUserUseCase>();
     var params = UpdateUserParams(
@@ -915,7 +915,7 @@ class QiscusSDK {
 
   void updateMessage({
     @required QMessage message,
-    @required void Function(QError) callback,
+    @required void Function(Error) callback,
   }) {
     var useCase = __<UpdateMessageUseCase>();
     var params = MessageParams(message);
@@ -927,7 +927,7 @@ class QiscusSDK {
 
   void upload({
     @required File file,
-    @required void Function(QError, double, String) callback,
+    @required void Function(Error, double, String) callback,
   }) async {
     final uploadUrl = __<Storage>().uploadUrl;
     final dio = __<Dio>();
@@ -947,7 +947,7 @@ class QiscusSDK {
       var url = json['results']['file']['url'] as String;
       callback(null, null, url);
     }).catchError((dynamic error) {
-      callback(QError(error.toString()), null, null);
+      callback(error, null, null);
     });
   }
 

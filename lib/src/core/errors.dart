@@ -1,14 +1,10 @@
 part of qiscus_chat_sdk.core;
 
-class QError extends Error with EquatableMixin {
+class MError with EquatableMixin implements Error {
   final String message;
+  final StackTrace stackTrace;
 
-  QError(this.message);
-
-  @override
-  String toString() {
-    return 'QError: $message';
-  }
+  MError(this.message, [this.stackTrace]);
 
   @override
   List<Object> get props => [message];

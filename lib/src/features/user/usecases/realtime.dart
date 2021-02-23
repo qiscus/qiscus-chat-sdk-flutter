@@ -9,7 +9,7 @@ class TypingUseCase extends UseCase<IRealtimeService, void, UserTyping>
   static TypingUseCase _instance;
 
   @override
-  Future<Either<QError, void>> call(params) {
+  Future<Either<Error, void>> call(params) {
     return repository
         .publishTyping(
           isTyping: params.isTyping,
@@ -44,7 +44,7 @@ class PresenceUseCase extends UseCase<IRealtimeService, void, UserPresence>
       _instance ??= PresenceUseCase._(service);
 
   @override
-  Future<Either<QError, void>> call(params) {
+  Future<Either<Error, void>> call(params) {
     return repository
         .publishPresence(
           isOnline: params.isOnline,

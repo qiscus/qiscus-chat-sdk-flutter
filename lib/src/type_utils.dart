@@ -171,4 +171,13 @@ class Tuple2<T1, T2> with EquatableMixin {
 
   @override
   List<Object> get props => [first, second];
+
+  @override
+  String toString() {
+    // TODO: implement toString
+    return ('Tuple2('
+        'first=$first,'
+        ' second=$second'
+        ')');
+  }
 }

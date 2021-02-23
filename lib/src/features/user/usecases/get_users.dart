@@ -12,7 +12,7 @@ class GetUsersUseCase
   const GetUsersUseCase(IUserRepository repository) : super(repository);
 
   @override
-  Future<Either<QError, List<User>>> call(GetUserParams p) {
+  Future<Either<Error, List<User>>> call(GetUserParams p) {
     return repository.getUsers(
       query: p.query,
       page: p.page,

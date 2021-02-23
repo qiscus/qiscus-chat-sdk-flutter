@@ -147,6 +147,9 @@ class Message {
       );
 
   factory Message.fromJson(Map<String, dynamic> json) {
+    var extras = Option.of(json['extras'] as Object).flatMap(decodeJson);
+    var payload = Option.of(json['payload'] as Object).flatMap(decodeJson);
+
     return Message(
       id: Option.of(json['id'] as int),
       chatRoomId: Option.of(json['room_id'] as int),
@@ -177,8 +180,8 @@ class Message {
             return QMessageType.text;
         }
       }),
-      extras: Option.of(json['extras'] as Object).flatMap(decodeJson),
-      payload: Option.of(json['payload'] as Object).flatMap(decodeJson),
+      extras: extras,
+      payload: payload,
       timestamp: Option.of(json['unix_nano_timestamp'] as int).map(
         (it) => DateTime.fromMillisecondsSinceEpoch(
           (it / 1e6).round(),

@@ -5,7 +5,7 @@ class Dummy {
   void onFuture(void Function(int, QError) callback) {
     onFuture$()
         .then((data) => callback(data, null))
-        .catchError((dynamic error) => callback(null, error as QError));
+        .catchError((dynamic error) => callback(null, QError(error.toString())));
   }
 
   void onFutureE(void Function(int, QError) callback) {

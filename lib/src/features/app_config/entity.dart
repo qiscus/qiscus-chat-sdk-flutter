@@ -60,7 +60,10 @@ class AppConfig {
     enableRealtime.fold(() {}, (it) => s.isRealtimeEnabled = it);
     enableRealtimeCheck.fold(() {}, (it) => s.isRealtimeCheckEnabled = it);
     syncInterval.fold(() {}, (it) => s.syncInterval = it.milliseconds);
-    syncOnConnect.fold(() {}, (it) => s.syncIntervalWhenConnected = it.milliseconds);
+    syncOnConnect.fold(
+      () {},
+      (it) => s.syncIntervalWhenConnected = it.milliseconds,
+    );
     extras.fold(() {}, (it) => s.configExtras = it);
   }
 }

@@ -23,6 +23,7 @@ class Interval {
   }
 
   Stream<void> interval([Stream<Duration> interval]) async* {
+    var accumulator = 0.milliseconds;
     var interval$ = interval ??
         Stream.periodic(
           _storage.accSyncInterval,
@@ -30,7 +31,10 @@ class Interval {
         );
 
     await for (var it in interval$) {
-      if (!_stopped && it > _interval) {
+      accumulator += it;
+
+      if (!_stopped && accumulator > _interval) {
+        accumulator = 0.milliseconds;
         yield null;
       }
     }
