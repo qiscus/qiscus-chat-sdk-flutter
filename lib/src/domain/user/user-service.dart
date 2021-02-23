@@ -23,26 +23,6 @@ abstract class IUserService {
   Stream<QUserPresence> get onUserPresence;
 }
 
-mixin QUserService on QUser implements IUserService {
-  Future<QUser> authenticate({
-    @required String userId,
-    @required String userKey,
-    String name,
-    String avatarUrl,
-    Map<String, dynamic> extras,
-  });
-  Future<QUser> authenticateWithIdentityToken({@required String identityToken});
-  Future<bool> block(String userId);
-  Future<bool> unblock(String userId);
-  Future<Iterable<QUser>> getUsers();
-  Future<String> getNonce();
-  Future<bool> registerDeviceToken(QDeviceToken token);
-  Future<bool> unregisterDeviceToken(QDeviceToken token);
-  Future<QUser> update(String id, QUser user);
-  Stream<QUserTyping> get onUserTyping;
-  Stream<QUserPresence> get onUserPresence;
-}
-
 @sealed
 class UserService extends IUserService {
   @override
