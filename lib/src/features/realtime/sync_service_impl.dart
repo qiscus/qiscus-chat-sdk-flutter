@@ -15,11 +15,8 @@ class SyncServiceImpl implements IRealtimeService {
 
   @override
   bool get isConnected => true;
-
   int get _messageId => storage.lastMessageId ?? 0;
-
   int get _eventId => storage.lastEventId ?? 0;
-
   Stream<Unit> get _interval$ => interval.interval();
 
   void log(String str) => logger.log('SyncServiceImpl::- $str');
@@ -120,6 +117,7 @@ class SyncServiceImpl implements IRealtimeService {
   Stream<Message> subscribeChannelMessage({String uniqueId}) {
     return Stream.empty();
   }
+
   @override
   Stream<Notification> subscribeNotification() async* {
     yield* Stream.empty();

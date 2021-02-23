@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mockito/mockito.dart';
@@ -8,7 +6,9 @@ import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 
 class MockDio extends Mock implements Dio {}
+
 class MockInterval extends Mock implements Interval {}
+
 class MockLogger extends Mock implements Logger {}
 
 extension DioX on Dio {
@@ -84,7 +84,8 @@ class OptionsX extends Options with EquatableMixin {
   List<Object> get props => [method, headers, contentType];
 }
 
-List<MqttReceivedMessage<MqttMessage>> makeMqttMessage(String topic, String payload) {
+List<MqttReceivedMessage<MqttMessage>> makeMqttMessage(
+    String topic, String payload) {
   var it = MqttClientPayloadBuilder()..addString(payload);
   var message = MqttPublishMessage()..publishData(it.payload);
   return [MqttReceivedMessage<MqttMessage>(topic, message)];

@@ -7,7 +7,7 @@ import 'package:mockito/mockito.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/custom_event/custom_event.dart';
-import 'package:qiscus_chat_sdk/src/features/message/message.dart';
+
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 import 'package:qiscus_chat_sdk/src/realtime/realtime.dart';
 import 'package:test/test.dart';
@@ -203,11 +203,6 @@ void main() {
   });
 
   test('MqttServiceImpl.subscribeMessageReceived()', () {
-    var message = Message(
-      id: some(12),
-      text: some('textt'),
-    );
-    var event = MessageReceivedEvent(message: message);
     var topic = TopicBuilder.messageNew(storage.token);
     makeMqttMessage(topic, jsonEncode(mqttMessageJson))(mqtt);
 

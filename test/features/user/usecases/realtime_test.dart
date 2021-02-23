@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:dartz/dartz.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';

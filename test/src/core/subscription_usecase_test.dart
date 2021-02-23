@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:async/async.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mockito/mockito.dart';
