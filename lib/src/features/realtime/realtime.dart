@@ -1,5 +1,6 @@
 library qiscus_chat_sdk.usecase.realtime;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:async/async.dart';

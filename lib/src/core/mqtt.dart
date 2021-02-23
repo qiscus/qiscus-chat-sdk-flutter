@@ -11,6 +11,7 @@ MqttClient getMqttClient(Storage storage) {
         ..connectionMessage = connectionMessage
         ..websocketProtocols = ['mqtt']
         ..secure = true
+        ..autoReconnect = true
       //
       ;
 }
