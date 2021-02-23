@@ -186,7 +186,7 @@ class MqttServiceImpl implements IRealtimeService {
   }
 
   Stream<O> _restartSubscription<O>(Stream<O> Function() source) {
-    var stream = isConnected$.where((it) => it == true);
+    var stream = isConnected$;
 
     StreamSubscription<bool> subs0;
     StreamSubscription<O> subs1;
@@ -194,8 +194,12 @@ class MqttServiceImpl implements IRealtimeService {
 
     controller = StreamController<O>(
       onListen: () {
-        subs0 = stream.listen((_) {
-          subs1 = source().listen((data) => controller.sink.add(data));
+        subs0 = stream.listen((isConnected) {
+          if (!isConnected) {
+            subs1?.cancel();
+          } else {
+            subs1 = source().listen((data) => controller.sink.add(data));
+          }
         });
       },
       onPause: () {
