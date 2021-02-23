@@ -19,7 +19,7 @@ class UpdateUserUseCase
       : super(repository);
 
   @override
-  Future<Either<QError, Account>> call(UpdateUserParams p) async {
+  Future<Either<Error, Account>> call(UpdateUserParams p) async {
     var resp = await repository.updateUser(
       name: p.name,
       avatarUrl: p.avatarUrl,

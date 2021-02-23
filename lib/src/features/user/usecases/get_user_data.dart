@@ -4,7 +4,7 @@ class GetUserDataUseCase extends UseCase<IUserRepository, Account, NoParams> {
   const GetUserDataUseCase(IUserRepository repository) : super(repository);
 
   @override
-  Future<Either<QError, Account>> call(_) {
+  Future<Either<Error, Account>> call(_) {
     return repository.getUserData();
   }
 }

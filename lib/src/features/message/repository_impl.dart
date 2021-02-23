@@ -6,7 +6,7 @@ class MessageRepositoryImpl implements MessageRepository {
   final Dio _dio;
 
   @override
-  Future<Either<QError, List<Message>>> getMessages(
+  Future<Either<Error, List<Message>>> getMessages(
     int roomId,
     int lastMessageId, {
     bool after = false,
@@ -22,7 +22,7 @@ class MessageRepositoryImpl implements MessageRepository {
   }
 
   @override
-  Future<Either<QError, Message>> sendMessage(
+  Future<Either<Error, Message>> sendMessage(
     int roomId,
     String message, {
     String type = 'text',
@@ -42,7 +42,7 @@ class MessageRepositoryImpl implements MessageRepository {
   }
 
   @override
-  Future<Either<QError, void>> updateStatus({
+  Future<Either<Error, void>> updateStatus({
     @required int roomId,
     int readId = 0,
     int deliveredId = 0,
@@ -55,13 +55,13 @@ class MessageRepositoryImpl implements MessageRepository {
     return _dio.sendApiRequest(request).then(request.format).toEither();
   }
 
-  Future<Either<QError, Message>> updateMessage({@required QMessage message}) {
+  Future<Either<Error, Message>> updateMessage({@required QMessage message}) {
     var request = UpdateMessageRequest(message: message);
     return _dio.sendApiRequest(request).then(request.format).toEither();
   }
 
   @override
-  Future<Either<QError, List<Message>>> deleteMessages({
+  Future<Either<Error, List<Message>>> deleteMessages({
     @required List<String> uniqueIds,
     bool isForEveryone = true,
     bool isHard = true,

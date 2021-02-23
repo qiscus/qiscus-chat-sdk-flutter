@@ -12,7 +12,7 @@ class UpdateMessageStatusUseCase
   UpdateMessageStatusUseCase(MessageRepository repository) : super(repository);
 
   @override
-  Future<Either<QError, void>> call(p) async {
+  Future<Either<Error, void>> call(p) async {
     switch (p.status) {
       case QMessageStatus.delivered:
         return repository.updateStatus(
@@ -26,7 +26,7 @@ class UpdateMessageStatusUseCase
         );
       default:
         return Either.left(
-          QError('Can not update status for message with status: ${p.status}'),
+          MError('Can not update status for message with status: ${p.status}'),
         );
     }
   }

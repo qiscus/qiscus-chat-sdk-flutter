@@ -48,13 +48,16 @@ class ChatRoom {
   }
 
   factory ChatRoom.fromJson(Map<String, dynamic> json) {
-    var participants = Option.of((json['participants'] as List))
-        .map((it) => it.cast<Map<String, dynamic>>())
-        .map((it) => it.map((json) => Participant.fromJson(json)))
-        .map((it) => it.toList());
-    var lastMessage = Either.tryCatch(
-      () => Message.fromJson(json['last_comment'] as Map<String, dynamic>),
-    );
+    var participants =
+        Option.of((json['participants'] as List))
+            .map((it) => it.cast<Map<String, dynamic>>())
+            .map((it) => it.map((json) => Participant.fromJson(json)))
+            .map((it) => it.toList());
+
+    var lastMessage = Option.of(json['last_comment'] as Map<String, dynamic>)
+        .fold(() => Either<Error, Message>.left(null),
+            (it) => Either.tryCatch(() => Message.fromJson(it)))
+        .toOption();
 
     Option<QRoomType> _type;
     var jsonType = json['chat_type'] as String;
@@ -79,7 +82,7 @@ class ChatRoom {
       extras: Option.of(json['options'] as Object).flatMap(decodeJson),
       participants: participants,
       type: _type,
-      lastMessage: lastMessage.toOption(),
+      lastMessage: lastMessage,
     );
   }
 

@@ -1,6 +1,6 @@
 part of qiscus_chat_sdk.core;
 
-Future<void> futurify1(void Function(void Function(QError)) fn) async {
+Future<void> futurify1(void Function(void Function(Error)) fn) async {
   final completer = Completer<void>();
   fn((error) {
     if (error != null) return completer.completeError(error);
@@ -9,7 +9,7 @@ Future<void> futurify1(void Function(void Function(QError)) fn) async {
   return completer.future;
 }
 
-Future<T> futurify2<T>(void Function(void Function(T, QError)) fn) async {
+Future<T> futurify2<T>(void Function(void Function(T, Error)) fn) async {
   final completer = Completer<T>();
 
   fn((data, error) {
@@ -40,15 +40,15 @@ Option<Map<String, dynamic>> decodeJson(Object json) {
     if (it is Map && it.isNotEmpty) {
       return Option.some(it as Map<String, dynamic>);
     }
-
     if (it is String && it.isEmpty) return Option.none();
     if (it is String && it.isNotEmpty) {
-      return Either.tryCatch(() => jsonDecode(it) as Map<String, dynamic>)
-          .join((l) => Option.none(), (r) => Option.some(r.value))
-          .flatMap((it) => Option.of(it as Map<String, dynamic>))
-          .flatMap(
-            (it) => it is Map && it.isEmpty ? Option.none() : Option.some(it),
-          );
+      var opts = Either.tryCatch(() => jsonDecode(it) as Map<String, dynamic>);
+      var either = opts.fold(
+        (l) => Option.none(),
+        (r) => Option.of(r),
+      );
+
+      return either;
     }
     return Option.none();
   });

@@ -1,6 +1,6 @@
 library qiscus_chat_sdk;
 
-export 'package:qiscus_chat_sdk/src/core.dart' show QLogLevel, QError;
+export 'package:qiscus_chat_sdk/src/core.dart' show QLogLevel;
 export 'package:qiscus_chat_sdk/src/features/message/message.dart'
     show QMessage, QMessageType, QMessageStatus;
 export 'package:qiscus_chat_sdk/src/features/room/room.dart'

@@ -9,7 +9,7 @@ class AuthenticateUserUseCase extends UseCase<IUserRepository,
       : super(repository);
 
   @override
-  Future<Either<QError, Tuple2<String, Account>>> call(
+  Future<Either<Error, Tuple2<String, Account>>> call(
     AuthenticateParams p,
   ) async {
     var resp = await repository.authenticate(

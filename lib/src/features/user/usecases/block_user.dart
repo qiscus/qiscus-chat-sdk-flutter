@@ -11,7 +11,7 @@ class BlockUserUseCase extends UseCase<IUserRepository, User, BlockUserParams> {
   const BlockUserUseCase(IUserRepository repository) : super(repository);
 
   @override
-  Future<Either<QError, User>> call(BlockUserParams params) async {
+  Future<Either<Error, User>> call(BlockUserParams params) async {
     return repository.blockUser(userId: params.userId);
   }
 }
