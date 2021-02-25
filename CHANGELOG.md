@@ -1,3 +1,7 @@
+# 1.0.12
+
+- fix not reconnecting to mqtt server after losing internet connection
+
 # 1.0.11
 
 - fix not connecting to mqtt when using `setUserWithIdentityToken` as authentication method
