@@ -18,12 +18,10 @@ class MessageDeleted {
 
 class MqttServiceImpl implements IRealtimeService {
   final Dio _dio;
-
   final Logger _logger;
-
   final MqttClient Function() _getClient;
-
   MqttClient __mqtt;
+  StreamSubscription<MqttReceivedMessage<MqttMessage>> _logSubscription;
 
   final Storage _s;
   final _subscriptions = <String, int>{};
@@ -48,18 +46,6 @@ class MqttServiceImpl implements IRealtimeService {
     _mqtt.onSubscribeFail = (topic) {
       log('@mqtt.subscribe-fail($topic)');
     };
-
-    _mqtt.updates?.expand((it) => it)?.listen((event) {
-      var p = event.payload as MqttPublishMessage;
-      var payload = MqttPublishPayload.bytesToStringAsString(p.payload.message);
-      var topic = event.topic;
-
-      if (_logger.level == QLogLevel.verbose) {
-        log('@mqtt.message($topic) -> $payload');
-      } else {
-        log('@mqtt.message($topic)');
-      }
-    });
   }
 
   @override
@@ -91,16 +77,26 @@ class MqttServiceImpl implements IRealtimeService {
     log('connecting to mqtt');
     var status = await _mqtt.connect();
     log('connected to mqtt: $status');
+    var stream = _restartSubscription(() => _mqtt.updates);
+    _logSubscription = stream.expand((it) => it).listen((data) {
+      if (_logger.level == QLogLevel.verbose) {
+        log('@mqtt.message(topic=(${data.topic}), payload=(${data.payload}))');
+      } else {
+        log('@mqtt.message(topic=(${data.topic}))');
+      }
+    });
   }
 
   @override
   Future<void> end() async {
-    _subscriptions.forEach((topic, count) {
-      var status = _mqtt.getSubscriptionsStatus(topic);
+    await _logSubscription?.cancel();
+    for (var subs in _subscriptions.entries) {
+      var status = _mqtt.getSubscriptionsStatus(subs.key);
       if (status == MqttSubscriptionStatus.active) {
-        _mqtt.unsubscribe(topic);
+        _mqtt.unsubscribe(subs.key);
       }
-    });
+    }
+
     _subscriptions.clear();
     _mqtt.disconnect();
   }
