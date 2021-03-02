@@ -2,99 +2,24 @@ import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:sealed_unions/sealed_unions.dart';
 
-class Either<L extends Error, R extends Object>
-    extends Union2Impl<Left<L>, Right<R>> {
-  static Doublet<Left<L>, Right<R>> _eitherFactory<L, R>() =>
-      Doublet<Left<L>, Right<R>>();
-
-  Either._(Union2<Left<L>, Right<R>> union) : super(union);
-
-  factory Either.tryCatch(R Function() fn) {
-    try {
-      return Either.right(fn());
-    } catch (err) {
-      return Either.left(err as L);
-    }
-  }
-
-  factory Either.left(L left) =>
-      Either._(_eitherFactory<L, R>().first(Left._(left)));
-
-  factory Either.right(R right) =>
-      Either._(_eitherFactory<L, R>().second(Right._(right)));
-
-  @override
-  String toString() {
-    return join((l) => l.toString(), (r) => r.toString());
-  }
-
-  Either<L, RO> map<RO>(RO Function(R) mapper) {
-    return fold(
-      (l) => Either.left(l),
-      (r) => Either.right(mapper(r)),
-    );
-  }
-
-  Either<L, RO> flatMap<RO>(Either<L, RO> Function(R) mapper) {
-    return fold(
-      (l) => Either.left(l),
-      (r) => mapper(r),
-    );
-  }
-
-  O fold<O>(O Function(L) onLeft, O Function(R) onRight) {
-    return join(
-      (l) => onLeft(l.value),
-      (r) => onRight(r.value),
-    );
-  }
-
-  Future<R> toFuture() {
-    return fold(
-      (l) => Future<R>.error(l),
-      (r) => Future.value(r),
-    );
-  }
-}
-
-extension EitherX<L extends Error, R extends Object> on Either<L, R> {
-  Option<R> toOption() {
-    return join(
-      (_) => Option.none(),
-      (r) => Option.some(r.value),
-    );
-  }
-
-  void toCallback1(void Function(L) cb) {
-    continued(
-      (l) => cb(l.value),
-      (_) => cb(null),
-    );
-  }
-
-  void toCallback2(void Function(R, L) cb) {
-    continued(
-      (l) => cb(null, l.value),
-      (r) => cb(r.value, null),
-    );
-  }
-}
-
 @sealed
-class Right<R> {
+class Right<R> with EquatableMixin {
   const Right._(this.value);
 
   final R value;
 
+  get props => [value];
   @override
   String toString() => 'Right($value)';
 }
 
 @sealed
-class Left<L> {
+class Left<L> with EquatableMixin {
   const Left._(this.value);
 
   final L value;
+
+  get props => [value];
 
   @override
   String toString() => 'Left($value)';
@@ -152,15 +77,19 @@ class Option<T extends Object> extends Union2Impl<Some<T>, None> {
 }
 
 @sealed
-class Some<T> {
+class Some<T> with EquatableMixin {
   const Some._(this.value);
 
   final T value;
+
+  get props => [value];
 }
 
 @sealed
-class None {
+class None with EquatableMixin {
   const None._();
+
+  get props => [];
 }
 
 class Tuple2<T1, T2> with EquatableMixin {

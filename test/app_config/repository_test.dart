@@ -1,5 +1,5 @@
-import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/features/app_config/app_config.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:dio/dio.dart';
@@ -39,28 +39,24 @@ void main() {
       data: anyNamed('data'),
     )).thenAnswer((_) async => Response(data: json));
 
-    var resp = await repo.getConfig().run();
+    var config = await repo.getConfig();
 
-    resp.fold(
-      (err) => fail(err.message),
-      (config) {
-        expect(config.baseUrl, some(json['results']['base_url'] as String));
-        expect(config.brokerLbUrl,
-            some(json['results']['broker_lb_url'] as String));
-        expect(config.brokerUrl, some(json['results']['broker_url'] as String));
-        expect(config.enableEventReport,
-            some(json['results']['enable_event_report'] as bool));
-        expect(config.enableRealtime,
-            some(json['results']['enable_realtime'] as bool));
-        expect(config.enableRealtimeCheck,
-            some(json['results']['enable_realtime_check'] as bool));
-        expect(config.extras, none<Map<String, dynamic>>());
-        expect(
-            config.syncInterval, some(json['results']['sync_interval'] as int));
-        expect(config.syncOnConnect,
-            some(json['results']['sync_on_connect'] as int));
-      },
-    );
+    expect(config.baseUrl, Option.some(json['results']['base_url'] as String));
+    expect(config.brokerLbUrl,
+        Option.some(json['results']['broker_lb_url'] as String));
+    expect(
+        config.brokerUrl, Option.some(json['results']['broker_url'] as String));
+    expect(config.enableEventReport,
+        Option.some(json['results']['enable_event_report'] as bool));
+    expect(config.enableRealtime,
+        Option.some(json['results']['enable_realtime'] as bool));
+    expect(config.enableRealtimeCheck,
+        Option.some(json['results']['enable_realtime_check'] as bool));
+    expect(config.extras, Option.none());
+    expect(config.syncInterval,
+        Option.some(json['results']['sync_interval'] as int));
+    expect(config.syncOnConnect,
+        Option.some(json['results']['sync_on_connect'] as int));
 
     verify(dio.request<String>(
       'config',

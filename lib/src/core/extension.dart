@@ -23,25 +23,17 @@ extension FlatStream<V> on Stream<Stream<V>> {
 }
 
 extension FutureX<T> on Future<T> {
-  void toCallback1(void Function(Error) callback) {
+  void toCallback1(void Function(Exception) callback) {
     then(
       (_) => callback(null),
       onError: (dynamic error) => callback(error),
     );
   }
 
-  void toCallback2(void Function(T, Error) callback) {
+  void toCallback2(void Function(T, Exception) callback) {
     then(
       (value) => callback(value, null),
       onError: (dynamic error) => callback(null, error),
-    );
-  }
-
-  Future<Either<Error, T>> toEither() async {
-    return then(
-      (value) => Either<Error, T>.right(value),
-      onError: (Object error) =>
-          Either<Error, T>.left(error),
     );
   }
 

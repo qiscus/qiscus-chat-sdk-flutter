@@ -10,15 +10,15 @@ class SendMessageUseCase
   SendMessageUseCase(MessageRepository repository) : super(repository);
 
   @override
-  Future<Either<Error, Message>> call(params) async {
+  Future<Message> call(params) async {
     if (params.message.chatRoomId == null) {
-      return Either.left(ArgumentError.notNull('roomId'));
+      throw ArgumentError.notNull('roomId');
     }
     if (params.message.text == null) {
-      return Either.left(ArgumentError.notNull('text'));
+      throw ArgumentError.notNull('text');
     }
     if (params.message.type == null) {
-      return Either.left(ArgumentError.notNull('type'));
+      throw ArgumentError.notNull('type');
     }
 
     return repository.sendMessage(

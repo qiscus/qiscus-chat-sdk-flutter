@@ -1,4 +1,3 @@
-import 'package:dartz/dartz.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
 import 'package:test/test.dart';
@@ -18,17 +17,10 @@ void main() {
     when(userRepo.unregisterDeviceToken(
       token: anyNamed('token'),
       isDevelopment: anyNamed('isDevelopment'),
-    )).thenAnswer((_) => Task.delay(
-          () => right(true),
-        ));
+    )).thenAnswer((_) => Future.value(true));
 
-    var aa = useCase.call(DeviceTokenParams('some-token'));
-    var resp = await aa.run();
+    var data = await useCase.call(DeviceTokenParams('some-token'));
 
-    resp.fold((error) {
-      fail(error.toString());
-    }, (data) {
-      expect(data, true);
-    });
+    expect(data, true);
   });
 }

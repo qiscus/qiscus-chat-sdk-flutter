@@ -1,6 +1,6 @@
-import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
 
@@ -19,19 +19,15 @@ void main() {
     test('get profile successfully', () async {
       var account = Account(
         id: 'id',
-        name: some('name'),
+        name: Option.some('name'),
       );
 
-      when(repo.getUserData()).thenReturn(Task(() async {
-        return right(account);
-      }));
+      when(repo.getUserData()).thenAnswer((_) => Future.value(account));
 
-      var resp = await useCase.call(noParams).run();
+      var r = await useCase.call(noParams);
 
-      resp.fold((l) => fail(l.message), (r) {
-        expect(r.id, account.id);
-        expect(r.name, account.name);
-      });
+      expect(r.id, account.id);
+      expect(r.name, account.name);
 
       verify(repo.getUserData()).called(1);
       verifyNoMoreInteractions(repo);

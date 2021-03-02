@@ -1,8 +1,7 @@
-import 'package:dartz/dartz.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
-import 'package:qiscus_chat_sdk/src/core.dart';
 
 class MockUserRepository extends Mock implements IUserRepository {}
 
@@ -17,22 +16,17 @@ void main() {
 
   test('block user successfully', () async {
     var user = User(
-      id: 'user-id'.toOption(),
-      name: some('user'),
+      id: Option.some('user-id'),
+      name: Option.some('user'),
     );
     when(repo.blockUser(userId: anyNamed('userId')))
-        .thenReturn(Task.delay(() => right(user)));
+        .thenAnswer((_) => Future.value(user));
 
     var params = BlockUserParams('user-id');
-    var resp = await blockUser(params).run();
+    var u = await blockUser(params);
 
-    expect(resp.isRight(), true);
-    resp.fold((_) {
-      fail('Not blocking user successfully');
-    }, (u) {
-      expect(u.id, user.id);
-      expect(u.name, user.name);
-    });
+    expect(u.id, user.id);
+    expect(u.name, user.name);
 
     verify(repo.blockUser(userId: anyNamed('userId'))).called(1);
     verifyNoMoreInteractions(repo);

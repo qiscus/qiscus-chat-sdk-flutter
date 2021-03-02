@@ -1,5 +1,5 @@
-import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -18,17 +18,15 @@ void main() {
 
     participant = Participant(
       id: 'some-id',
-      name: some('name'),
-      avatarUrl: some('avatar-url'),
-      extras: some(
-        imap<String, dynamic>(
-          <String, dynamic>{
-            'key': 'value',
-          },
-        ),
+      name: Option.some('name'),
+      avatarUrl: Option.some('avatar-url'),
+      extras: Option.some(
+        <String, dynamic>{
+          'key': 'value',
+        },
       ),
-      lastReadMessageId: some(10),
-      lastReceivedMessageId: some(10),
+      lastReadMessageId: Option.some(10),
+      lastReceivedMessageId: Option.some(10),
     );
   });
 
@@ -67,18 +65,16 @@ void main() {
     });
 
     expect(participant.id, 'some-id');
-    expect(participant.name, some('some-name'));
-    expect(participant.avatarUrl, some('some-avatar-url'));
-    expect(participant.lastReceivedMessageId, some(10));
-    expect(participant.lastReadMessageId, some(10));
+    expect(participant.name, Option.some('some-name'));
+    expect(participant.avatarUrl, Option.some('some-avatar-url'));
+    expect(participant.lastReceivedMessageId, Option.some(10));
+    expect(participant.lastReadMessageId, Option.some(10));
     expect(
       participant.extras,
-      some(
-        imap<String, dynamic>(
-          <String, dynamic>{
-            'key': 'value',
-          },
-        ),
+      Option.some(
+        <String, dynamic>{
+          'key': 'value',
+        },
       ),
     );
   });
@@ -87,11 +83,11 @@ void main() {
     var model = Participant(id: 'id');
 
     expect(model.id, 'id');
-    expect(model.name, None<String>());
-    expect(model.avatarUrl, None<String>());
-    expect(model.extras, None<IMap<String, dynamic>>());
-    expect(model.lastReceivedMessageId, None<int>());
-    expect(model.lastReadMessageId, None<int>());
+    expect(model.name, Option.none());
+    expect(model.avatarUrl, Option.none());
+    expect(model.extras, Option.none());
+    expect(model.lastReceivedMessageId, Option.none());
+    expect(model.lastReadMessageId, Option.none());
   });
 
   test('Participant.toModel', () {

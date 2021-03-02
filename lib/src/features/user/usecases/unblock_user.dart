@@ -12,7 +12,7 @@ class UnblockUserUseCase
   const UnblockUserUseCase(IUserRepository repository) : super(repository);
 
   @override
-  Future<Either<Error, User>> call(UnblockUserParams params) {
+  Future<User> call(UnblockUserParams params) {
     return repository.unblockUser(userId: params.userId);
   }
 }

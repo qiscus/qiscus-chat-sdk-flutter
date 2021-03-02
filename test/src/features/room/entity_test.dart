@@ -1,6 +1,6 @@
-import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/features/room/room.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -22,16 +22,16 @@ void main() {
     );
 
     room = ChatRoom(
-      id: some(123),
-      uniqueId: some('unique-id'),
-      avatarUrl: some('avatar-url'),
-      extras: some(imap<String, dynamic>(<String, dynamic>{ 'key': 'value' })),
-      lastMessage: none(),
-      name: some('name'),
-      participants: none(),
-      totalParticipants: none(),
-      type: some(QRoomType.channel),
-      unreadCount: some(1),
+      id: Option.some(123),
+      uniqueId: Option.some('unique-id'),
+      avatarUrl: Option.some('avatar-url'),
+      extras: Option.some(<String, dynamic>{'key': 'value'}),
+      lastMessage: Option.none(),
+      name: Option.some('name'),
+      participants: Option.none(),
+      totalParticipants: Option.none(),
+      type: Option.some(QRoomType.channel),
+      unreadCount: Option.some(1),
     );
   });
 

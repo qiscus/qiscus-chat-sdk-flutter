@@ -11,7 +11,7 @@ class GetBlockedUserUseCase
   const GetBlockedUserUseCase(IUserRepository repository) : super(repository);
 
   @override
-  Future<Either<Error, List<User>>> call(GetBlockedUserParams params) {
+  Future<List<User>> call(GetBlockedUserParams params) {
     return repository.getBlockedUser(
       page: params.page,
       limit: params.limit,

@@ -1,5 +1,5 @@
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
-import 'package:dartz/dartz.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
@@ -21,26 +21,25 @@ void main() async {
     when(userRepo.authenticate(
       userId: anyNamed('userId'),
       userKey: anyNamed('userKey'),
-    )).thenReturn(Task.delay(() => right(Tuple2(
+    )).thenReturn(Future.value(
+      Tuple2(
         'some-token',
         Account(
           id: '123',
-          name: some('name'),
-        )))));
+          name: Option.some('name'),
+        ),
+      ),
+    ));
 
     var params = AuthenticateParams(
       userId: 'guest-1001',
       userKey: 'passkey',
     );
-    var resp = await authenticate.call(params).run();
-    expect(resp.isRight(), true);
-    resp.fold<void>((err) {
-      expect(err, null);
-    }, (data) {
-      expect(data.value1, 'some-token');
-      expect(data.value2.id, '123');
-      expect(data.value2.name, some('name'));
-    });
+    var data = await authenticate.call(params);
+
+    expect(data.first, 'some-token');
+    expect(data.second.id, '123');
+    expect(data.second.name, Option.some('name'));
 
     verify(userRepo.authenticate(
       userId: anyNamed('userId'),
@@ -62,17 +61,16 @@ void main() async {
     when(userRepo.authenticate(
       userId: anyNamed('userId'),
       userKey: anyNamed('userKey'),
-    )).thenReturn(
-        Task.delay(() => left(QError(json['error']['message'] as String))));
+    )).thenAnswer((_) => Future.error(
+          QError(json['error']['message'] as String),
+        ));
 
     var params = AuthenticateParams(userId: 'guest-1001', userKey: 'wrong');
-    var resp = await authenticate.call(params).run();
-    expect(resp.isLeft(), true);
-    resp.fold<void>((QError err) {
+    try {
+      await authenticate.call(params);
+    } catch (err) {
       expect(err.toString(), 'QError: wrong password');
-    }, (data) {
-      expect(data, null);
-    });
+    }
 
     verify(userRepo.authenticate(
       userId: anyNamed('userId'),

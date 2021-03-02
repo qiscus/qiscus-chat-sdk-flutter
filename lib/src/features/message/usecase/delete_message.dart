@@ -16,7 +16,7 @@ class DeleteMessageUseCase
   DeleteMessageUseCase(MessageRepository repository) : super(repository);
 
   @override
-  Future<Either<Error, List<Message>>> call(DeleteMessageParams params) {
+  Future<List<Message>> call(DeleteMessageParams params) {
     return repository.deleteMessages(
       uniqueIds: params.uniqueIds,
       isForEveryone: params.isForEveryone,

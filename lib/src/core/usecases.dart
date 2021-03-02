@@ -27,7 +27,7 @@ abstract class UseCase<Repository, ReturnType, Params> {
 
   Repository get repository => _repository;
 
-  Future<Either<Error, ReturnType>> call(Params params);
+  Future<ReturnType> call(Params params);
 }
 
 abstract class $$UseCase<Dependency, ReturnType, Params> {

@@ -1,8 +1,8 @@
-import 'package:dartz/dartz.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/message/message.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 class MockService extends Mock implements IRealtimeService {}
@@ -76,12 +76,12 @@ void main() {
 
       when(mockService.subscribeMessageDeleted()).thenAnswer(
           (_) => Stream<Message>.periodic(1.milliseconds).map((_) => Message(
-                id: some(1),
+                id: Option.some(1),
               )));
 
-      var stream = await s.subscribe(params).run();
+      var stream = await s.subscribe(params);
       stream.take(1).listen(expectAsync1((data) {
-        expect(data.id, some(1));
+        expect(data.id, Option.some(1));
       }));
     });
   });
@@ -97,13 +97,13 @@ void main() {
       when(mockService.subscribeMessageRead(roomId: anyNamed('roomId')))
           .thenAnswer((_) {
         return Stream<Message>.periodic(1.milliseconds).map((_) {
-          return Message(id: some(1));
+          return Message(id: Option.some(1));
         });
       });
 
-      var stream = await s.subscribe(RoomIdParams(1)).run();
+      var stream = await s.subscribe(RoomIdParams(1));
       stream.take(1).listen(expectAsync1((data) {
-        expect(data.id, some(1));
+        expect(data.id, Option.some(1));
       }));
     });
   });
@@ -119,13 +119,13 @@ void main() {
       when(mockService.subscribeMessageDelivered(roomId: anyNamed('roomId')))
           .thenAnswer((_) {
         return Stream<Message>.periodic(1.milliseconds).map((_) {
-          return Message(id: some(1), chatRoomId: some(1));
+          return Message(id: Option.some(1), chatRoomId: Option.some(1));
         });
       });
 
-      var stream = await s.subscribe(RoomIdParams(1)).run();
+      var stream = await s.subscribe(RoomIdParams(1));
       stream.take(1).listen(expectAsync1((data) {
-        expect(data.id, some(1));
+        expect(data.id, Option.some(1));
       }));
     });
   });
@@ -142,33 +142,31 @@ void main() {
     test('.subscribe', () async {
       when(mockService.subscribeMessageReceived()).thenAnswer((_) {
         return Stream<Message>.periodic(1.milliseconds).map((_) {
-          return Message(id: some(1));
+          return Message(id: Option.some(1));
         });
       });
 
-      when(updateMessageUseCase.call(any)).thenReturn(Task(() async {
-        return right(unit);
-      }));
+      when(updateMessageUseCase.call(any))
+          .thenAnswer((_) => Future.value(null));
 
-      var stream = await s.subscribe(TokenParams('some-token')).run();
+      var stream = await s.subscribe(TokenParams('some-token'));
       stream.take(1).listen(expectAsync1((data) {
-        expect(data.id, some(1));
+        expect(data.id, Option.some(1));
       }));
     });
     test('.subscribe with roomId', () async {
       when(mockService.subscribeMessageReceived()).thenAnswer((_) {
         return Stream<Message>.periodic(1.milliseconds).map((_) {
-          return Message(id: some(1), chatRoomId: some(1));
+          return Message(id: Option.some(1), chatRoomId: Option.some(1));
         });
       });
 
-      when(updateMessageUseCase.call(any)).thenReturn(Task(() async {
-        return right(unit);
-      }));
+      when(updateMessageUseCase.call(any))
+          .thenAnswer((_) => Future.value(null));
 
-      var stream = await s.subscribe(TokenParams('some-token')).run();
+      var stream = await s.subscribe(TokenParams('some-token'));
       stream.take(1).listen(expectAsync1((data) {
-        expect(data.id, some(1));
+        expect(data.id, Option.some(1));
       }));
     });
   });

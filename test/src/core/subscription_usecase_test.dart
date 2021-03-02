@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 import 'package:fake_async/fake_async.dart';
 
@@ -26,7 +26,7 @@ class MockClass extends Mock with SubscriptionMixin<MockRepo, Params, int> {}
 
 void prepareTest(MockRepo mockRepo, MockClass mockClass, {String topic}) {
   when(mockClass.repository).thenReturn(mockRepo);
-  when(mockClass.topic(any)).thenAnswer((_) => some(topic));
+  when(mockClass.topic(any)).thenAnswer((_) => Option.some(topic));
 //    when(mock.mapStream(any)).thenAnswer((_) => Stream.empty());
   when(mockClass.mapStream(any)).thenAnswer(
     (_) => Stream.periodic(Duration(milliseconds: 100), (id) => id),
@@ -49,7 +49,7 @@ void main() {
   test('should call repository once', () async {
     prepareTest(mockRepo, mockClass, topic: topic);
 
-    await mockClass.subscribe(params).run();
+    await mockClass.subscribe(params);
 
     verify(mockClass.repository).called(1);
     verify(mockClass.topic(params)).called(1);
@@ -62,8 +62,8 @@ void main() {
   test('subscribing twice should only call repository once', () async {
     prepareTest(mockRepo, mockClass, topic: topic);
 
-    await mockClass.subscribe(params).run();
-    await mockClass.subscribe(params).run();
+    await mockClass.subscribe(params);
+    await mockClass.subscribe(params);
 
     verify(mockClass.repository).called(1);
     verify(mockClass.topic(params)).called(1);
@@ -77,8 +77,8 @@ void main() {
   test('unsubscribe should call repo unsubscribe', () async {
     prepareTest(mockRepo, mockClass, topic: topic);
 
-    await mockClass.subscribe(params).run();
-    await mockClass.unsubscribe(params).run();
+    await mockClass.subscribe(params);
+    await mockClass.unsubscribe(params);
 
     verify(mockRepo.subscribe(topic)).called(1);
     verify(mockRepo.unsubscribe(topic)).called(1);
@@ -93,14 +93,14 @@ void main() {
   test('unsubscribe should not emit new event', () async {
     fakeAsync((a) {
       prepareTest(mockRepo, mockClass, topic: topic);
-      var stream = mockClass.subscribe(params).run();
+      var stream = mockClass.subscribe(params);
 
       var counter = 0;
-      var subs = stream.then((s) => s.listen(expectAsync1((data) {
-            expect(data, counter++);
-          }, count: 6)));
+      var subs = stream.listen(expectAsync1((data) {
+        expect(data, counter++);
+      }, count: 6));
       a.elapse(600.milliseconds);
-      subs.then((s) => s.cancel());
+      subs.cancel();
       a.elapse(1.s);
     });
   });

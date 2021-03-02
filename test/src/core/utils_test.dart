@@ -1,5 +1,5 @@
-import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -33,7 +33,7 @@ void main() {
     });
     test('utils.futurify1 failure', () async {
       var future = futurify1((cb) {
-        cb(QError('message'));
+        cb(Exception('message'));
       });
       expect(future, throwsA(QError('message')));
     });
@@ -48,7 +48,7 @@ void main() {
 
     test('utils.futurify2 failure', () {
       var future = futurify2<int>((cb) {
-        cb(null, QError('message'));
+        cb(null, Exception('message'));
       });
 
       expect(future, throwsA(QError('message')));
@@ -56,7 +56,7 @@ void main() {
   });
 
   group('utils.decodeJson', () {
-    var _none = none<Map<String, dynamic>>();
+    var _none = Option.none();
 
     test('empty map', () {
       var map = <String, dynamic>{};

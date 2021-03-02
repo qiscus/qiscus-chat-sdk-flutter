@@ -9,7 +9,7 @@ class AuthenticateUserUseCase extends UseCase<IUserRepository,
       : super(repository);
 
   @override
-  Future<Either<Error, Tuple2<String, Account>>> call(
+  Future<Tuple2<String, Account>> call(
     AuthenticateParams p,
   ) async {
     var resp = await repository.authenticate(
@@ -19,16 +19,14 @@ class AuthenticateUserUseCase extends UseCase<IUserRepository,
       avatarUrl: p.avatarUrl,
       extras: p.extras,
     );
-    resp.map((it) {
-      var token = it.first;
-      var user = it.second;
-      _storage
-        ..token = token
-        ..currentUser = user
-        ..lastMessageId =
-            user.lastMessageId.getOrElse(() => _storage.lastMessageId)
-        ..lastEventId = user.lastEventId.getOrElse(() => _storage.lastEventId);
-    });
+    var token = resp.first;
+    var user = resp.second;
+    _storage
+      ..token = token
+      ..currentUser = user
+      ..lastMessageId =
+          user.lastMessageId.getOrElse(() => _storage.lastMessageId)
+      ..lastEventId = user.lastEventId.getOrElse(() => _storage.lastEventId);
 
     return resp;
   }

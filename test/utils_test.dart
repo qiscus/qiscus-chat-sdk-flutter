@@ -2,15 +2,14 @@ import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:test/test.dart';
 
 class Dummy {
-  void onFuture(void Function(int, QError) callback) {
-    onFuture$()
-        .then((data) => callback(data, null))
-        .catchError((dynamic error) => callback(null, QError(error.toString())));
+  void onFuture(void Function(int, Exception) callback) {
+    onFuture$().then((data) => callback(data, null)).catchError(
+        (dynamic error) => callback(null, Exception(error.toString())));
   }
 
-  void onFutureE(void Function(int, QError) callback) {
-    Future<int>.error(QError('some error'))
-        .catchError((QError e) => callback(null, e));
+  void onFutureE(void Function(int, Exception) callback) {
+    Future<int>.error(Exception('some error'))
+        .catchError((Exception e) => callback(null, e));
   }
 
   void Function() onStream(void Function(int) callback) {
@@ -47,8 +46,8 @@ void main() {
 
     expect(
         () => future1(),
-        throwsA(isA<QError>().having(
-          (e) => e.message,
+        throwsA(isA<Exception>().having(
+          (e) => e.toString(),
           'should throw',
           'some error',
         )));
@@ -69,8 +68,8 @@ void main() {
 
     expect(
         () => future2(),
-        throwsA(isA<QError>().having(
-          (e) => e.message,
+        throwsA(isA<Exception>().having(
+          (e) => e.toString(),
           'should throw',
           'some error',
         )));

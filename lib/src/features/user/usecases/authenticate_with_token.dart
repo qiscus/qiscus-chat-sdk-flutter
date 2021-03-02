@@ -8,18 +8,16 @@ class AuthenticateUserWithTokenUseCase
       : super(repository);
 
   @override
-  Future<Either<Error, Account>> call(AuthenticateWithTokenParams p) async {
+  Future<Account> call(AuthenticateWithTokenParams p) async {
     var it =
         await repository.authenticateWithToken(identityToken: p.identityToken);
 
-    return it.map((it) {
-      _s.currentUser = it.second;
-      _s.token = it.first;
-      _s.lastEventId = it.second.lastEventId.getOrElse(() => _s.lastEventId);
-      _s.lastMessageId =
-          it.second.lastMessageId.getOrElse(() => _s.lastMessageId);
-      return it.second;
-    });
+    _s.currentUser = it.second;
+    _s.token = it.first;
+    _s.lastEventId = it.second.lastEventId.getOrElse(() => _s.lastEventId);
+    _s.lastMessageId =
+        it.second.lastMessageId.getOrElse(() => _s.lastMessageId);
+    return it.second;
   }
 }
 

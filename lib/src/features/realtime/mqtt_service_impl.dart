@@ -311,14 +311,10 @@ class MqttServiceImpl implements IRealtimeService {
   }
 
   @override
-  Future<Either<Error, void>> synchronize([int lastMessageId]) async {
-    return Either.left(MError('Not implemented'));
-  }
+  Future<void> synchronize([int lastMessageId]) async {}
 
   @override
-  Future<Either<Error, void>> synchronizeEvent([String lastEventId]) async {
-    return Either.left(MError('Not implemented'));
-  }
+  Future<void> synchronizeEvent([String lastEventId]) async {}
 
   @override
   Future<void> unsubscribe(String topic) async {

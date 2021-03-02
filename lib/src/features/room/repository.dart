@@ -1,32 +1,31 @@
 part of qiscus_chat_sdk.usecase.room;
 
 abstract class IRoomRepository {
-  Future<Either<Error, ChatRoom>> getRoomWithUserId({
+  Future<ChatRoom> getRoomWithUserId({
     @required String userId,
     Map<String, dynamic> extras,
   });
 
-  Future<Either<Error, Tuple2<ChatRoom, List<Message>>>> getRoomWithId(
-      int roomId);
+  Future<Tuple2<ChatRoom, List<Message>>> getRoomWithId(int roomId);
 
-  Future<Either<Error, List<Participant>>> addParticipant(
+  Future<List<Participant>> addParticipant(
     int roomId,
     List<String> participantIds,
   );
 
-  Future<Either<Error, List<String>>> removeParticipant(
+  Future<List<String>> removeParticipant(
     int roomId,
     List<String> participantIds,
   );
 
-  Future<Either<Error, List<Participant>>> getParticipants(
+  Future<List<Participant>> getParticipants(
     String uniqueId, {
     int page,
     int limit,
     String sorting,
   });
 
-  Future<Either<Error, List<ChatRoom>>> getAllRooms({
+  Future<List<ChatRoom>> getAllRooms({
     bool withParticipants,
     bool withEmptyRoom,
     bool withRemovedRoom,
@@ -34,25 +33,25 @@ abstract class IRoomRepository {
     int page,
   });
 
-  Future<Either<Error, ChatRoom>> getOrCreateChannel({
+  Future<ChatRoom> getOrCreateChannel({
     @required String uniqueId,
     String name,
     String avatarUrl,
     Map<String, dynamic> options,
   });
 
-  Future<Either<Error, ChatRoom>> createGroup({
+  Future<ChatRoom> createGroup({
     @required String name,
     @required List<String> userIds,
     String avatarUrl,
     Map<String, dynamic> extras,
   });
 
-  Future<Either<Error, void>> clearMessages({
+  Future<void> clearMessages({
     @required List<String> uniqueIds,
   });
 
-  Future<Either<Error, List<ChatRoom>>> getRoomInfo({
+  Future<List<ChatRoom>> getRoomInfo({
     List<int> roomIds,
     List<String> uniqueIds,
     bool withParticipants,
@@ -60,9 +59,9 @@ abstract class IRoomRepository {
     int page,
   });
 
-  Future<Either<Error, int>> getTotalUnreadCount();
+  Future<int> getTotalUnreadCount();
 
-  Future<Either<Error, ChatRoom>> updateRoom({
+  Future<ChatRoom> updateRoom({
     @required int roomId,
     String name,
     String avatarUrl,

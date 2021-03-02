@@ -1,6 +1,6 @@
-import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/app_config/app_config.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:dio/dio.dart';
@@ -41,19 +41,21 @@ void main() async {
 
     var extras = decodeJson(json['results']['extras']);
 
-    expect(result.baseUrl, some(json['results']['base_url'] as String));
+    expect(result.baseUrl, Option.some(json['results']['base_url'] as String));
+    expect(result.brokerLbUrl,
+        Option.some(json['results']['broker_lb_url'] as String));
     expect(
-        result.brokerLbUrl, some(json['results']['broker_lb_url'] as String));
-    expect(result.brokerUrl, some(json['results']['broker_url'] as String));
+        result.brokerUrl, Option.some(json['results']['broker_url'] as String));
     expect(result.enableEventReport,
-        some(json['results']['enable_event_report'] as bool));
+        Option.some(json['results']['enable_event_report'] as bool));
     expect(result.enableRealtime,
-        some(json['results']['enable_realtime'] as bool));
+        Option.some(json['results']['enable_realtime'] as bool));
     expect(result.enableRealtimeCheck,
-        some(json['results']['enable_realtime_check'] as bool));
+        Option.some(json['results']['enable_realtime_check'] as bool));
     expect(result.extras, extras);
-    expect(result.syncInterval, some(json['results']['sync_interval'] as int));
-    expect(
-        result.syncOnConnect, some(json['results']['sync_on_connect'] as int));
+    expect(result.syncInterval,
+        Option.some(json['results']['sync_interval'] as int));
+    expect(result.syncOnConnect,
+        Option.some(json['results']['sync_on_connect'] as int));
   });
 }

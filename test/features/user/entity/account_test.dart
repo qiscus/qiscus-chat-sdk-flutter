@@ -1,5 +1,5 @@
-import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -20,11 +20,11 @@ void main() {
 
     account = Account(
       id: 'some-id',
-      name: some('some-name'),
-      avatarUrl: some('some-avatar-url'),
-      extras: some(imap<String, dynamic>(<String, dynamic>{'key': 'value'})),
-      lastEventId: some(10),
-      lastMessageId: some(10),
+      name: Option.some('some-name'),
+      avatarUrl: Option.some('some-avatar-url'),
+      extras: Option.some(<String, dynamic>{'key': 'value'}),
+      lastEventId: Option.some(10),
+      lastMessageId: Option.some(10),
     );
   });
 
@@ -47,22 +47,20 @@ void main() {
 
   test('Account.copy', () {
     var resp = account.copy(
-      name: some('updated-name'),
+      name: Option.some('updated-name'),
     );
 
-    expect(resp.name, some('updated-name'));
+    expect(resp.name, Option.some('updated-name'));
     expect(resp.id, 'some-id');
-    expect(resp.avatarUrl, some('some-avatar-url'));
+    expect(resp.avatarUrl, Option.some('some-avatar-url'));
     expect(
       resp.extras,
-      some(
-        imap<String, dynamic>(
-          <String, dynamic>{'key': 'value'},
-        ),
+      Option.some(
+        <String, dynamic>{'key': 'value'},
       ),
     );
-    expect(resp.lastEventId, some(10));
-    expect(resp.lastMessageId, some(10));
+    expect(resp.lastEventId, Option.some(10));
+    expect(resp.lastMessageId, Option.some(10));
   });
 
   test('Account.toModel', () {

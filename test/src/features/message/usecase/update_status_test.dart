@@ -1,4 +1,3 @@
-import 'package:dartz/dartz.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/message/message.dart';
@@ -21,11 +20,9 @@ void main() {
       deliveredId: anyNamed('deliveredId'),
       readId: anyNamed('readId'),
       roomId: anyNamed('roomId'),
-    )).thenReturn(Task(() async => right(unit)));
+    )).thenAnswer((_) => Future.value(null));
 
-    var resp = await useCase.call(param).run();
-
-    resp.fold((err) => fail(err.message), (data) {});
+    await useCase.call(param);
 
     verify(repo.updateStatus(roomId: 12, readId: 1)).called(1);
     verifyNoMoreInteractions(repo);
@@ -37,11 +34,9 @@ void main() {
       deliveredId: anyNamed('deliveredId'),
       readId: anyNamed('readId'),
       roomId: anyNamed('roomId'),
-    )).thenReturn(Task(() async => right(unit)));
+    )).thenAnswer((_) => Future.value(null));
 
-    var resp = await useCase.call(param).run();
-
-    resp.fold((err) => fail(err.message), (data) {});
+    await useCase.call(param);
 
     verify(repo.updateStatus(roomId: 12, deliveredId: 1)).called(1);
     verifyNoMoreInteractions(repo);
@@ -50,14 +45,14 @@ void main() {
   test('UpdateMessageStatusUseCase.call() others', () async {
     final param = UpdateStatusParams(12, 1, QMessageStatus.sent);
 
-    var resp = await useCase.call(param).run();
-
-    resp.fold((err) {
+    try {
+      await useCase.call(param);
+    } catch (err) {
       expect(err, isA<QError>());
       expect(
-        err.message,
+        err.toString(),
         'Can not update status for message with status: QMessageStatus.sent',
       );
-    }, (_) => fail('should not sucess'));
+    }
   });
 }
