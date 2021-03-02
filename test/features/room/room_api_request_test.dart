@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/room/room.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 import 'backend_response.dart';
@@ -25,9 +25,9 @@ void main() {
     });
     test('format', () {
       var data = request.format(response);
-      expect(data.id, some(room['id'] as int));
-      expect(data.name, some(room['room_name'] as String));
-      expect(data.uniqueId, some(room['unique_id'] as String));
+      expect(data.id, Option.some(room['id'] as int));
+      expect(data.name, Option.some(room['room_name'] as String));
+      expect(data.uniqueId, Option.some(room['unique_id'] as String));
     });
   });
 
@@ -50,13 +50,13 @@ void main() {
 
     test('format', () {
       var data = request.format(response);
-      expect(data.value1.id, some(room['id'] as int));
-      expect(data.value1.uniqueId, some(room['unique_id'] as String));
+      expect(data.first.id, Option.some(room['id'] as int));
+      expect(data.first.uniqueId, Option.some(room['unique_id'] as String));
 
-      expect(data.value2.length, 1);
-      expect(data.value2.first.id, some(messages.first['id'] as int));
-      expect(data.value2.first.uniqueId,
-          some(messages.first['unique_temp_id'] as String));
+      expect(data.second.length, 1);
+      expect(data.second.first.id, Option.some(messages.first['id'] as int));
+      expect(data.second.first.uniqueId,
+          Option.some(messages.first['unique_temp_id'] as String));
     });
   });
 
@@ -80,7 +80,8 @@ void main() {
     test('format', () {
       var data = request.format(response);
       expect(data.first.id, participants.first['email']);
-      expect(data.first.name, some(participants.first['username'] as String));
+      expect(data.first.name,
+          Option.some(participants.first['username'] as String));
     });
   });
 
@@ -129,7 +130,8 @@ void main() {
     test('format', () {
       var data = request.format(response);
       expect(data.first.id, participants.first['email']);
-      expect(data.first.name, some(participants.first['email'] as String));
+      expect(
+          data.first.name, Option.some(participants.first['email'] as String));
     });
   });
 
@@ -155,9 +157,10 @@ void main() {
     });
     test('format', () {
       var data = request.format(response);
-      expect(data.first.uniqueId, some(rooms.first['unique_id'] as String));
-      expect(data.first.id, some(rooms.first['id'] as int));
-      expect(data.first.name, some(rooms.first['room_name'] as String));
+      expect(
+          data.first.uniqueId, Option.some(rooms.first['unique_id'] as String));
+      expect(data.first.id, Option.some(rooms.first['id'] as int));
+      expect(data.first.name, Option.some(rooms.first['room_name'] as String));
     });
   });
 
@@ -182,9 +185,9 @@ void main() {
       var data = request.format(response);
       var room = response['results']['room'] as Map<String, dynamic>;
 
-      expect(data.uniqueId, some(room['unique_id'] as String));
-      expect(data.name, some(room['room_name'] as String));
-      expect(data.id, some(room['id'] as int));
+      expect(data.uniqueId, Option.some(room['unique_id'] as String));
+      expect(data.name, Option.some(room['room_name'] as String));
+      expect(data.id, Option.some(room['id'] as int));
     });
   });
 
@@ -209,10 +212,10 @@ void main() {
       var data = request.format(createGroupResponse);
       var room = createGroupResponse['results']['room'] as Map<String, dynamic>;
 
-      expect(data.uniqueId, some(room['unique_id'] as String));
-      expect(data.id, some(room['id'] as int));
-      expect(data.name, some(room['room_name'] as String));
-      expect(data.avatarUrl, some(room['avatar_url'] as String));
+      expect(data.uniqueId, Option.some(room['unique_id'] as String));
+      expect(data.id, Option.some(room['id'] as int));
+      expect(data.name, Option.some(room['room_name'] as String));
+      expect(data.avatarUrl, Option.some(room['avatar_url'] as String));
     });
   });
 
@@ -228,10 +231,8 @@ void main() {
 
     test('format', () {
       var json = clearRoomJson;
-      // var data = (json['results']['rooms'] as List).cast<Map<String, dynamic>>().first;
 
-      var r = request.format(json);
-      expect(r, unit);
+      request.format(json);
     });
   });
 
@@ -262,8 +263,8 @@ void main() {
       var data = (json['results']['rooms_info'] as List)
           .cast<Map<String, dynamic>>()
           .first;
-      expect(room.id, some(data['id'] as int));
-      expect(room.name, some(data['room_name'] as String));
+      expect(room.id, Option.some(data['id'] as int));
+      expect(room.name, Option.some(data['room_name'] as String));
     });
   });
 
@@ -296,7 +297,8 @@ void main() {
       expect(request.url, 'update_room');
       expect(request.method, IRequestMethod.post);
 
-      var extras = jsonDecode(request.body['options'] as String) as Map<String, dynamic>;
+      var extras =
+          jsonDecode(request.body['options'] as String) as Map<String, dynamic>;
       expect(request.body['id'], '123');
       expect(request.body['name'], 'asd');
       expect(request.body['avatar_url'], 'avatar-url');
@@ -309,8 +311,8 @@ void main() {
       var room = json['results']['room'] as Map<String, dynamic>;
 
       var r = request.format(json);
-      expect(r.name, some(room['room_name'] as String));
-      expect(r.id, some(room['id'] as int));
+      expect(r.name, Option.some(room['room_name'] as String));
+      expect(r.id, Option.some(room['id'] as int));
     });
   });
 }

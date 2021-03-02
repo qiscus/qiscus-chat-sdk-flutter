@@ -17,7 +17,7 @@ class GetMessageListUseCase
   GetMessageListUseCase(MessageRepository repository) : super(repository);
 
   @override
-  Future<Either<Error, List<Message>>> call(GetMessageListParams params) {
+  Future<List<Message>> call(GetMessageListParams params) {
     return repository.getMessages(
       params.roomId,
       params.lastMessageId,

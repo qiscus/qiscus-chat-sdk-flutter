@@ -1,6 +1,6 @@
-import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/features/message/message.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -90,43 +90,43 @@ void main() {
   group('Message', () {
     var timestamp = DateTime.now();
     var m1 = Message(
-      id: some(1),
-      chatRoomId: some(1),
-      previousMessageId: some(1),
-      uniqueId: some('unique-id'),
-      text: some('text'),
-      status: some(QMessageStatus.read),
-      type: some(QMessageType.text),
-      extras: some(imap<String, dynamic>(<String, dynamic>{})),
-      payload: some(imap<String, dynamic>(<String, dynamic>{})),
-      sender: some(User(id: some('user-id'))),
-      timestamp: some(timestamp),
+      id: Option.some(1),
+      chatRoomId: Option.some(1),
+      previousMessageId: Option.some(1),
+      uniqueId: Option.some('unique-id'),
+      text: Option.some('text'),
+      status: Option.some(QMessageStatus.read),
+      type: Option.some(QMessageType.text),
+      extras: Option.some(<String, dynamic>{}),
+      payload: Option.some(<String, dynamic>{}),
+      sender: Option.some(User(id: Option.some('user-id'))),
+      timestamp: Option.some(timestamp),
     );
     var m11 = Message(
-      id: some(1),
-      chatRoomId: some(1),
-      previousMessageId: some(1),
-      uniqueId: some('unique-id'),
-      text: some('text'),
-      status: some(QMessageStatus.read),
-      type: some(QMessageType.text),
-      extras: some(imap<String, dynamic>(<String, dynamic>{})),
-      payload: some(imap<String, dynamic>(<String, dynamic>{})),
-      sender: some(User(id: some('user-id'))),
-      timestamp: some(DateTime.now()),
+      id: Option.some(1),
+      chatRoomId: Option.some(1),
+      previousMessageId: Option.some(1),
+      uniqueId: Option.some('unique-id'),
+      text: Option.some('text'),
+      status: Option.some(QMessageStatus.read),
+      type: Option.some(QMessageType.text),
+      extras: Option.some(<String, dynamic>{}),
+      payload: Option.some(<String, dynamic>{}),
+      sender: Option.some(User(id: Option.some('user-id'))),
+      timestamp: Option.some(DateTime.now()),
     );
     var m2 = Message(
-      id: some(2),
-      chatRoomId: some(1),
-      previousMessageId: some(1),
-      uniqueId: some('unique-id-2'),
-      text: some('text'),
-      status: some(QMessageStatus.read),
-      type: some(QMessageType.text),
-      extras: some(imap<String, dynamic>(<String, dynamic>{})),
-      payload: some(imap<String, dynamic>(<String, dynamic>{})),
-      sender: some(User(id: some('user-id'))),
-      timestamp: some(DateTime.now()),
+      id: Option.some(2),
+      chatRoomId: Option.some(1),
+      previousMessageId: Option.some(1),
+      uniqueId: Option.some('unique-id-2'),
+      text: Option.some('text'),
+      status: Option.some(QMessageStatus.read),
+      type: Option.some(QMessageType.text),
+      extras: Option.some(<String, dynamic>{}),
+      payload: Option.some(<String, dynamic>{}),
+      sender: Option.some(User(id: Option.some('user-id'))),
+      timestamp: Option.some(DateTime.now()),
     );
 
     test('Message.toString()', () async {

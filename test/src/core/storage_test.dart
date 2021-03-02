@@ -16,6 +16,6 @@ void main() {
   test('StorageX', () async {
     storage.currentUser = Account(id: 'user-id');
 
-    expect(StorageX(storage).authenticated$.run(), completion(true));
+    expect(StorageX(storage).authenticated$, completion(true));
   }, timeout: Timeout(Duration(seconds: 2)));
 }

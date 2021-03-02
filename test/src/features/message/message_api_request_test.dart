@@ -1,6 +1,6 @@
-import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/message/message.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 import 'jsons.dart';
@@ -26,10 +26,10 @@ void main() {
     test('format', () {
       var r = request.format(sendMessageJson);
 
-      expect(r.chatRoomId, some(15));
-      expect(r.id, some(6273));
-      expect(r.uniqueId, some('kPMUDSRRRVL0mbxM1xKT'));
-      expect(r.sender.flatMap((it) => it.id), some('jarjit@mail.com'));
+      expect(r.chatRoomId, Option.some(15));
+      expect(r.id, Option.some(6273));
+      expect(r.uniqueId, Option.some('kPMUDSRRRVL0mbxM1xKT'));
+      expect(r.sender.flatMap((it) => it.id), Option.some('jarjit@mail.com'));
     });
   });
 
@@ -57,10 +57,10 @@ void main() {
 
       expect(r.length, 1);
       var c = r.first;
-      expect(c.chatRoomId, some(15));
-      expect(c.id, some(6273));
-      expect(c.text, some('halo bro'));
-      expect(c.sender.flatMap((it) => it.id), some('jarjit@mail.com'));
+      expect(c.chatRoomId, Option.some(15));
+      expect(c.id, Option.some(6273));
+      expect(c.text, Option.some('halo bro'));
+      expect(c.sender.flatMap((it) => it.id), Option.some('jarjit@mail.com'));
     });
   });
 
@@ -86,9 +86,7 @@ void main() {
     });
 
     test('format', () {
-      var r = request1.format(updateCommentStatusJson);
-
-      expect(r, unit);
+      request1.format(updateCommentStatusJson);
     });
   });
 
@@ -112,10 +110,10 @@ void main() {
 
       expect(r.length, 2);
       var c = r.first;
-      expect(c.chatRoomId, some(17));
-      expect(c.id, some(6276));
-      expect(c.text, some('This message has been deleted.'));
-      expect(c.sender.flatMap((a) => a.id), some('jarjit@mail.com'));
+      expect(c.chatRoomId, Option.some(17));
+      expect(c.id, Option.some(6276));
+      expect(c.text, Option.some('This message has been deleted.'));
+      expect(c.sender.flatMap((a) => a.id), Option.some('jarjit@mail.com'));
     });
   });
 }

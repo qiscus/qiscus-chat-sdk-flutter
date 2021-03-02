@@ -1,7 +1,7 @@
 part of qiscus_chat_sdk.usecase.message;
 
 abstract class MessageRepository {
-  Future<Either<Error, Message>> sendMessage(
+  Future<Message> sendMessage(
     int roomId,
     String message, {
     String type = 'text',
@@ -10,22 +10,22 @@ abstract class MessageRepository {
     Map<String, dynamic> payload,
   });
 
-  Future<Either<Error, List<Message>>> getMessages(
+  Future<List<Message>> getMessages(
     int roomId,
     int lastMessageId, {
     bool after,
     int limit,
   });
 
-  Future<Either<Error, void>> updateStatus({
+  Future<void> updateStatus({
     int roomId,
     int readId,
     int deliveredId,
   });
 
-  Future<Either<Error, Message>> updateMessage({@required QMessage message});
+  Future<Message> updateMessage({@required QMessage message});
 
-  Future<Either<Error, List<Message>>> deleteMessages({
+  Future<List<Message>> deleteMessages({
     @required List<String> uniqueIds,
     bool isForEveryone = true,
     bool isHard = true,

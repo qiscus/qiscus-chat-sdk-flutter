@@ -1,7 +1,7 @@
-import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/features/message/message.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 import 'package:qiscus_chat_sdk/src/features/room/room.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
 
@@ -21,15 +21,15 @@ void main() {
     when(service.subscribeRoomCleared()).thenAnswer((_) => Stream.periodic(
           const Duration(milliseconds: 1),
           (_) => ChatRoom(
-            id: some(1),
-            name: some('name'),
+            id: Option.some(1),
+            name: Option.some('name'),
           ),
         ));
 
-    var stream = await useCase.subscribe(TokenParams('token')).run();
+    var stream = await useCase.subscribe(TokenParams('token'));
 
     stream.take(1).listen(expectAsync1((roomId) {
-          expect(roomId, some(1));
+          expect(roomId, Option.some(1));
         }, max: 1));
 
     verify(service.subscribe(TopicBuilder.notification('token'))).called(1);

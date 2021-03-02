@@ -1,8 +1,8 @@
-import 'package:dartz/dartz.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/message/message.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 class MockRepo extends Mock implements MessageRepository {}
@@ -11,14 +11,14 @@ void main() {
   MessageRepository repo;
   SendMessageUseCase useCase;
 
-  final u = User(id: some('userid'));
+  final u = User(id: Option.some('userid'));
   final m = Message(
-    id: some(1),
-    chatRoomId: some(123),
-    uniqueId: some('1234'),
-    text: some('text'),
-    type: some(QMessageType.text),
-    sender: some(u),
+    id: Option.some(1),
+    chatRoomId: Option.some(123),
+    uniqueId: Option.some('1234'),
+    text: Option.some('text'),
+    type: Option.some(QMessageType.text),
+    sender: Option.some(u),
   );
   final param = MessageParams(m.toModel());
 
@@ -35,17 +35,13 @@ void main() {
       extras: anyNamed('extras'),
       payload: anyNamed('payload'),
       uniqueId: anyNamed('uniqueId'),
-    )).thenReturn(Task(() async {
-      return right(m);
-    }));
+    )).thenAnswer((_) => Future.value(m));
 
-    var resp = await useCase.call(param).run();
+    var data = await useCase.call(param);
 
-    resp.fold((err) => fail(err.message), (data) {
-      expect(data.id, some(1));
-      expect(data.uniqueId, some('1234'));
-      expect(data.sender, m.sender);
-    });
+    expect(data.id, Option.some(1));
+    expect(data.uniqueId, Option.some('1234'));
+    expect(data.sender, m.sender);
 
     var qm = m.toModel();
     verify(repo.sendMessage(
@@ -58,35 +54,37 @@ void main() {
   });
 
   test('SendMessageUseCase.call() without roomId', () async {
-    var m = Message(chatRoomId: none());
-    var resp = await useCase.call(MessageParams(m.toModel())).run();
-
-    expect(resp, isNot(isNull));
-    resp.fold((err) {
+    var m = Message(chatRoomId: Option.none());
+    try {
+      await useCase.call(MessageParams(m.toModel()));
+    } catch (err) {
       expect(err, isA<QError>());
-      expect(err.message, '`roomId` can not be null');
-    }, (_) => fail('should not success'));
+      expect(err.toString(), '`roomId` can not be null');
+    }
   });
 
   test('SendMessageUseCase.call() without text', () async {
-    var m = Message(chatRoomId: some(1), text: none());
-    var resp = await useCase.call(MessageParams(m.toModel())).run();
+    var m = Message(chatRoomId: Option.some(1), text: Option.none());
 
-    expect(resp, isNot(isNull));
-    resp.fold((err) {
+    try {
+      await useCase.call(MessageParams(m.toModel()));
+    } catch (err) {
       expect(err, isA<QError>());
-      expect(err.message, '`text` can not be null');
-    }, (_) => fail('should not success'));
+      expect(err.toString(), '`text` can not be null');
+    }
   });
 
   test('SendMessageUseCase.call() without type', () async {
-    var m = Message(chatRoomId: some(1), text: some('t'), type: none());
-    var resp = await useCase.call(MessageParams(m.toModel())).run();
+    var m = Message(
+        chatRoomId: Option.some(1),
+        text: Option.some('t'),
+        type: Option.none());
 
-    expect(resp, isNot(isNull));
-    resp.fold((err) {
+    try {
+      await useCase.call(MessageParams(m.toModel()));
+    } catch (err) {
       expect(err, isA<QError>());
-      expect(err.message, '`type` can not be null');
-    }, (_) => fail('should not success'));
+      expect(err.toString(), '`type` can not be null');
+    }
   });
 }

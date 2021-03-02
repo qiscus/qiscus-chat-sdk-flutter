@@ -161,12 +161,12 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
-  Future<Either<Error, void>> synchronize([int lastMessageId]) {
+  Future<void> synchronize([int lastMessageId]) {
     return _syncService.synchronize(lastMessageId);
   }
 
   @override
-  Future<Either<Error, void>> synchronizeEvent([String lastEventId]) {
+  Future<void> synchronizeEvent([String lastEventId]) {
     return _syncService.synchronizeEvent(lastEventId);
   }
 }

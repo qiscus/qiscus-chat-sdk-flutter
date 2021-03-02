@@ -1,8 +1,7 @@
-import 'package:dartz/dartz.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
-import 'package:qiscus_chat_sdk/src/core.dart';
 
 class MockUserRepo extends Mock implements IUserRepository {}
 
@@ -17,23 +16,17 @@ void main() {
 
   test('get users success', () async {
     var users = [
-      User(id: '1'.toOption()),
-      User(id: '2'.toOption()),
+      User(id: Option.some('1')),
+      User(id: Option.some('2')),
     ];
     when(userRepo.getUsers(
       query: anyNamed('query'),
       limit: anyNamed('limit'),
       page: anyNamed('page'),
-    )).thenReturn(Task(() async {
-      return right(users);
-    }));
+    )).thenAnswer((_) => Future.value(users));
 
-    var resp = await useCase.call(GetUserParams()).run();
+    var data = await useCase.call(GetUserParams());
 
-    resp.fold((error) {
-      fail(error.toString());
-    }, (data) {
-      expect(data, users);
-    });
+    expect(data, users);
   });
 }

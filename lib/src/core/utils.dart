@@ -1,6 +1,6 @@
 part of qiscus_chat_sdk.core;
 
-Future<void> futurify1(void Function(void Function(Error)) fn) async {
+Future<void> futurify1(void Function(void Function(Exception)) fn) async {
   final completer = Completer<void>();
   fn((error) {
     if (error != null) return completer.completeError(error);
@@ -9,7 +9,7 @@ Future<void> futurify1(void Function(void Function(Error)) fn) async {
   return completer.future;
 }
 
-Future<T> futurify2<T>(void Function(void Function(T, Error)) fn) async {
+Future<T> futurify2<T>(void Function(void Function(T, Exception)) fn) async {
   final completer = Completer<T>();
 
   fn((data, error) {
@@ -42,13 +42,12 @@ Option<Map<String, dynamic>> decodeJson(Object json) {
     }
     if (it is String && it.isEmpty) return Option.none();
     if (it is String && it.isNotEmpty) {
-      var opts = Either.tryCatch(() => jsonDecode(it) as Map<String, dynamic>);
-      var either = opts.fold(
-        (l) => Option.none(),
-        (r) => Option.of(r),
-      );
-
-      return either;
+      try {
+        var opts = jsonDecode(it) as Map<String, dynamic>;
+        return Option.some(opts);
+      } catch (error) {
+        return Option.none();
+      }
     }
     return Option.none();
   });

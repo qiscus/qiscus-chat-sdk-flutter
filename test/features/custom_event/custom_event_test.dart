@@ -26,13 +26,10 @@ void main() {
       payload: anyNamed('payload'),
     )).thenAnswer((_) => Future.value(null));
 
-    var resp = await useCase
-        .call(CustomEvent(
-          roomId: roomId,
-          payload: payload,
-        ))
-        .run();
-    resp.fold((l) => fail(l.message), (r) {});
+    await useCase.call(CustomEvent(
+      roomId: roomId,
+      payload: payload,
+    ));
 
     verify(service.publishCustomEvent(
       roomId: roomId,
@@ -53,7 +50,7 @@ void main() {
         (_) => Stream.fromIterable(
             [CustomEvent(roomId: roomId, payload: payload)]));
 
-    var stream = await useCase.subscribe(RoomIdParams(roomId)).run();
+    var stream = await useCase.subscribe(RoomIdParams(roomId));
 
     stream.listen(expectAsync1((data) {
       expect(data.roomId, roomId);

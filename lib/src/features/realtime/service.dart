@@ -63,6 +63,6 @@ abstract class IRealtimeService {
     @required Map<String, dynamic> payload,
   });
 
-  Future<Either<Error, void>> synchronize([int lastMessageId]);
-  Future<Either<Error, void>> synchronizeEvent([String lastEventId]);
+  Future<void> synchronize([int lastMessageId]);
+  Future<void> synchronizeEvent([String lastEventId]);
 }

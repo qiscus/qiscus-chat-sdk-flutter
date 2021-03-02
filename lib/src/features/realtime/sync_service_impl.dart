@@ -84,16 +84,18 @@ class SyncServiceImpl implements IRealtimeService {
   }
 
   @override
-  Future<Either<Error, void>> synchronize([int lastMessageId]) {
+  Future<void> synchronize([int lastMessageId]) async {
     var request = SynchronizeRequest(lastMessageId: lastMessageId);
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    var resp = await dio.sendApiRequest(request).then(request.format);
+    storage.lastMessageId = resp.first;
   }
 
   @override
-  Future<Either<Error, void>> synchronizeEvent([String eventId]) {
+  Future<void> synchronizeEvent([String eventId]) async {
     var request =
         SynchronizeEventRequest(lastEventId: int.tryParse(eventId) ?? 0);
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    var resp = await dio.sendApiRequest(request).then(request.format);
+    storage.lastEventId = resp.first;
   }
 
   Stream<Message> _synchronize([

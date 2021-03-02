@@ -1,6 +1,6 @@
-import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 import '../../utils.dart';
@@ -21,25 +21,18 @@ void main() {
       var user = response['results']['user'] as Map<String, dynamic>;
       var account = Account(
         id: user['email'] as String,
-        name: some(user['username'] as String),
+        name: Option.some(user['username'] as String),
       );
 
       makeTest(dio, loginOrRegisterResponse);
 
-      var resp = await repo
-          .authenticate(
-            userId: 'user-id',
-            userKey: 'passkey',
-          )
-          .run();
-      resp.fold((l) => fail(l.message), (r) {
-        expect(r.value1, user['token']);
-        expect(r.value2.id, account.id);
+      var r = await repo.authenticate(userId: 'user-id', userKey: 'passkey');
+      expect(r.first, user['token']);
+      expect(r.second.id, account.id);
 
-        expect(r.value1, user['token']);
-        expect(r.value2.id, account.id);
-        expect(r.value2.name, account.name);
-      });
+      expect(r.first, user['token']);
+      expect(r.second.id, account.id);
+      expect(r.second.name, account.name);
     });
 
     test('authenticate with token', () async {
@@ -47,20 +40,16 @@ void main() {
       var user = response['results']['user'] as Map<String, dynamic>;
       final account = Account(
         id: user['email'] as String,
-        name: some(user['username'] as String),
+        name: Option.some(user['username'] as String),
       );
 
       makeTest(dio, response);
 
-      var resp = await repo
-          .authenticateWithToken(identityToken: 'identity-token')
-          .run();
+      var r = await repo.authenticateWithToken(identityToken: 'identity-token');
 
-      resp.fold((l) => fail(l.message), (r) {
-        expect(r.value1, user['token']);
-        expect(r.value2.id, account.id);
-        expect(r.value2.name, account.name);
-      });
+      expect(r.first, user['token']);
+      expect(r.second.id, account.id);
+      expect(r.second.name, account.name);
     });
 
     test('blockUser', () async {
@@ -69,11 +58,9 @@ void main() {
 
       makeTest(dio, response);
 
-      var resp = await repo.blockUser(userId: 'id').run();
-      resp.fold((l) => fail(l.message), (r) {
-        expect(r.id, some(user['email'] as String));
-        expect(r.name, some(user['username'] as String));
-      });
+      var r = await repo.blockUser(userId: 'id');
+      expect(r.id, Option.some(user['email'] as String));
+      expect(r.name, Option.some(user['username'] as String));
     });
 
     test('unblockUser', () async {
@@ -82,11 +69,9 @@ void main() {
 
       makeTest(dio, response);
 
-      var resp = await repo.unblockUser(userId: 'id').run();
-      resp.fold((l) => fail(l.message), (r) {
-        expect(r.id, some(user['email'] as String));
-        expect(r.name, some(user['username'] as String));
-      });
+      var r = await repo.unblockUser(userId: 'id');
+      expect(r.id, Option.some(user['email'] as String));
+      expect(r.name, Option.some(user['username'] as String));
     });
 
     test('getBlockedUsers', () async {
@@ -97,12 +82,10 @@ void main() {
 
       makeTest(dio, response);
 
-      var resp = await repo.getBlockedUser(page: 1, limit: 1).run();
+      var r = await repo.getBlockedUser(page: 1, limit: 1);
 
-      resp.fold((l) => fail(l.message), (r) {
-        expect(r.first.id, some(user['email'] as String));
-        expect(r.first.name, some(user['username'] as String));
-      });
+      expect(r.first.id, Option.some(user['email'] as String));
+      expect(r.first.name, Option.some(user['username'] as String));
     });
 
     test('getNonce', () async {
@@ -111,10 +94,8 @@ void main() {
 
       makeTest(dio, response);
 
-      var resp = await repo.getNonce().run();
-      resp.fold((l) => fail(l.message), (r) {
-        expect(r, nonce);
-      });
+      var r = await repo.getNonce();
+      expect(r, nonce);
     });
 
     test('getUserData', () async {
@@ -123,11 +104,9 @@ void main() {
 
       makeTest(dio, response);
 
-      var resp = await repo.getUserData().run();
-      resp.fold((l) => fail(l.message), (r) {
-        expect(r.id, user['email']);
-        expect(r.name, some(user['username'] as String));
-      });
+      var r = await repo.getUserData();
+      expect(r.id, user['email']);
+      expect(r.name, Option.some(user['username'] as String));
     });
 
     test('getUsers', () async {
@@ -138,22 +117,18 @@ void main() {
 
       makeTest(dio, response);
 
-      var resp = await repo.getUsers(query: '', page: 1, limit: 2).run();
-      resp.fold((l) => fail(l.message), (r) {
-        expect(r.length, 1);
-        expect(r.first.id, some(user['email'] as String));
-        expect(r.first.name, some(user['username'] as String));
-      });
+      var r = await repo.getUsers(query: '', page: 1, limit: 2);
+      expect(r.length, 1);
+      expect(r.first.id, Option.some(user['email'] as String));
+      expect(r.first.name, Option.some(user['username'] as String));
     });
 
     test('registerDeviceToken', () async {
       var response = setDeviceTokenResponse;
       makeTest(dio, response);
 
-      var resp = await repo.registerDeviceToken(token: 'ini-token').run();
-      resp.fold((l) => fail(l.message), (r) {
-        expect(r, response['results']['changed']);
-      });
+      var r = await repo.registerDeviceToken(token: 'ini-token');
+      expect(r, response['results']['changed']);
     });
 
     test('unregisterDeviceToken', () async {
@@ -161,10 +136,8 @@ void main() {
 
       makeTest(dio, response);
 
-      var resp = await repo.unregisterDeviceToken(token: 'ini-token').run();
-      resp.fold((l) => fail(l.message), (r) {
-        expect(r, response['results']['success']);
-      });
+      var r = await repo.unregisterDeviceToken(token: 'ini-token');
+      expect(r, response['results']['success']);
     });
 
     test('updateUser', () async {
@@ -172,16 +145,12 @@ void main() {
       var user = response['results']['user'] as Map<String, dynamic>;
       makeTest(dio, response);
 
-      var resp = await repo
-          .updateUser(
-            name: 'update name',
-            avatarUrl: 'avatar-url',
-          )
-          .run();
-      resp.fold((l) => fail(l.message), (r) {
-        expect(r.id, user['email']);
-        expect(r.name, some(user['username'] as String));
-      });
+      var r = await repo.updateUser(
+        name: 'update name',
+        avatarUrl: 'avatar-url',
+      );
+      expect(r.id, user['email']);
+      expect(r.name, Option.some(user['username'] as String));
     });
   });
 }

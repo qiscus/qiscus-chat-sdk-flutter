@@ -9,14 +9,12 @@ class TypingUseCase extends UseCase<IRealtimeService, void, UserTyping>
   static TypingUseCase _instance;
 
   @override
-  Future<Either<Error, void>> call(params) {
-    return repository
-        .publishTyping(
-          isTyping: params.isTyping,
-          userId: params.userId,
-          roomId: params.roomId,
-        )
-        .toEither();
+  Future<void> call(params) {
+    return repository.publishTyping(
+      isTyping: params.isTyping,
+      userId: params.userId,
+      roomId: params.roomId,
+    );
   }
 
   @override
@@ -44,14 +42,12 @@ class PresenceUseCase extends UseCase<IRealtimeService, void, UserPresence>
       _instance ??= PresenceUseCase._(service);
 
   @override
-  Future<Either<Error, void>> call(params) {
-    return repository
-        .publishPresence(
-          isOnline: params.isOnline,
-          lastSeen: params.lastSeen,
-          userId: params.userId,
-        )
-        .toEither();
+  Future<void> call(params) {
+    return repository.publishPresence(
+      isOnline: params.isOnline,
+      lastSeen: params.lastSeen,
+      userId: params.userId,
+    );
   }
 
   @override

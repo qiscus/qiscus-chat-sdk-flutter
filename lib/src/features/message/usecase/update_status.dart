@@ -12,22 +12,20 @@ class UpdateMessageStatusUseCase
   UpdateMessageStatusUseCase(MessageRepository repository) : super(repository);
 
   @override
-  Future<Either<Error, void>> call(p) async {
-    switch (p.status) {
-      case QMessageStatus.delivered:
-        return repository.updateStatus(
-          roomId: p.roomId,
-          deliveredId: p.messageId,
-        );
-      case QMessageStatus.read:
-        return repository.updateStatus(
-          roomId: p.roomId,
-          readId: p.messageId,
-        );
-      default:
-        return Either.left(
-          MError('Can not update status for message with status: ${p.status}'),
-        );
+  Future<void> call(p) async {
+    if (p.status == QMessageStatus.delivered) {
+      return repository.updateStatus(
+        roomId: p.roomId,
+        deliveredId: p.messageId,
+      );
+    } else if (p.status == QMessageStatus.read) {
+      return repository.updateStatus(
+        roomId: p.roomId,
+        readId: p.messageId,
+      );
+    } else {
+      throw QError(
+          'Can not update status for message with status: ${p.status}');
     }
   }
 }

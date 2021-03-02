@@ -169,7 +169,7 @@ class SetDeviceTokenRequest extends IApiRequest<bool> {
   SetDeviceTokenRequest({
     @required this.token,
     this.isDevelopment = false,
-    this.platform = 'rn',
+    this.platform = 'flutter',
   });
   final String token;
   final bool isDevelopment;
@@ -193,7 +193,7 @@ class UnsetDeviceTokenRequest extends IApiRequest<bool> {
   UnsetDeviceTokenRequest({
     @required this.token,
     this.isDevelopment = false,
-    this.platform = 'rn',
+    this.platform = 'flutter',
   });
   final String token;
   final bool isDevelopment;

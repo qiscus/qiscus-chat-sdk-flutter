@@ -1,6 +1,5 @@
-import 'package:dartz/dartz.dart';
-import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -17,13 +16,11 @@ void main() {
       },
     );
     user = User(
-      id: 'some-id'.toOption(),
-      name: some('name'),
-      avatarUrl: some('avatar-url'),
-      extras: some<IMap<String, dynamic>>(
-        imap<String, dynamic>(
-          <String, dynamic>{'key': 'value'},
-        ),
+      id: Option.some('some-id'),
+      name: Option.some('name'),
+      avatarUrl: Option.some('avatar-url'),
+      extras: Option.some(
+        <String, dynamic>{'key': 'value'},
       ),
     );
   });
@@ -54,18 +51,18 @@ void main() {
       'extras': <String, dynamic>{'key': 'value'},
     });
 
-    expect(user.id, some('user-id'));
-    expect(user.name, some('some-name'));
-    expect(user.avatarUrl, some('some-avatar-url'));
+    expect(user.id, Option.some('user-id'));
+    expect(user.name, Option.some('some-name'));
+    expect(user.avatarUrl, Option.some('some-avatar-url'));
     expect(
       user.extras,
-      some(
-        imap<String, dynamic>(
-          <String, dynamic>{
-            'key': 'value',
-          },
-        ),
+      Option.some(
+        <String, dynamic>{
+          'key': 'value',
+        },
       ),
     );
   });
 }
+
+class IMap {}

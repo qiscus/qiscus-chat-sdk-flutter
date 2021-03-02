@@ -35,8 +35,7 @@ void main() {
           roomId: anyNamed('roomId'),
         )).thenAnswer((_) => Future.value(null));
 
-        var resp = await useCase.call(data).run();
-        resp.fold((l) => fail(l.message), (r) {});
+        await useCase.call(data);
 
         verify(service.publishTyping(
           isTyping: data.isTyping,
@@ -63,7 +62,7 @@ void main() {
           ]);
         });
 
-        var stream = await useCase.subscribe(param).run();
+        var stream = await useCase.subscribe(param);
         await expectLater(
           stream,
           emitsAnyOf(<UserTyping>[
@@ -101,8 +100,7 @@ void main() {
           userId: anyNamed('userId'),
         )).thenAnswer((_) => Future.value(null));
 
-        var resp = await useCase.call(params).run();
-        resp.fold((l) => fail(l.message), (r) {});
+        await useCase.call(params);
 
         verify(service.publishPresence(
           isOnline: params.isOnline,
@@ -135,7 +133,7 @@ void main() {
           );
         });
 
-        var stream = await useCase.subscribe(params).run();
+        var stream = await useCase.subscribe(params);
         stream.take(1).listen(expectAsync1((presence) {
               expect(presence.userId, 'user-id-1');
               expect(presence.lastSeen, date);

@@ -6,13 +6,13 @@ class UserRepositoryImpl implements IUserRepository {
   UserRepositoryImpl(this.dio);
 
   @override
-  Future<Either<Error, Tuple2<String, Account>>> authenticate({
+  Future<Tuple2<String, Account>> authenticate({
     String userId,
     String userKey,
     String name,
     String avatarUrl,
     Map<String, dynamic> extras,
-  }) {
+  }) async {
     var request = AuthenticateRequest(
       userId: userId,
       userKey: userKey,
@@ -21,45 +21,45 @@ class UserRepositoryImpl implements IUserRepository {
       extras: extras,
     );
 
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, Tuple2<String, Account>>> authenticateWithToken({
+  Future<Tuple2<String, Account>> authenticateWithToken({
     String identityToken,
-  }) {
+  }) async {
     var request = AuthenticateWithTokenRequest(
       identityToken: identityToken,
     );
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, User>> blockUser({@required String userId}) {
+  Future<User> blockUser({@required String userId}) {
     var request = BlockUserRequest(userId: userId);
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, List<User>>> getBlockedUser({int page, int limit}) {
+  Future<List<User>> getBlockedUser({int page, int limit}) {
     var request = GetBlockedUsersRequest(page: page, limit: limit);
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, String>> getNonce() {
+  Future<String> getNonce() {
     var request = GetNonceRequest();
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, Account>> getUserData() {
+  Future<Account> getUserData() {
     var request = GetUserDataRequest();
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, List<User>>> getUsers({
+  Future<List<User>> getUsers({
     @Deprecated('will be removed on next release') String query,
     int page,
     int limit,
@@ -69,11 +69,11 @@ class UserRepositoryImpl implements IUserRepository {
       page: page,
       limit: limit,
     );
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, bool>> registerDeviceToken({
+  Future<bool> registerDeviceToken({
     String token,
     bool isDevelopment,
   }) {
@@ -81,17 +81,17 @@ class UserRepositoryImpl implements IUserRepository {
       token: token,
       isDevelopment: isDevelopment,
     );
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, User>> unblockUser({String userId}) {
+  Future<User> unblockUser({String userId}) {
     var request = UnblockUserRequest(userId: userId);
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, bool>> unregisterDeviceToken({
+  Future<bool> unregisterDeviceToken({
     String token,
     bool isDevelopment,
   }) {
@@ -99,11 +99,11 @@ class UserRepositoryImpl implements IUserRepository {
       token: token,
       isDevelopment: isDevelopment,
     );
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, Account>> updateUser({
+  Future<Account> updateUser({
     String name,
     String avatarUrl,
     Map<String, dynamic> extras,
@@ -114,6 +114,6 @@ class UserRepositoryImpl implements IUserRepository {
       extras: extras,
     );
 
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 }

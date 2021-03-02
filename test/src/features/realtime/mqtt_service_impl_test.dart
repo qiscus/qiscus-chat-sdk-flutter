@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:async/async.dart';
-import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -10,6 +9,7 @@ import 'package:qiscus_chat_sdk/src/features/custom_event/custom_event.dart';
 
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
 import 'package:qiscus_chat_sdk/src/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 import '../../../utils.dart';
@@ -104,26 +104,21 @@ void main() {
   });
 
   test('MqttServiceImpl.synchronize()', () async {
-    var resp = await service.synchronize().run();
-
-    resp.fold(
-      (err) {
-        expect(err, isA<QError>());
-        expect(err.message, 'Not implemented');
-      },
-      (data) => fail(data.toString()),
-    );
+    try {
+      await service.synchronize();
+    } catch (err) {
+      expect(err, isA<QError>());
+      expect(err.toString(), 'Not implemented');
+    }
   });
 
   test('MqttServiceImpl.synchronizeEvent()', () async {
-    var resp = await service.synchronizeEvent().run();
-    resp.fold(
-      (err) {
-        expect(err, isA<QError>());
-        expect(err.message, 'Not implemented');
-      },
-      (data) => fail(data.toString()),
-    );
+    try {
+      await service.synchronizeEvent();
+    } catch (err) {
+      expect(err, isA<QError>());
+      expect(err.toString(), 'Not implemented');
+    }
   });
 
   test('MqttServiceImpl.publishCustomEvent()', () async {
@@ -164,8 +159,8 @@ void main() {
     when(mqtt.updates).thenAnswer((_) => Stream.value(message));
 
     service.subscribeMessageDeleted().take(1).listen(expectAsync1((data) {
-          expect(data.id, none<int>());
-          expect(data.uniqueId, some('abc'));
+          expect(data.id, Option.none());
+          expect(data.uniqueId, Option.some('abc'));
         }, count: 1));
   });
 
@@ -182,8 +177,8 @@ void main() {
     service
         .subscribeMessageDelivered(roomId: event.roomId)
         .listen(expectAsync1((m) {
-          expect(m.id, some(event.messageId));
-          expect(m.uniqueId, some(event.messageUniqueId));
+          expect(m.id, Option.some(event.messageId));
+          expect(m.uniqueId, Option.some(event.messageUniqueId));
         }, count: 1));
   });
   test('MqttServiceImpl.subscribeMessageRead()', () {
@@ -197,8 +192,8 @@ void main() {
     makeMqttMessage(topic, '${event.messageId}:${event.messageUniqueId}')(mqtt);
 
     service.subscribeMessageRead(roomId: event.roomId).listen(expectAsync1((m) {
-          expect(m.id, some(event.messageId));
-          expect(m.uniqueId, some(event.messageUniqueId));
+          expect(m.id, Option.some(event.messageId));
+          expect(m.uniqueId, Option.some(event.messageUniqueId));
         }, count: 1));
   });
 
@@ -207,8 +202,8 @@ void main() {
     makeMqttMessage(topic, jsonEncode(mqttMessageJson))(mqtt);
 
     service.subscribeMessageReceived().listen(expectAsync1((m) {
-          expect(m.id, some(3326));
-          expect(m.text, some('Halo'));
+          expect(m.id, Option.some(3326));
+          expect(m.text, Option.some('Halo'));
         }, count: 1));
   });
 
@@ -217,8 +212,8 @@ void main() {
     makeMqttMessage(topic, jsonEncode(mqttClearRoomJson))(mqtt);
 
     service.subscribeRoomCleared().take(1).listen(expectAsync1((r) {
-          expect(r.id, some(80));
-          expect(r.uniqueId, none<String>());
+          expect(r.id, Option.some(80));
+          expect(r.uniqueId, Option.none());
         }, count: 1));
   }, timeout: Timeout(1.s));
 
@@ -341,8 +336,8 @@ void main() {
         .subscribeChannelMessage(uniqueId: channelId)
         .take(1)
         .listen(expectAsync1((data) {
-          expect(data.id, some(3326));
-          expect(data.text, some('Halo'));
+          expect(data.id, Option.some(3326));
+          expect(data.text, Option.some('Halo'));
         }, count: 1));
   }, timeout: Timeout(const Duration(seconds: 1)));
 }

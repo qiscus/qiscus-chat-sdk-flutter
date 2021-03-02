@@ -1,7 +1,7 @@
-import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/message/message.dart';
 import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 import '../realtime/json.dart';
 
@@ -25,11 +25,11 @@ void main() {
 
       var resp = request.format(json);
 
-      expect(resp.value1, 986);
-      expect(resp.value2.first.id, some(986));
-      expect(resp.value2.first.chatRoomId, some(1));
-      expect(resp.value2.first.text, some('Hello Post 2'));
-      expect(resp.value2.first.type, some(QMessageType.text));
+      expect(resp.first, 986);
+      expect(resp.second.first.id, Option.some(986));
+      expect(resp.second.first.chatRoomId, Option.some(1));
+      expect(resp.second.first.text, Option.some('Hello Post 2'));
+      expect(resp.second.first.type, Option.some(QMessageType.text));
     });
   });
 
@@ -51,12 +51,12 @@ void main() {
       var json = eventJson;
       var resp = request.format(json);
 
-      var readEvent = resp.value2.whereType<MessageReadEvent>();
-      var deliveredEvent = resp.value2.whereType<MessageDeliveredEvent>();
-      var roomClearedEvent = resp.value2.whereType<RoomClearedEvent>();
-      var deletedEvent = resp.value2.whereType<MessageDeletedEvent>();
+      var readEvent = resp.second.whereType<MessageReadEvent>();
+      var deliveredEvent = resp.second.whereType<MessageDeliveredEvent>();
+      var roomClearedEvent = resp.second.whereType<RoomClearedEvent>();
+      var deletedEvent = resp.second.whereType<MessageDeletedEvent>();
 
-      expect(resp.value1, 4);
+      expect(resp.first, 4);
 
       expect(readEvent.length, 1);
       expect(readEvent.first.messageId, 123);

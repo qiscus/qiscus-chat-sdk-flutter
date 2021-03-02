@@ -1,4 +1,3 @@
-import 'package:dartz/dartz.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
@@ -18,19 +17,12 @@ void main() async {
     var params = GetBlockedUserParams();
 
     when(repo.getBlockedUser(page: anyNamed('page'), limit: anyNamed('limit')))
-        .thenReturn(Task.delay(() {
-      var users = <User>[];
-      return right(users);
-    }));
+        .thenAnswer((_) => Future.value(<User>[]));
 
-    var resp = await getBlockedUser(params).run();
+    var users = await getBlockedUser(params);
 
-    resp.fold((err) {
-      fail('must not be failure');
-    }, (users) {
-      if (users == null) fail('users should not null');
-      expect(users.length, 0);
-    });
+    if (users == null) fail('users should not null');
+    expect(users.length, 0);
 
     verify(repo.getBlockedUser(
       page: anyNamed('page'),

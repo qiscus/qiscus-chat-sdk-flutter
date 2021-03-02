@@ -1,7 +1,7 @@
-import 'package:dartz/dartz.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 class MockUserRepo extends Mock implements IUserRepository {}
@@ -21,22 +21,17 @@ void main() {
   test('update user successfully', () async {
     var account = Account(
       id: '123456',
-      name: some('name'),
+      name: Option.some('name'),
     );
     when(repo.updateUser(
       name: anyNamed('name'),
       avatarUrl: anyNamed('avatarUrl'),
       extras: anyNamed('extras'),
-    )).thenReturn(Task(() async {
-      return right(account);
-    }));
+    )).thenAnswer((_) => Future.value(account));
 
-    var resp = await useCase.call(UpdateUserParams(name: 'name')).run();
+    var r = await useCase.call(UpdateUserParams(name: 'name'));
 
-    resp.fold(
-      (l) => fail(l.message),
-      (r) => expect(r.name, account.name),
-    );
+    expect(r.name, account.name);
 
     verify(repo.updateUser(
       name: 'name',

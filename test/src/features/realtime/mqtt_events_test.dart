@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -18,7 +18,7 @@ void main() {
       expect(r, '1');
     });
     test('receive', () {
-      var data = event.receive(tuple2(event.topic, '1'));
+      var data = event.receive(Tuple2(event.topic, '1'));
       data.listen(expectAsync1((d) {
         expect(d.roomId, 0);
         expect(d.userId, '123');
@@ -43,7 +43,7 @@ void main() {
       expect(r, '{"name":123}');
     });
     test('receive', () {
-      var data = event.receive(tuple2(event.topic, '{ "name": "uddin" }'));
+      var data = event.receive(Tuple2(event.topic, '{ "name": "uddin" }'));
       data.listen(expectAsync1((data) {
         expect(data.roomId, 1);
         expect(data.payload['name'], 'uddin');
@@ -72,7 +72,7 @@ void main() {
       expect(d, payload);
     });
     test('receive', () {
-      var r = event.receive(tuple2(event.topic, payload));
+      var r = event.receive(Tuple2(event.topic, payload));
       r.listen(expectAsync1((data) {
         expect(data.isOnline, true);
         expect(data.lastSeen.millisecondsSinceEpoch,
@@ -109,11 +109,12 @@ void main() {
         'disable_link_preview': false,
         'chat_type': 'group'
       };
-      var r = event.receive(tuple2(event.topic, jsonEncode(json)));
+      var r = event.receive(Tuple2(event.topic, jsonEncode(json)));
       r.listen(expectAsync1((data) {
-        expect(data.id, some(3326));
-        expect(data.text, some('Halo'));
-        expect(data.sender.flatMap((it) => it.id), some('zetra1@gmail.com'));
+        expect(data.id, Option.some(3326));
+        expect(data.text, Option.some('Halo'));
+        expect(data.sender.flatMap((it) => it.id),
+            Option.some('zetra1@gmail.com'));
       }, count: 1));
     });
   });

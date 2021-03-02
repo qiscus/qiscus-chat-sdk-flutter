@@ -1,6 +1,6 @@
-import 'package:dartz/dartz.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/features/user/user.dart' as r;
+import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -66,14 +66,14 @@ void main() {
         'status': 200
       };
       var data = request.format(responseBackend);
-      var user = data.value2;
-      var token = data.value1;
+      var user = data.second;
+      var token = data.first;
       expect(token, 'biY5BEcAMJxVhLsxPYID');
       expect(user.id, 'guest-101');
-      expect(user.name, some('guest-101'));
+      expect(user.name, Option.some('guest-101'));
       expect(
         user.avatarUrl,
-        some(
+        Option.some(
           'https://d1edrlpyc25xu0.cloudfront.net/sdksample/image/upload/P8AQ0Dkjxb/162.png',
         ),
       );
@@ -127,15 +127,15 @@ void main() {
       };
       var data = request.format(backendResponse);
 
-      expect(data.value1, backendResponse['results']['user']['token']);
-      expect(data.value2.id, backendResponse['results']['user']['email']);
+      expect(data.first, backendResponse['results']['user']['token']);
+      expect(data.second.id, backendResponse['results']['user']['email']);
       expect(
-        data.value2.name,
-        some(backendResponse['results']['user']['username'] as String),
+        data.second.name,
+        Option.some(backendResponse['results']['user']['username'] as String),
       );
       expect(
-        data.value2.avatarUrl,
-        some(backendResponse['results']['user']['avatar_url'] as String),
+        data.second.avatarUrl,
+        Option.some(backendResponse['results']['user']['avatar_url'] as String),
       );
     });
   });
@@ -194,9 +194,9 @@ void main() {
       var data = request.format(responseBackend);
       var user = responseBackend['results']['user'] as Map<String, dynamic>;
 
-      expect(data.id, some(user['email'] as String));
-      expect(data.name, some(user['username'] as String));
-      expect(data.avatarUrl, some(user['avatar_url'] as String));
+      expect(data.id, Option.some(user['email'] as String));
+      expect(data.name, Option.some(user['username'] as String));
+      expect(data.avatarUrl, Option.some(user['avatar_url'] as String));
     });
   });
 
@@ -235,9 +235,9 @@ void main() {
       var data = request.format(responseBackend);
       var user = responseBackend['results']['user'] as Map<String, dynamic>;
 
-      expect(data.id, some(user['email'] as String));
-      expect(data.name, some(user['username'] as String));
-      expect(data.avatarUrl, some(user['avatar_url'] as String));
+      expect(data.id, Option.some(user['email'] as String));
+      expect(data.name, Option.some(user['username'] as String));
+      expect(data.avatarUrl, Option.some(user['avatar_url'] as String));
     });
   });
 
@@ -284,9 +284,9 @@ void main() {
           .cast<Map<String, dynamic>>()
           .first;
 
-      expect(data.first.id, some(user['email'] as String));
-      expect(data.first.name, some(user['username'] as String));
-      expect(data.first.avatarUrl, some(user['avatar_url'] as String));
+      expect(data.first.id, Option.some(user['email'] as String));
+      expect(data.first.name, Option.some(user['username'] as String));
+      expect(data.first.avatarUrl, Option.some(user['avatar_url'] as String));
     });
   });
 
@@ -336,8 +336,8 @@ void main() {
       var user = responseBackend['results']['user'] as Map<String, dynamic>;
 
       expect(data.id, user['email']);
-      expect(data.name, some(user['username'] as String));
-      expect(data.avatarUrl, some(user['avatar_url'] as String));
+      expect(data.name, Option.some(user['username'] as String));
+      expect(data.avatarUrl, Option.some(user['avatar_url'] as String));
     });
   });
 
@@ -383,9 +383,9 @@ void main() {
           .cast<Map<String, dynamic>>()
           .first;
 
-      expect(data.first.id, some(user['email'] as String));
-      expect(data.first.name, some(user['username'] as String));
-      expect(data.first.avatarUrl, some(user['avatar_url'] as String));
+      expect(data.first.id, Option.some(user['email'] as String));
+      expect(data.first.name, Option.some(user['username'] as String));
+      expect(data.first.avatarUrl, Option.some(user['avatar_url'] as String));
     });
   });
 
@@ -493,8 +493,8 @@ void main() {
       var user = responseBackend['results']['user'] as Map<String, dynamic>;
 
       expect(data.id, user['email']);
-      expect(data.name, some(user['username'] as String));
-      expect(data.avatarUrl, some(user['avatar_url'] as String));
+      expect(data.name, Option.some(user['username'] as String));
+      expect(data.avatarUrl, Option.some(user['avatar_url'] as String));
     });
   });
 }

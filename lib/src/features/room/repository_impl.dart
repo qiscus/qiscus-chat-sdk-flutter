@@ -10,7 +10,7 @@ class RoomRepositoryImpl implements IRoomRepository {
   });
 
   @override
-  Future<Either<Error, ChatRoom>> getRoomWithUserId({
+  Future<ChatRoom> getRoomWithUserId({
     @required String userId,
     Map<String, dynamic> extras,
   }) async {
@@ -19,33 +19,22 @@ class RoomRepositoryImpl implements IRoomRepository {
       userId: userId,
       extras: extras,
     );
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, Tuple2<ChatRoom, List<Message>>>> getRoomWithId(
+  Future<Tuple2<ChatRoom, List<Message>>> getRoomWithId(
     int roomId,
   ) async {
     await storage.authenticated$;
     var request = GetRoomByIdRequest(roomId: roomId);
 
-    var res = dio
-        .sendApiRequest(request)
-        .then((data) {
-          print('before formatting: ($data)');
-          return data;
-        })
-        .then((data) => request.format(data))
-        .then((data) {
-          print('after formatting: ($data)');
-          return data;
-        });
-
-    return res.toEither();
+    var res = dio.sendApiRequest(request).then((data) => request.format(data));
+    return res;
   }
 
   @override
-  Future<Either<Error, List<Participant>>> addParticipant(
+  Future<List<Participant>> addParticipant(
     int roomId,
     List<String> participantIds,
   ) async {
@@ -54,11 +43,11 @@ class RoomRepositoryImpl implements IRoomRepository {
       roomId: roomId,
       userIds: participantIds,
     );
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, List<String>>> removeParticipant(
+  Future<List<String>> removeParticipant(
     int roomId,
     List<String> participantIds,
   ) async {
@@ -67,11 +56,11 @@ class RoomRepositoryImpl implements IRoomRepository {
       roomId: roomId,
       userIds: participantIds,
     );
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, List<Participant>>> getParticipants(
+  Future<List<Participant>> getParticipants(
     String uniqueId, {
     int page,
     int limit,
@@ -84,11 +73,11 @@ class RoomRepositoryImpl implements IRoomRepository {
       limit: limit,
       sorting: sorting,
     );
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, List<ChatRoom>>> getAllRooms({
+  Future<List<ChatRoom>> getAllRooms({
     bool withParticipants,
     bool withEmptyRoom,
     bool withRemovedRoom,
@@ -104,11 +93,11 @@ class RoomRepositoryImpl implements IRoomRepository {
       page: page,
     );
 
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, ChatRoom>> getOrCreateChannel({
+  Future<ChatRoom> getOrCreateChannel({
     String uniqueId,
     String name,
     String avatarUrl,
@@ -121,11 +110,11 @@ class RoomRepositoryImpl implements IRoomRepository {
       avatarUrl: avatarUrl,
       extras: options,
     );
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, ChatRoom>> createGroup({
+  Future<ChatRoom> createGroup({
     String name,
     List<String> userIds,
     String avatarUrl,
@@ -138,20 +127,20 @@ class RoomRepositoryImpl implements IRoomRepository {
       avatarUrl: avatarUrl,
       extras: extras,
     );
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, void>> clearMessages({
+  Future<void> clearMessages({
     @required List<String> uniqueIds,
   }) async {
     await storage.authenticated$;
     var request = ClearMessagesRequest(roomUniqueIds: uniqueIds);
-    return dio.sendApiRequest(request).then(request.format).toEither();
+    return dio.sendApiRequest(request).then(request.format);
   }
 
   @override
-  Future<Either<Error, List<ChatRoom>>> getRoomInfo({
+  Future<List<ChatRoom>> getRoomInfo({
     List<int> roomIds,
     List<String> uniqueIds,
     bool withParticipants,
@@ -166,18 +155,18 @@ class RoomRepositoryImpl implements IRoomRepository {
       withRemoved: withRemoved,
       page: page,
     );
-    return dio.sendApiRequest(r).then(r.format).toEither();
+    return dio.sendApiRequest(r).then(r.format);
   }
 
   @override
-  Future<Either<Error, int>> getTotalUnreadCount() async {
+  Future<int> getTotalUnreadCount() async {
     await storage.authenticated$;
     var r = GetTotalUnreadCountRequest();
-    return dio.sendApiRequest(r).then(r.format).toEither();
+    return dio.sendApiRequest(r).then(r.format);
   }
 
   @override
-  Future<Either<Error, ChatRoom>> updateRoom({
+  Future<ChatRoom> updateRoom({
     @required int roomId,
     String name,
     String avatarUrl,
@@ -191,6 +180,6 @@ class RoomRepositoryImpl implements IRoomRepository {
       extras: extras,
     );
 
-    return dio.sendApiRequest(r).then(r.format).toEither();
+    return dio.sendApiRequest(r).then(r.format);
   }
 }
