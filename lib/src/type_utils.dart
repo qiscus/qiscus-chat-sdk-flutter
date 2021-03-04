@@ -33,10 +33,13 @@ class Option<T extends Object> extends Union2Impl<Some<T>, None> {
   factory Option.of(T value) =>
       value == null ? Option.none() : Option.some(value);
 
-  factory Option.some(T value) =>
-      Option._(_optionFactory<T>().first(Some._(value)));
+  factory Option.some(T value) {
+    return Option._(_optionFactory<T>().first(Some._(value)));
+  }
 
-  factory Option.none() => Option._(_optionFactory<T>().second(None._()));
+  factory Option.none() {
+    return Option._(_optionFactory<T>().second(None._()));
+  }
 
   @override
   String toString() {
@@ -74,6 +77,9 @@ class Option<T extends Object> extends Union2Impl<Some<T>, None> {
   T toNullable() {
     return getOrElse(() => null);
   }
+
+  static bool isNone(Option o) => o.fold(() => true, (_) => false);
+  static bool isSome(Option o) => o.fold(() => false, (_) => true);
 }
 
 @sealed

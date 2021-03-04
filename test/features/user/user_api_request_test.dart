@@ -406,7 +406,7 @@ void main() {
 
     test('body', () {
       expect(request.body['device_token'], 'some-token');
-      expect(request.body['device_platform'], 'rn');
+      expect(request.body['device_platform'], 'flutter');
       expect(request.body['is_development'], false);
     });
 
@@ -430,7 +430,7 @@ void main() {
 
     test('body', () {
       expect(request.body['device_token'], 'some-token');
-      expect(request.body['device_platform'], 'rn');
+      expect(request.body['device_platform'], 'flutter');
       expect(request.body['is_development'], false);
     });
 

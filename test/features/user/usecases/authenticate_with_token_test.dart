@@ -23,7 +23,7 @@ void main() {
 
     when(userRepo.authenticateWithToken(
       identityToken: anyNamed('identityToken'),
-    )).thenReturn(Future.value(
+    )).thenAnswer((_) => Future.value(
       Tuple2(
         'some-token',
         Account(

@@ -25,7 +25,7 @@ class UpdateUserUseCase
       avatarUrl: p.avatarUrl,
       extras: p.extras,
     );
-    _storage.currentUser = _storage.currentUser.copy(
+    _storage.currentUser = _storage.currentUser?.copy(
       name: user.name ?? immutable,
       avatarUrl: user.avatarUrl ?? immutable,
       extras: user.extras ?? immutable,

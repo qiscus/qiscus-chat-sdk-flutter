@@ -52,7 +52,7 @@ void main() {
         Option.some(json['results']['enable_realtime'] as bool));
     expect(config.enableRealtimeCheck,
         Option.some(json['results']['enable_realtime_check'] as bool));
-    expect(config.extras, Option.none());
+    expect(Option.isNone(config.extras), true);
     expect(config.syncInterval,
         Option.some(json['results']['sync_interval'] as int));
     expect(config.syncOnConnect,

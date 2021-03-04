@@ -32,10 +32,9 @@ void main() {
       expect(future, completion(equals(null)));
     });
     test('utils.futurify1 failure', () async {
-      var future = futurify1((cb) {
+      expect(futurify1((cb) {
         cb(Exception('message'));
-      });
-      expect(future, throwsA(QError('message')));
+      }), throwsA(isA<Exception>()));
     });
 
     test('utils.futurify2 success', () {
@@ -51,32 +50,30 @@ void main() {
         cb(null, Exception('message'));
       });
 
-      expect(future, throwsA(QError('message')));
+      expect(future, throwsA(isA<Exception>()));
     });
   });
 
   group('utils.decodeJson', () {
-    var _none = Option.none();
-
     test('empty map', () {
       var map = <String, dynamic>{};
 
       var result = decodeJson(map);
 
-      expect(result, _none);
+      expect(Option.isNone(result), true);
     });
 
     test('empty string', () {
       var str = '';
       var result = decodeJson(str);
 
-      expect(result, _none);
+      expect(Option.isNone(result), true);
     });
 
     test('non empty invalid json string', () {
       var str = 'datesomething';
       var result = decodeJson(str);
-      expect(result, _none);
+      expect(Option.isNone(result), true);
     });
 
     test('non empty valid json string', () {
@@ -93,14 +90,14 @@ void main() {
       var str = 'null';
       var result = decodeJson(str);
 
-      expect(result, _none);
+      expect(Option.isSome(result), true);
     });
 
     test('neither map / string', () {
       var data = 120;
       var result = decodeJson(data);
 
-      expect(result, _none);
+      expect(Option.isNone(result), true);
     });
 
     test('non empty map', () {

@@ -83,11 +83,11 @@ void main() {
     var model = Participant(id: 'id');
 
     expect(model.id, 'id');
-    expect(model.name, Option.none());
-    expect(model.avatarUrl, Option.none());
-    expect(model.extras, Option.none());
-    expect(model.lastReceivedMessageId, Option.none());
-    expect(model.lastReadMessageId, Option.none());
+    expect(Option.isNone(model.name), true);
+    expect(Option.isNone(model.avatarUrl), true);
+    expect(Option.isNone(model.extras), true);
+    expect(Option.isNone(model.lastReceivedMessageId), true);
+    expect(Option.isNone(model.lastReadMessageId), true);
   });
 
   test('Participant.toModel', () {

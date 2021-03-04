@@ -39,7 +39,7 @@ class MqttServiceImpl implements IRealtimeService {
       log('@mqtt.subscribed($topic)');
     };
     _mqtt.onUnsubscribed = (topic) {
-      _subscriptions.update(topic, (it) => it - 1);
+      _subscriptions.update(topic, (it) => it - 1, ifAbsent: () => 0);
       _subscriptions.removeWhere((it, count) => it == topic && count <= 0);
       log('@mqtt-unsubscribed($topic)');
     };
