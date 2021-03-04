@@ -74,9 +74,19 @@ class MqttServiceImpl implements IRealtimeService {
 
   @override
   Future<void> connect() async {
-    log('connecting to mqtt');
-    var status = await _mqtt.connect();
-    log('connected to mqtt: $status');
+    try {
+      log('connecting to mqtt');
+      var status = await _mqtt.connect();
+      log('connected to mqtt: $status');
+    } on NoConnectionException catch (error) {
+      log('got mqtt error while connecting: $error');
+      log('-> server: ${_mqtt.server}');
+      log('-> port: ${_mqtt.port}');
+      log('-> clientId: ${_mqtt.clientIdentifier}');
+      log('-> status: ${_mqtt.connectionStatus}');
+      log('-> appId: ${_s.appId}');
+    }
+
     var stream = _restartSubscription(() => _mqtt.updates);
     _logSubscription = stream.expand((it) => it).listen((data) {
       if (_logger.level == QLogLevel.verbose) {
@@ -355,13 +365,13 @@ class MqttServiceImpl implements IRealtimeService {
     await for (var isConnected in stream) {
       if (isConnected) return;
 
-      log('reconnecting');
       try {
         var result = await _dio.get<Map<String, dynamic>>(_s.brokerLbUrl);
         var data = result.data['data'] as Map<String, dynamic>;
         var url = data['url'] as String;
         _s.brokerUrl = url;
 
+        log('reconnecting to ${_s.brokerUrl}');
         _mqtt.server = _s.brokerUrl;
         await _mqtt.connect();
 
@@ -372,6 +382,12 @@ class MqttServiceImpl implements IRealtimeService {
             await subscribe(topic);
           }
         }
+      } on NoConnectionException catch (err) {
+        log('got mqtt error: $err');
+        log('-> server: ${_mqtt.server}');
+        log('-> port: ${_mqtt.port}');
+        log('-> clientId: ${_mqtt.clientIdentifier}');
+        log('-> appId: ${_s.appId}');
       } catch (e) {
         log('got error when reconnecting mqtt: $e');
       }

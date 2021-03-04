@@ -73,5 +73,7 @@ class UserPresence with EquatableMixin {
   final bool isOnline;
 
   @override
-  List<Object> get props => [userId, lastSeen, isOnline];
+  List<Object> get props => [userId];
+  @override
+  bool get stringify => true;
 }

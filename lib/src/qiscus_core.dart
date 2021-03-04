@@ -790,13 +790,13 @@ class QiscusSDK {
   void subscribeChatRoom(QChatRoom room) {
     final params = RoomIdParams(room.id);
 
-    final read = __<OnMessageRead>().subscribe(params);
-    final delivered = __<OnMessageDelivered>().subscribe(params);
-    final typing = __<TypingUseCase>().subscribe(UserTyping(
-      roomId: room.id,
-      userId: '+',
-    ));
-    _authenticated.chain(read).chain(delivered).chain(typing);
+    final read = () => __<OnMessageRead>().subscribe(params);
+    final delivered = () => __<OnMessageDelivered>().subscribe(params);
+    final typing = () => __<TypingUseCase>().subscribe(UserTyping(
+          roomId: room.id,
+          userId: '+',
+        ));
+    _authenticated.chain(read()).chain(delivered()).chain(typing());
   }
 
   void subscribeCustomEvent({
@@ -812,7 +812,11 @@ class QiscusSDK {
   void subscribeUserOnlinePresence(String userId) {
     _authenticated
         .chain(__<PresenceUseCase>().subscribe(UserPresence(userId: userId)))
-        .toCallback1((_) {});
+        .toCallback1((err) {
+      if (err != null) {
+        __<Logger>().log('failed subscribing user online presence: $err');
+      }
+    });
   }
 
   void synchronize({String lastMessageId}) {

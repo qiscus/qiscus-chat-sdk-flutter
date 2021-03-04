@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
 import 'src/core.dart';
@@ -481,14 +482,24 @@ class QChatRoomWithMessages {
   final List<QMessage> messages;
 }
 
-class QUserPresence {
+class QUserPresence with EquatableMixin {
   String userId;
   bool isOnline;
   DateTime lastOnline;
+
+  @override
+  List<Object> get props => [userId, isOnline, lastOnline];
+  @override
+  bool get stringify => true;
 }
 
-class QUserTyping {
+class QUserTyping with EquatableMixin {
   String userId;
   int roomId;
   bool isTyping;
+
+  @override
+  List<Object> get props => [userId, roomId, isTyping];
+  @override
+  bool get stringify => true;
 }

@@ -18,7 +18,7 @@ MqttClient getMqttClient(Storage storage) {
 
 String getClientId([int millis]) {
   var _millis = millis ?? DateTime.now().millisecondsSinceEpoch;
-  return 'dart-sdk-$_millis';
+  return 'flutter-sdk-$_millis';
 }
 
 MqttConnectMessage getConnectionMessage(String clientId, String userId) {

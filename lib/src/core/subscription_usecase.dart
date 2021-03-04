@@ -26,7 +26,7 @@ mixin SubscriptionMixin<Service extends IRealtimeService,
         .getOrElse(() => Future.value(null));
   }
 
-  Stream<Response> subscribe(Params params) async* {
+  Stream<Response> subscribe(Params params) {
     var subs = () => mapStream(params).listen(_controller.sink.add);
     var ifAbsent = () => Future.value(_subscriptions.putIfAbsent(params, subs))
         .then((_) => _stream);
@@ -35,11 +35,11 @@ mixin SubscriptionMixin<Service extends IRealtimeService,
         .map((_) => ifAbsent())
         .getOrElse(() => ifAbsent());
 
-    var stream = await Option.of(_subscriptions[params])
+    var stream = Option.of(_subscriptions[params])
         .map((_) => Future.value(_stream))
-        .getOrElse(ifEmpty);
+        .getOrElse(() => ifEmpty());
 
-    yield* stream;
+    return stream.asStream().flatten();
   }
 
   StreamSubscription<Response> listen(
