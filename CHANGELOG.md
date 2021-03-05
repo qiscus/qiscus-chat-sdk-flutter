@@ -1,3 +1,8 @@
+# 1.0.13
+
+- provide "FLUTTER_NOTIFICATION_CLICK" when getting push notifications from
+  firebase
+
 # 1.0.12
 
 - fix not reconnecting to mqtt server after losing internet connection
