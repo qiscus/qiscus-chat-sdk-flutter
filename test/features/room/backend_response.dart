@@ -1,5 +1,5 @@
-import 'package:qiscus_chat_sdk/src/features/message/message.dart';
-import 'package:qiscus_chat_sdk/src/features/user/user.dart';
+import 'package:qiscus_chat_sdk/src/message/message.dart';
+import 'package:qiscus_chat_sdk/src/user/user.dart';
 
 const chatTargetResponse = <String, dynamic>{
   'results': {

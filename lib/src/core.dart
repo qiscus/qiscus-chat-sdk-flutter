@@ -11,8 +11,8 @@ import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:qiscus_chat_sdk/src/type_utils.dart';
 
-import 'features/realtime/realtime.dart';
-import 'features/user/user.dart';
+import 'realtime/realtime.dart';
+import 'user/user.dart';
 
 part 'core/api_request.dart';
 part 'core/constants.dart';

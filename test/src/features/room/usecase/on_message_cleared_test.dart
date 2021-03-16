@@ -1,6 +1,6 @@
-import 'package:qiscus_chat_sdk/src/features/message/message.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
-import 'package:qiscus_chat_sdk/src/features/room/room.dart';
+import 'package:qiscus_chat_sdk/src/message/message.dart';
+import 'package:qiscus_chat_sdk/src/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/room/room.dart';
 import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';

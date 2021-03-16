@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/realtime/realtime.dart';
 import 'package:test/test.dart';
 
 import 'package:fake_async/fake_async.dart';

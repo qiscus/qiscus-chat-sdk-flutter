@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/realtime/realtime.dart';
 
 class MockDio extends Mock implements Dio {}
 

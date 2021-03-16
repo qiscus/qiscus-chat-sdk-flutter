@@ -13,5 +13,6 @@ analyzer:
     annotate_overrides: ignore
     always_declare_return_types: ignore
   exclude:
+    - 'example/**'
     - 'lib/**/*.g.dart'
     - 'lib/**/*.freezed.dart'

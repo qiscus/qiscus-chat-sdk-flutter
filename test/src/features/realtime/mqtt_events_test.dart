@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:qiscus_chat_sdk/src/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/realtime-event/realtime.dart';
 import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 

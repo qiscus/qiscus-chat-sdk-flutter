@@ -1,8 +1,8 @@
 import 'package:mockito/mockito.dart';
 
-import 'package:qiscus_chat_sdk/src/features/custom_event/custom_event.dart';
-import 'package:qiscus_chat_sdk/src/features/message/message.dart';
-import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/custom_event/custom_event.dart';
+import 'package:qiscus_chat_sdk/src/message/message.dart';
+import 'package:qiscus_chat_sdk/src/realtime/realtime.dart';
 import 'package:test/test.dart';
 
 class MockService extends Mock implements IRealtimeService {}

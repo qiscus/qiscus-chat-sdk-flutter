@@ -5,9 +5,9 @@ import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
 import 'src/core.dart';
-import 'src/features/message/message.dart';
-import 'src/features/room/room.dart';
-import 'src/features/user/user.dart';
+import 'src/message/message.dart';
+import 'src/room/room.dart';
+import 'src/user/user.dart';
 import 'src/qiscus_core.dart';
 
 extension XQiscusSDK on QiscusSDK {

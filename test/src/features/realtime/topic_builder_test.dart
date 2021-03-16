@@ -1,4 +1,4 @@
-import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/realtime/realtime.dart';
 import 'package:test/test.dart';
 
 void main() {

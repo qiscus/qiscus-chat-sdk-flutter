@@ -5,9 +5,9 @@ import 'package:dio/dio.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
-import 'package:qiscus_chat_sdk/src/features/custom_event/custom_event.dart';
+import 'package:qiscus_chat_sdk/src/custom_event/custom_event.dart';
 
-import 'package:qiscus_chat_sdk/src/features/realtime/realtime.dart';
+import 'package:qiscus_chat_sdk/src/realtime-event/realtime.dart';
 import 'package:qiscus_chat_sdk/src/realtime/realtime.dart';
 import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';

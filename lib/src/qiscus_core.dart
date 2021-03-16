@@ -11,12 +11,12 @@ import 'package:meta/meta.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
 import 'core.dart';
-import 'features/app_config/app_config.dart';
-import 'features/custom_event/custom_event.dart';
-import 'features/message/message.dart';
-import 'features/realtime/realtime.dart';
-import 'features/room/room.dart';
-import 'features/user/user.dart';
+import 'app_config/app_config.dart';
+import 'custom_event/custom_event.dart';
+import 'message/message.dart';
+import 'realtime/realtime.dart';
+import 'room/room.dart';
+import 'user/user.dart';
 import 'type_utils.dart';
 
 part 'injector.dart';
