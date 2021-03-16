@@ -17,5 +17,7 @@ class OnRoomMessagesCleared
       .asyncMap((it) => it.id);
 
   @override
-  Option<String> topic(_) => Option.some(TopicBuilder.notification(_.token));
+  Option<String> topic(TokenParams _) {
+    return Option.some(TopicBuilder.notification(_.token));
+  }
 }

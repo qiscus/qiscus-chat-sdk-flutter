@@ -10,7 +10,7 @@ class SendMessageUseCase
   SendMessageUseCase(MessageRepository repository) : super(repository);
 
   @override
-  Future<Message> call(params) async {
+  Future<Message> call(MessageParams params) async {
     if (params.message.chatRoomId == null) {
       throw ArgumentError.notNull('roomId');
     }

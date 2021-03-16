@@ -77,8 +77,8 @@ class UserService extends IUserService {
   }
 
   @override
-  get onUserPresence => throw UnimplementedError();
+  Stream<QUserPresence> get onUserPresence => throw UnimplementedError();
 
   @override
-  get onUserTyping => throw UnimplementedError();
+  Stream<QUserTyping> get onUserTyping => throw UnimplementedError();
 }

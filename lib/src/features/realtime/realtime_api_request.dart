@@ -17,7 +17,7 @@ class SynchronizeRequest extends IApiRequest<Tuple2<int, List<Message>>> {
       };
 
   @override
-  Tuple2<int, List<Message>> format(json) {
+  Tuple2<int, List<Message>> format(Map<String, dynamic> json) {
     var lastId = json['results']['meta']['last_received_comment_id'] as int;
     var messages = (json['results']['comments'] as List)
         .cast<Map<String, dynamic>>()
@@ -45,7 +45,7 @@ class SynchronizeEventRequest
       };
 
   @override
-  Tuple2<int, List<RealtimeEvent>> format(json) {
+  Tuple2<int, List<RealtimeEvent>> format(Map<String, dynamic> json) {
     final data = (json['events'] as List).cast<Map<String, dynamic>>();
     final id = data.isNotEmpty ? data.last['id'] as int : 0;
     return Tuple2(id, RealtimeEvent.fromJson(json));

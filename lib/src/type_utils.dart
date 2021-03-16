@@ -65,14 +65,16 @@ class Some<T> with EquatableMixin {
 
   final T value;
 
-  get props => [value];
+  @override
+  List<Object> get props => [value];
 }
 
 @sealed
 class None with EquatableMixin {
   const None._();
 
-  get props => [];
+  @override
+  List<Object> get props => [];
 }
 
 class Tuple2<T1, T2> with EquatableMixin {

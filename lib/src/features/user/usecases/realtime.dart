@@ -9,7 +9,7 @@ class TypingUseCase extends UseCase<IRealtimeService, void, UserTyping>
   static TypingUseCase _instance;
 
   @override
-  Future<void> call(params) {
+  Future<void> call(UserTyping params) {
     return repository.publishTyping(
       isTyping: params.isTyping,
       userId: params.userId,
@@ -18,7 +18,7 @@ class TypingUseCase extends UseCase<IRealtimeService, void, UserTyping>
   }
 
   @override
-  Stream<UserTyping> mapStream(params) => repository
+  Stream<UserTyping> mapStream(UserTyping params) => repository
       .subscribeUserTyping(roomId: params.roomId)
       .asyncMap((res) => UserTyping(
             isTyping: res.isTyping,
@@ -42,7 +42,7 @@ class PresenceUseCase extends UseCase<IRealtimeService, void, UserPresence>
       _instance ??= PresenceUseCase._(service);
 
   @override
-  Future<void> call(params) {
+  Future<void> call(UserPresence params) {
     return repository.publishPresence(
       isOnline: params.isOnline,
       lastSeen: params.lastSeen,

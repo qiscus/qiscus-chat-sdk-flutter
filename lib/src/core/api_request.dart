@@ -57,7 +57,7 @@ extension DioXRequest on Dio {
   }
 
   Future<Output> sendApiRequest<Output extends Map<String, dynamic>>(
-    IApiRequest request,
+    IApiRequest<dynamic> request,
   ) async {
     var body = request.body;
     body?.removeWhere((key, dynamic value) => value == null);

@@ -741,7 +741,7 @@ class QiscusSDK {
         .toCallback2(callback);
   }
 
-  void _connectMqtt<T>() async {
+  void _connectMqtt() async {
     if (__<Storage>().isRealtimeEnabled) {
       await __<IRealtimeService>().connect();
     }
@@ -905,7 +905,7 @@ class QiscusSDK {
       var url = json['results']['file']['url'] as String;
       callback(null, null, url);
     }).catchError((dynamic error) {
-      callback(error, null, null);
+      callback(error as Exception, null, null);
     });
   }
 

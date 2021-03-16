@@ -12,7 +12,7 @@ class UpdateMessageStatusUseCase
   UpdateMessageStatusUseCase(MessageRepository repository) : super(repository);
 
   @override
-  Future<void> call(p) async {
+  Future<void> call(UpdateStatusParams p) async {
     if (p.status == QMessageStatus.delivered) {
       return repository.updateStatus(
         roomId: p.roomId,

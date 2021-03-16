@@ -26,14 +26,14 @@ extension FutureX<T> on Future<T> {
   void toCallback1(void Function(Exception) callback) {
     then(
       (_) => callback(null),
-      onError: (dynamic error) => callback(error),
+      onError: (dynamic error) => callback(error as Exception),
     );
   }
 
   void toCallback2(void Function(T, Exception) callback) {
     then(
       (value) => callback(value, null),
-      onError: (dynamic error) => callback(null, error),
+      onError: (dynamic error) => callback(null, error as Exception),
     );
   }
 

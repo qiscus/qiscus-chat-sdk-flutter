@@ -22,7 +22,7 @@ class ChatTargetRequest extends IApiRequest<ChatRoom> {
       };
 
   @override
-  ChatRoom format(json) {
+  ChatRoom format(Map<String, dynamic> json) {
     return ChatRoom.fromJson(json['results']['room'] as Map<String, dynamic>);
   }
 }
@@ -37,12 +37,14 @@ class GetRoomByIdRequest extends IApiRequest<Tuple2<ChatRoom, List<Message>>> {
   @override
   String get url => 'get_room_by_id';
 
-  get method => IRequestMethod.get;
-
-  get params => <String, dynamic>{'id': roomId};
+  @override
+  IRequestMethod get method => IRequestMethod.get;
 
   @override
-  format(json) {
+  Map<String, dynamic> get params => <String, dynamic>{'id': roomId};
+
+  @override
+  Tuple2<ChatRoom, List<Message>> format(Map<String, dynamic> json) {
     var results = json['results'] as Map<String, dynamic>;
     var room = ChatRoom.fromJson(results['room'] as Map<String, dynamic>);
     var messages = (results['comments'] as List) //
@@ -63,17 +65,20 @@ class AddParticipantRequest extends IApiRequest<List<Participant>> {
   final int roomId;
   final List<String> userIds;
 
-  get url => 'add_room_participants';
+  @override
+  String get url => 'add_room_participants';
 
-  get method => IRequestMethod.post;
+  @override
+  IRequestMethod get method => IRequestMethod.post;
 
-  get body => <String, dynamic>{
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{
         'room_id': roomId.toString(),
         'emails': userIds,
       };
 
   @override
-  format(json) {
+  List<Participant> format(Map<String, dynamic> json) {
     var _participants = (json['results']['participants_added'] as List)
         .cast<Map<String, dynamic>>();
     var participants = _participants //
@@ -92,17 +97,20 @@ class RemoveParticipantRequest extends IApiRequest<List<String>> {
   final int roomId;
   final List<String> userIds;
 
-  get url => 'remove_room_participants';
+  @override
+  String get url => 'remove_room_participants';
 
-  get method => IRequestMethod.post;
+  @override
+  IRequestMethod get method => IRequestMethod.post;
 
-  get body => <String, dynamic>{
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{
         'room_id': roomId.toString(),
         'emails': userIds,
       };
 
   @override
-  format(json) {
+  List<String> format(Map<String, dynamic> json) {
     var ids = (json['results']['participants_removed'] as List) //
         .cast<String>();
 
@@ -123,11 +131,14 @@ class GetParticipantRequest extends IApiRequest<List<Participant>> {
   final int limit;
   final String sorting;
 
-  get url => 'room_participants';
+  @override
+  String get url => 'room_participants';
 
-  get method => IRequestMethod.get;
+  @override
+  IRequestMethod get method => IRequestMethod.get;
 
-  get params => <String, dynamic>{
+  @override
+  Map<String, dynamic> get params => <String, dynamic>{
         'room_unique_id': roomUniqueId,
         'page': page,
         'limit': limit,
@@ -135,7 +146,7 @@ class GetParticipantRequest extends IApiRequest<List<Participant>> {
       };
 
   @override
-  format(json) {
+  List<Participant> format(Map<String, dynamic> json) {
     var participants_ = (json['results']['participants'] as List) //
         .cast<Map<String, dynamic>>();
     var participants = participants_ //
@@ -160,11 +171,14 @@ class GetAllRoomRequest extends IApiRequest<List<ChatRoom>> {
   final int limit;
   final int page;
 
-  get url => 'user_rooms';
+  @override
+  String get url => 'user_rooms';
 
-  get method => IRequestMethod.get;
+  @override
+  IRequestMethod get method => IRequestMethod.get;
 
-  get params => <String, dynamic>{
+  @override
+  Map<String, dynamic> get params => <String, dynamic>{
         'show_participants': withParticipants,
         'show_empty': withEmptyRoom,
         'show_removed': withRemovedRoom,
@@ -173,7 +187,7 @@ class GetAllRoomRequest extends IApiRequest<List<ChatRoom>> {
       };
 
   @override
-  format(json) {
+  List<ChatRoom> format(Map<String, dynamic> json) {
     var rooms_ = (json['results']['rooms_info'] as List) //
         .cast<Map<String, dynamic>>();
     var rooms = rooms_.map((json) => ChatRoom.fromJson(json)).toList();
@@ -194,11 +208,14 @@ class GetOrCreateChannelRequest extends IApiRequest<ChatRoom> {
   final String avatarUrl;
   final Map<String, dynamic> extras;
 
-  get url => 'get_or_create_room_with_unique_id';
+  @override
+  String get url => 'get_or_create_room_with_unique_id';
 
-  get method => IRequestMethod.post;
+  @override
+  IRequestMethod get method => IRequestMethod.post;
 
-  get body => <String, dynamic>{
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{
         'unique_id': uniqueId,
         'name': name,
         'avatar_url': avatarUrl,
@@ -206,7 +223,7 @@ class GetOrCreateChannelRequest extends IApiRequest<ChatRoom> {
       };
 
   @override
-  format(json) {
+  ChatRoom format(Map<String, dynamic> json) {
     return ChatRoom.fromJson(json['results']['room'] as Map<String, dynamic>);
   }
 }
@@ -225,11 +242,14 @@ class CreateGroupRequest extends IApiRequest<ChatRoom> {
   final String avatarUrl;
   final Map<String, dynamic> extras;
 
-  get url => 'create_room';
+  @override
+  String get url => 'create_room';
 
-  get method => IRequestMethod.post;
+  @override
+  IRequestMethod get method => IRequestMethod.post;
 
-  get body => <String, dynamic>{
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{
         'name': name,
         'participants': userIds,
         'avatar_url': avatarUrl,
@@ -237,7 +257,7 @@ class CreateGroupRequest extends IApiRequest<ChatRoom> {
       };
 
   @override
-  format(json) {
+  ChatRoom format(Map<String, dynamic> json) {
     return ChatRoom.fromJson(json['results']['room'] as Map<String, dynamic>);
   }
 }
@@ -249,11 +269,14 @@ class ClearMessagesRequest extends IApiRequest<void> {
 
   final List<String> roomUniqueIds;
 
-  get url => 'clear_room_messages';
+  @override
+  String get url => 'clear_room_messages';
 
-  get method => IRequestMethod.delete;
+  @override
+  IRequestMethod get method => IRequestMethod.delete;
 
-  get params => <String, dynamic>{
+  @override
+  Map<String, dynamic> get params => <String, dynamic>{
         'room_channel_ids': roomUniqueIds,
       };
 
@@ -276,11 +299,14 @@ class GetRoomInfoRequest extends IApiRequest<List<ChatRoom>> {
   final bool withRemoved;
   final int page;
 
-  get url => 'rooms_info';
+  @override
+  String get url => 'rooms_info';
 
-  get method => IRequestMethod.post;
+  @override
+  IRequestMethod get method => IRequestMethod.post;
 
-  get body => <String, dynamic>{
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{
         'room_id': roomIds.map((e) => e.toString()).toList(),
         'room_unique_id': uniqueIds,
         'show_participants': withParticipants,
@@ -289,7 +315,7 @@ class GetRoomInfoRequest extends IApiRequest<List<ChatRoom>> {
       };
 
   @override
-  format(json) {
+  List<ChatRoom> format(Map<String, dynamic> json) {
     var roomsInfo = json['results']['rooms_info'] as List;
     return roomsInfo
         .cast<Map<String, dynamic>>()
@@ -299,12 +325,14 @@ class GetRoomInfoRequest extends IApiRequest<List<ChatRoom>> {
 }
 
 class GetTotalUnreadCountRequest extends IApiRequest<int> {
-  get url => 'total_unread_count';
-
-  get method => IRequestMethod.get;
+  @override
+  String get url => 'total_unread_count';
 
   @override
-  format(json) {
+  IRequestMethod get method => IRequestMethod.get;
+
+  @override
+  int format(Map<String, dynamic> json) {
     return json['results']['total_unread_count'] as int;
   }
 }
@@ -322,11 +350,14 @@ class UpdateRoomRequest extends IApiRequest<ChatRoom> {
   final String avatarUrl;
   final Map<String, dynamic> extras;
 
-  get url => 'update_room';
+  @override
+  String get url => 'update_room';
 
-  get method => IRequestMethod.post;
+  @override
+  IRequestMethod get method => IRequestMethod.post;
 
-  get body => <String, dynamic>{
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{
         'id': roomId,
         'name': name,
         'avatar_url': avatarUrl,
@@ -334,7 +365,7 @@ class UpdateRoomRequest extends IApiRequest<ChatRoom> {
       };
 
   @override
-  format(json) {
+  ChatRoom format(Map<String, dynamic> json) {
     return ChatRoom.fromJson(json['results']['room'] as Map<String, dynamic>);
   }
 }

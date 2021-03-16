@@ -12,9 +12,12 @@ class AuthenticateRequest extends IApiRequest<Tuple2<String, Account>> {
   final String userId, userKey, name, avatarUrl;
   final Map<String, dynamic> extras;
 
-  get url => 'login_or_register';
-  get method => IRequestMethod.post;
-  get body => <String, dynamic>{
+  @override
+  String get url => 'login_or_register';
+  @override
+  IRequestMethod get method => IRequestMethod.post;
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{
         'email': userId,
         'password': userKey,
         'username': name,
@@ -23,7 +26,7 @@ class AuthenticateRequest extends IApiRequest<Tuple2<String, Account>> {
       };
 
   @override
-  format(json) {
+  Tuple2<String, Account> format(Map<String, dynamic> json) {
     var token = json['results']['user']['token'] as String;
     var user = Account //
         .fromJson(json['results']['user'] as Map<String, dynamic>);
@@ -40,14 +43,17 @@ class AuthenticateWithTokenRequest
 
   final String identityToken;
 
-  get url => 'auth/verify_identity_token';
-  get method => IRequestMethod.post;
-  get body => <String, dynamic>{
+  @override
+  String get url => 'auth/verify_identity_token';
+  @override
+  IRequestMethod get method => IRequestMethod.post;
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{
         'identity_token': identityToken,
       };
 
   @override
-  format(json) {
+  Tuple2<String, Account> format(Map<String, dynamic> json) {
     var token = json['results']['user']['token'] as String;
     var user = Account.fromJson(
       json['results']['user'] as Map<String, dynamic>,
@@ -63,12 +69,15 @@ class BlockUserRequest extends IApiRequest<User> {
   });
   final String userId;
 
-  get url => 'block_user';
-  get method => IRequestMethod.post;
-  get body => <String, void>{'user_email': userId};
+  @override
+  String get url => 'block_user';
+  @override
+  IRequestMethod get method => IRequestMethod.post;
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{'user_email': userId};
 
   @override
-  format(json) {
+  User format(Map<String, dynamic> json) {
     return User.fromJson(json['results']['user'] as Map<String, dynamic>);
   }
 }
@@ -79,14 +88,17 @@ class UnblockUserRequest extends IApiRequest<User> {
   });
   final String userId;
 
-  get url => 'unblock_user';
-  get method => IRequestMethod.post;
-  get body => <String, dynamic>{
+  @override
+  String get url => 'unblock_user';
+  @override
+  IRequestMethod get method => IRequestMethod.post;
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{
         'user_email': userId,
       };
 
   @override
-  format(json) {
+  User format(Map<String, dynamic> json) {
     return User.fromJson(json['results']['user'] as Map<String, dynamic>);
   }
 }
@@ -99,15 +111,18 @@ class GetBlockedUsersRequest extends IApiRequest<List<User>> {
   final int page;
   final int limit;
 
-  get url => 'get_blocked_users';
-  get method => IRequestMethod.get;
-  get params => <String, dynamic>{
+  @override
+  String get url => 'get_blocked_users';
+  @override
+  IRequestMethod get method => IRequestMethod.get;
+  @override
+  Map<String, dynamic> get params => <String, dynamic>{
         'page': page,
         'limit': limit,
       };
 
   @override
-  format(json) {
+  List<User> format(Map<String, dynamic> json) {
     var blockedUsers = json['results']['blocked_users'] as List;
     return blockedUsers
         .cast<Map<String, dynamic>>()
@@ -117,21 +132,25 @@ class GetBlockedUsersRequest extends IApiRequest<List<User>> {
 }
 
 class GetNonceRequest extends IApiRequest<String> {
-  get url => 'auth/nonce';
-  get method => IRequestMethod.post;
+  @override
+  String get url => 'auth/nonce';
+  @override
+  IRequestMethod get method => IRequestMethod.post;
 
   @override
-  format(json) {
+  String format(Map<String, dynamic> json) {
     return json['results']['nonce'] as String;
   }
 }
 
 class GetUserDataRequest extends IApiRequest<Account> {
-  get url => 'my_profile';
-  get method => IRequestMethod.get;
+  @override
+  String get url => 'my_profile';
+  @override
+  IRequestMethod get method => IRequestMethod.get;
 
   @override
-  format(json) {
+  Account format(Map<String, dynamic> json) {
     return Account.fromJson(json['results']['user'] as Map<String, dynamic>);
   }
 }
@@ -146,16 +165,19 @@ class GetUserListRequest extends IApiRequest<List<User>> {
   final int page;
   final int limit;
 
-  get url => 'get_user_list';
-  get method => IRequestMethod.get;
-  get body => <String, dynamic>{
+  @override
+  String get url => 'get_user_list';
+  @override
+  IRequestMethod get method => IRequestMethod.get;
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{
         'page': page,
         'limit': limit,
         'query': query,
       };
 
   @override
-  format(json) {
+  List<User> format(Map<String, dynamic> json) {
     var users = json['results']['users'] as List;
     var _users = users
         .cast<Map<String, dynamic>>()
@@ -175,16 +197,21 @@ class SetDeviceTokenRequest extends IApiRequest<bool> {
   final bool isDevelopment;
   final String platform;
 
-  get url => 'set_user_device_token';
-  get method => IRequestMethod.post;
-  get body => <String, dynamic>{
+  @override
+  String get url => 'set_user_device_token';
+
+  @override
+  IRequestMethod get method => IRequestMethod.post;
+
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{
         'device_token': token,
         'is_development': isDevelopment,
         'device_platform': platform,
       };
 
   @override
-  format(json) {
+  bool format(Map<String, dynamic> json) {
     return json['results']['changed'] as bool;
   }
 }
@@ -199,16 +226,21 @@ class UnsetDeviceTokenRequest extends IApiRequest<bool> {
   final bool isDevelopment;
   final String platform;
 
-  get url => 'remove_user_device_token';
-  get method => IRequestMethod.post;
-  get body => <String, dynamic>{
+  @override
+  String get url => 'remove_user_device_token';
+
+  @override
+  IRequestMethod get method => IRequestMethod.post;
+
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{
         'device_token': token,
         'is_development': isDevelopment,
         'device_platform': platform,
       };
 
   @override
-  format(json) {
+  bool format(Map<String, dynamic> json) {
     return json['results']['success'] as bool;
   }
 }
@@ -223,16 +255,21 @@ class UpdateUserDataRequest extends IApiRequest<Account> {
   final String avatarUrl;
   final Map<String, dynamic> extras;
 
-  get url => 'my_profile';
-  get method => IRequestMethod.patch;
-  get body => <String, dynamic>{
+  @override
+  String get url => 'my_profile';
+
+  @override
+  IRequestMethod get method => IRequestMethod.patch;
+
+  @override
+  Map<String, dynamic> get body => <String, dynamic>{
         'name': name,
         'avatar_url': avatarUrl,
         'extras': extras,
       };
 
   @override
-  format(json) {
+  Account format(Map<String, dynamic> json) {
     return Account.fromJson(json['results']['user'] as Map<String, dynamic>);
   }
 }

@@ -2,6 +2,7 @@ part of qiscus_chat_sdk.core;
 
 class MError with EquatableMixin implements Error {
   final String message;
+  @override
   final StackTrace stackTrace;
 
   MError(this.message, [this.stackTrace]);
@@ -15,6 +16,7 @@ class MError with EquatableMixin implements Error {
 
 class QError with EquatableMixin implements Error {
   final String message;
+  @override
   final StackTrace stackTrace;
 
   QError(this.message, [this.stackTrace]);

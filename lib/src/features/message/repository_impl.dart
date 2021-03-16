@@ -55,6 +55,7 @@ class MessageRepositoryImpl implements MessageRepository {
     return _dio.sendApiRequest(request).then(request.format);
   }
 
+  @override
   Future<Message> updateMessage({@required QMessage message}) {
     var request = UpdateMessageRequest(message: message);
     return _dio.sendApiRequest(request).then(request.format);

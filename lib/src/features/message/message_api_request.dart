@@ -17,8 +17,11 @@ class SendMessageRequest extends IApiRequest<Message> {
     this.payload,
   });
 
+  @override
   String get url => 'post_comment';
+  @override
   IRequestMethod get method => IRequestMethod.post;
+  @override
   Map<String, dynamic> get body => <String, dynamic>{
         'topic_id': roomId.toString(),
         'comment': message,
@@ -28,6 +31,7 @@ class SendMessageRequest extends IApiRequest<Message> {
         'extras': extras,
       };
 
+  @override
   Message format(Map<String, dynamic> json) {
     var data = json['results']['comment'] as Map<String, dynamic>;
     return Message.fromJson(data);
@@ -81,8 +85,11 @@ class GetMessagesRequest extends IApiRequest<List<Message>> {
     this.limit = 20,
   });
 
+  @override
   String get url => 'load_comments';
+  @override
   IRequestMethod get method => IRequestMethod.get;
+  @override
   Map<String, dynamic> get params => <String, dynamic>{
         'topic_id': roomId,
         'last_comment_id': lastMessageId,
@@ -90,6 +97,7 @@ class GetMessagesRequest extends IApiRequest<List<Message>> {
         'limit': limit,
       };
 
+  @override
   List<Message> format(Map<String, dynamic> json) {
     var data = (json['results']['comments'] as List) //
         .cast<Map<String, dynamic>>();
@@ -109,14 +117,18 @@ class UpdateMessageStatusRequest extends IApiRequest<void> {
     this.lastDeliveredId,
   });
 
+  @override
   String get url => 'update_comment_status';
+  @override
   IRequestMethod get method => IRequestMethod.post;
+  @override
   Map<String, dynamic> get body => <String, dynamic>{
         'room_id': roomId.toString(),
         'last_comment_read_id': lastReadId?.toString(),
         'last_comment_received_id': lastDeliveredId?.toString(),
       };
 
+  @override
   void format(json) {
     return null;
   }
@@ -153,7 +165,9 @@ class DeleteMessagesRequest extends IApiRequest<List<Message>> {
     this.isHardDelete = true,
   });
 
+  @override
   String get url => 'delete_messages';
+  @override
   IRequestMethod get method => IRequestMethod.delete;
   @override
   Map<String, dynamic> get params => <String, dynamic>{
@@ -163,7 +177,7 @@ class DeleteMessagesRequest extends IApiRequest<List<Message>> {
       };
 
   @override
-  List<Message> format(json) {
+  List<Message> format(Map<String, dynamic> json) {
     var data = (json['results']['comments'] as List) //
         .cast<Map<String, dynamic>>();
 

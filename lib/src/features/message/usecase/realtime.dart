@@ -42,7 +42,9 @@ class OnMessageDeleted
   IRealtimeService get repository => _service;
 
   @override
-  Option<String> topic(p) => Option.some(TopicBuilder.notification(p.token));
+  Option<String> topic(TokenParams p) {
+    return Option.some(TopicBuilder.notification(p.token));
+  }
 }
 
 class OnMessageRead
@@ -55,12 +57,12 @@ class OnMessageRead
   static OnMessageRead _instance;
 
   @override
-  Stream<Message> mapStream(p) {
+  Stream<Message> mapStream(RoomIdParams p) {
     return repository.subscribeMessageRead(roomId: p.roomId);
   }
 
   @override
-  Option<String> topic(p) {
+  Option<String> topic(RoomIdParams p) {
     return Option.some(TopicBuilder.messageRead(p.roomId.toString()));
   }
 
@@ -132,6 +134,7 @@ class OnMessageUpdated
   OnMessageUpdated._(this.repository);
 
   static OnMessageUpdated _instance;
+  @override
   final IRealtimeService repository;
 
   factory OnMessageUpdated(IRealtimeService s) =>
@@ -141,7 +144,7 @@ class OnMessageUpdated
   Stream<Message> mapStream(p) => repository.subscribeMessageUpdated();
 
   @override
-  Option<String> topic(p) {
+  Option<String> topic(TokenParams p) {
     return Option.some(TopicBuilder.messageUpdated(p.token));
   }
 }
@@ -157,7 +160,7 @@ class OnMessageDelivered
   static OnMessageDelivered _instance;
 
   @override
-  Stream<Message> mapStream(p) {
+  Stream<Message> mapStream(RoomIdParams p) {
     return repository.subscribeMessageDelivered(roomId: p.roomId);
   }
 
@@ -165,7 +168,7 @@ class OnMessageDelivered
   IRealtimeService get repository => _service;
 
   @override
-  Option<String> topic(p) {
+  Option<String> topic(RoomIdParams p) {
     return Option.some(TopicBuilder.messageDelivered(p.roomId.toString()));
   }
 }
