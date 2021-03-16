@@ -90,7 +90,8 @@ extension IMqttReceiveX on MqttClient {
     return connectionStatus.state == MqttConnectionState.connected;
   }
 
-  void subscribe$(String topic) {
+  void subscribe$(String topic) async {
+    await isConnected$;
     subscribe(topic, MqttQos.atLeastOnce);
   }
 }

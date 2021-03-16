@@ -175,7 +175,7 @@ class QiscusSDK {
     Future.sync(() async {
       await _authenticated;
       await clearSubscription();
-      await __<Storage>().clear();
+      __<Storage>().clear();
       await __<IRealtimeService>().end();
     }).toCallback1(callback);
   }
@@ -691,30 +691,7 @@ class QiscusSDK {
       ..syncInterval = syncInterval.milliseconds
       ..syncIntervalWhenConnected = syncIntervalWhenConnected.milliseconds;
 
-    await __<AppConfigUseCase>()(noParams).toCallback1(callback);
-  }
-
-  Future<void> __subscribes(String token) async {
-    final params = TokenParams(token);
-    final onMessageReceived = __<OnMessageReceived>();
-    final realtimeService = __<IRealtimeService>();
-    final onMessageUpdated = __<OnMessageUpdated>();
-
-    var stream = StreamGroup.merge<void>([
-      onMessageReceived.subscribe(params).map((_) => null),
-      onMessageUpdated.subscribe(params).map((_) => null),
-      realtimeService.subscribe(TopicBuilder.notification(token)).asStream(),
-    ]);
-
-    return stream.first;
-  }
-
-  Future<Tuple2<String, Account>> _subscribes(
-    Tuple2<String, Account> data,
-  ) async {
-    await __subscribes(data.first);
-
-    return data;
+    __<AppConfigUseCase>()(noParams).toCallback1(callback);
   }
 
   void setUser({
@@ -745,8 +722,7 @@ class QiscusSDK {
 
     authenticate
         .call(params)
-        .then((either) => _connectMqtt(either))
-        .then(_subscribes)
+        .tap((_) => _connectMqtt())
         .then((it) => it.second.toModel())
         .toCallback2(callback);
   }
@@ -760,18 +736,27 @@ class QiscusSDK {
 
     authenticate(params)
         .then((account) => Tuple2(token, account))
-        .then((either) => _connectMqtt(either))
-        .then(_subscribes)
+        .tap((_) => _connectMqtt())
         .then((it) => it.second.toModel())
         .toCallback2(callback);
   }
 
-  Future<T> _connectMqtt<T>(T it) async {
+  void _connectMqtt<T>() async {
     if (__<Storage>().isRealtimeEnabled) {
       await __<IRealtimeService>().connect();
-      return it;
     }
-    return it;
+    final params = TokenParams(token);
+    final onMessageReceived = __<OnMessageReceived>();
+    final realtimeService = __<IRealtimeService>();
+    final onMessageUpdated = __<OnMessageUpdated>();
+
+    var stream = StreamGroup.merge<void>([
+      onMessageReceived.subscribe(params).map((_) => null),
+      onMessageUpdated.subscribe(params).map((_) => null),
+      realtimeService.subscribe(TopicBuilder.notification(token)).asStream(),
+    ]);
+
+    await stream.first;
   }
 
   void unsubscribeChatRoom(QChatRoom room) {

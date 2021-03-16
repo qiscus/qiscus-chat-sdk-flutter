@@ -37,7 +37,11 @@ extension FutureX<T> on Future<T> {
     );
   }
 
-  Future<T> tap(void Function(T) tapFn) {
+  Future<T> tap(void Function(T) tapFn) async {
+    try {
+      tapFn(await this);
+      // ignore: empty_catches
+    } catch (_e) {}
     return this;
   }
 

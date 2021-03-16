@@ -75,7 +75,7 @@ class MqttServiceImpl implements IRealtimeService {
   @override
   Future<void> connect() async {
     try {
-      log('connecting to mqtt');
+      log('connecting to mqtt (${_mqtt.server})');
       var status = await _mqtt.connect();
       log('connected to mqtt: $status');
     } on NoConnectionException catch (error) {
@@ -129,7 +129,7 @@ class MqttServiceImpl implements IRealtimeService {
         .asyncMap((_) =>
             _mqtt.connectionStatus.state == MqttConnectionState.disconnected)
         .distinct()
-        .where((it) => it == true)
+        .where((it) => it == true && _s.isRealtimeEnabled)
         .asBroadcastStream();
   }
 
