@@ -43,14 +43,13 @@ void main() {
     var payload = <String, dynamic>{
       'key': 'value',
     };
-    var topic = TopicBuilder.customEvent(roomId);
 
     when(service.subscribe(any)).thenAnswer((_) => Future.value(null));
     when(service.subscribeCustomEvent(roomId: anyNamed('roomId'))).thenAnswer(
         (_) => Stream.fromIterable(
             [CustomEvent(roomId: roomId, payload: payload)]));
 
-    var stream = await useCase.subscribe(RoomIdParams(roomId));
+    var stream = useCase.subscribe(RoomIdParams(roomId));
 
     stream.listen(expectAsync1((data) {
       expect(data.roomId, roomId);

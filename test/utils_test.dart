@@ -8,8 +8,10 @@ class Dummy {
   }
 
   void onFutureE(void Function(int, Exception) callback) {
-    Future<int>.error(Exception('some error'))
-        .catchError((Exception e) => callback(null, e));
+    Future<int>.error(Exception('some error')).catchError((Exception e) {
+      callback(null, e);
+      return 0;
+    });
   }
 
   void Function() onStream(void Function(int) callback) {

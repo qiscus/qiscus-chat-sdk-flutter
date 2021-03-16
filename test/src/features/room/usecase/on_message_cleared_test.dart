@@ -26,7 +26,7 @@ void main() {
           ),
         ));
 
-    var stream = await useCase.subscribe(TokenParams('token'));
+    var stream = useCase.subscribe(TokenParams('token'));
 
     stream.take(1).listen(expectAsync1((roomId) {
           expect(roomId, Option.some(1));

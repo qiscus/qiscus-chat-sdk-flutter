@@ -49,7 +49,7 @@ void main() {
   test('should call repository once', () async {
     prepareTest(mockRepo, mockClass, topic: topic);
 
-    await mockClass.subscribe(params);
+    mockClass.subscribe(params);
 
     // verify(mockClass.repository).called(1);
     // verify(mockClass.topic(params)).called(1);
@@ -62,8 +62,8 @@ void main() {
   test('subscribing twice should only call repository once', () async {
     prepareTest(mockRepo, mockClass, topic: topic);
 
-    await mockClass.subscribe(params);
-    await mockClass.subscribe(params);
+    mockClass.subscribe(params);
+    mockClass.subscribe(params);
 
     // verify(mockClass.repository).called(1);
     // verify(mockClass.topic(params)).called(1);
@@ -77,7 +77,7 @@ void main() {
   test('unsubscribe should call repo unsubscribe', () async {
     prepareTest(mockRepo, mockClass, topic: topic);
 
-    await mockClass.subscribe(params);
+    mockClass.subscribe(params);
     await mockClass.unsubscribe(params);
 
     // verify(mockRepo.subscribe(topic)).called(1);

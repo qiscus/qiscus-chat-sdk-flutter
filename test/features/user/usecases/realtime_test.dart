@@ -62,7 +62,7 @@ void main() {
           ]);
         });
 
-        var stream = await useCase.subscribe(param);
+        var stream = useCase.subscribe(param);
         await expectLater(
           stream,
           emitsAnyOf(<UserTyping>[
@@ -116,7 +116,7 @@ void main() {
           lastSeen: DateTime.now(),
           isOnline: true,
         );
-        var topic = TopicBuilder.presence(params.userId);
+
         final date = DateTime.now();
 
         when(service.subscribe(any)).thenAnswer((_) => Future.value(null));
@@ -133,7 +133,7 @@ void main() {
           );
         });
 
-        var stream = await useCase.subscribe(params);
+        var stream = useCase.subscribe(params);
         stream.take(1).listen(expectAsync1((presence) {
               expect(presence.userId, 'user-id-1');
               expect(presence.lastSeen, date);

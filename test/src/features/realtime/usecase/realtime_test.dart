@@ -21,7 +21,7 @@ void main() {
   test('OnConnected.subscribe', () async {
     when(service.onConnected()).thenAnswer((_) => Stream.value(null));
 
-    await onConnected.subscribe(noParams);
+    onConnected.subscribe(noParams);
 
     verify(service.onConnected()).called(1);
     verifyNoMoreInteractions(service);
@@ -29,7 +29,7 @@ void main() {
   test('OnReconnecting.subscribe', () async {
     when(service.onReconnecting()).thenAnswer((_) => Stream.value(null));
 
-    await onReconnecting.subscribe(noParams);
+    onReconnecting.subscribe(noParams);
 
     verify(service.onReconnecting()).called(1);
     verifyNoMoreInteractions(service);
@@ -37,7 +37,7 @@ void main() {
   test('OnConnected.subscribe', () async {
     when(service.onDisconnected()).thenAnswer((_) => Stream.value(null));
 
-    await onDisconnected.subscribe(noParams);
+    onDisconnected.subscribe(noParams);
 
     verify(service.onDisconnected()).called(1);
     verifyNoMoreInteractions(service);

@@ -79,7 +79,7 @@ void main() {
                 id: Option.some(1),
               )));
 
-      var stream = await s.subscribe(params);
+      var stream = s.subscribe(params);
       stream.take(1).listen(expectAsync1((data) {
         expect(data.id, Option.some(1));
       }));
@@ -101,7 +101,7 @@ void main() {
         });
       });
 
-      var stream = await s.subscribe(RoomIdParams(1));
+      var stream = s.subscribe(RoomIdParams(1));
       stream.take(1).listen(expectAsync1((data) {
         expect(data.id, Option.some(1));
       }));
@@ -123,7 +123,7 @@ void main() {
         });
       });
 
-      var stream = await s.subscribe(RoomIdParams(1));
+      var stream = s.subscribe(RoomIdParams(1));
       stream.take(1).listen(expectAsync1((data) {
         expect(data.id, Option.some(1));
       }));
@@ -149,7 +149,7 @@ void main() {
       when(updateMessageUseCase.call(any))
           .thenAnswer((_) => Future.value(null));
 
-      var stream = await s.subscribe(TokenParams('some-token'));
+      var stream = s.subscribe(TokenParams('some-token'));
       stream.take(1).listen(expectAsync1((data) {
         expect(data.id, Option.some(1));
       }));
@@ -164,7 +164,7 @@ void main() {
       when(updateMessageUseCase.call(any))
           .thenAnswer((_) => Future.value(null));
 
-      var stream = await s.subscribe(TokenParams('some-token'));
+      var stream = s.subscribe(TokenParams('some-token'));
       stream.take(1).listen(expectAsync1((data) {
         expect(data.id, Option.some(1));
       }));

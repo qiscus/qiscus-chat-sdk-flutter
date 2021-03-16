@@ -2,29 +2,6 @@ import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:sealed_unions/sealed_unions.dart';
 
-@sealed
-class Right<R> with EquatableMixin {
-  const Right._(this.value);
-
-  final R value;
-
-  get props => [value];
-  @override
-  String toString() => 'Right($value)';
-}
-
-@sealed
-class Left<L> with EquatableMixin {
-  const Left._(this.value);
-
-  final L value;
-
-  get props => [value];
-
-  @override
-  String toString() => 'Left($value)';
-}
-
 class Option<T extends Object> extends Union2Impl<Some<T>, None> {
   static Doublet<Some<T>, None> _optionFactory<T>() => Doublet<Some<T>, None>();
 
@@ -109,7 +86,6 @@ class Tuple2<T1, T2> with EquatableMixin {
 
   @override
   String toString() {
-    // TODO: implement toString
     return ('Tuple2('
         'first=$first,'
         ' second=$second'
