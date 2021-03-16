@@ -1,3 +1,8 @@
+# 1.0.14
+
+- improve `setUser` method to allow for setting user
+  even when realtime server aren't stable
+
 # 1.0.13
 
 - provide "FLUTTER_NOTIFICATION_CLICK" when getting push notifications from
