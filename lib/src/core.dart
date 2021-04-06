@@ -3,6 +3,7 @@ library qiscus_chat_sdk.core;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
@@ -26,3 +27,4 @@ part 'core/subscription_usecase.dart';
 part 'core/typedefs.dart';
 part 'core/usecases.dart';
 part 'core/utils.dart';
+part 'core/dio2curl.dart';

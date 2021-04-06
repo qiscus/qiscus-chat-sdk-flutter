@@ -74,4 +74,28 @@ class MessageRepositoryImpl implements MessageRepository {
     );
     return _dio.sendApiRequest(request).then(request.format);
   }
+
+  @override
+  Future<Iterable<QMessage>> getFileList({
+    String query,
+    String userId,
+    List<int> roomIds,
+    String fileType,
+    List<String> includeExtensions,
+    List<String> excludeExtensions,
+    int page,
+    int limit,
+  }) {
+    var request = FileListRequest(
+      query: query,
+      sender: userId,
+      roomIds: roomIds,
+      fileType: fileType,
+      includeExtensions: includeExtensions,
+      excludeExtensions: excludeExtensions,
+      page: page,
+      limit: limit,
+    );
+    return request.call(_dio);
+  }
 }

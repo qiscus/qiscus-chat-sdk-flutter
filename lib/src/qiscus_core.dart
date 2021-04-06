@@ -909,6 +909,31 @@ class QiscusSDK {
     });
   }
 
+  // getFileList(roomIds, fileType, includeExtensions, excludeExtensions, page, limit)
+  void getFileList({
+    @required List<int> roomIds,
+    String fileType,
+    List<String> includeExtensions,
+    List<String> excludeExtensions,
+    String userId,
+    int page,
+    int limit,
+    @required void Function(List<QMessage>, Exception) callback,
+  }) async {
+    _authenticated
+        .chain(__<MessageRepository>().getFileList(
+          roomIds: roomIds,
+          fileType: fileType,
+          userId: userId,
+          includeExtensions: includeExtensions,
+          excludeExtensions: excludeExtensions,
+          page: page,
+          limit: limit,
+        ))
+        .then((it) => it.toList())
+        .toCallback2(callback);
+  }
+
   String _generateUniqueId() =>
       'flutter-${DateTime.now().millisecondsSinceEpoch}';
 

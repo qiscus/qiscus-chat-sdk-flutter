@@ -30,4 +30,15 @@ abstract class MessageRepository {
     bool isForEveryone = true,
     bool isHard = true,
   });
+
+  Future<Iterable<QMessage>> getFileList({
+    final String query,
+    final String userId,
+    final List<int> roomIds,
+    final String fileType,
+    final List<String> includeExtensions,
+    final List<String> excludeExtensions,
+    final int page,
+    final int limit,
+  });
 }

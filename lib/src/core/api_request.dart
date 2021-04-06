@@ -3,18 +3,31 @@ part of qiscus_chat_sdk.core;
 typedef Formatter<Output> = Output Function(Map<String, dynamic> json);
 
 abstract class IApiRequest<T> {
+  const IApiRequest();
+
   String get url;
-
   IRequestMethod get method;
-
   Map<String, dynamic> get body => <String, dynamic>{};
-
   Map<String, dynamic> get params => <String, dynamic>{};
-
   T format(Map<String, dynamic> json);
-
   Future<T> call(Dio dio) async {
     return dio.sendApiRequest(this).then((r) => format(r));
+  }
+
+  @override
+  String toString() {
+    var request = this;
+    var body = request.body;
+    body?.removeWhere((key, dynamic value) => value == null);
+    var params = request.params;
+    params?.removeWhere((key, dynamic value) => value == null);
+
+    return ('IApiRequest<$T>('
+        '  url="$url",'
+        '  method=$method'
+        '  body="$body"'
+        '  params="$params"'
+        ')');
   }
 }
 

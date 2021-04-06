@@ -396,6 +396,29 @@ extension XQiscusSDK on QiscusSDK {
     });
   }
 
+  Future<List<QMessage>> getFileList$({
+    @required List<int> roomIds,
+    String fileType,
+    List<String> includeExtensions,
+    List<String> excludeExtensions,
+    String userId,
+    int page,
+    int limit,
+  }) async {
+    return futurify2((cb) {
+      getFileList(
+        callback: cb,
+        roomIds: roomIds,
+        fileType: fileType,
+        includeExtensions: includeExtensions,
+        excludeExtensions: excludeExtensions,
+        userId: userId,
+        page: page,
+        limit: limit,
+      );
+    });
+  }
+
   Stream<int> onChatRoomCleared$() async* {
     yield* streamify((cb, _) {
       return onChatRoomCleared((roomId) {
