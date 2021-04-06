@@ -1,3 +1,7 @@
+# 1.0.15
+
+-Add include and exclude extension on `getFileList` method
+
 # 1.0.14
 
 - improve `setUser` method to allow for setting user
