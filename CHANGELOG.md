@@ -1,10 +1,7 @@
-# 1.0.16
+# 1.0.17
 
 - Make `roomIds` parameter not required on `getFileList`
-
-# 1.0.15
-
--Add include and exclude extension on `getFileList` method
+- Add include and exclude extension on `getFileList` method
 
 # 1.0.14
 
