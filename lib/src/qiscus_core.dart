@@ -909,9 +909,8 @@ class QiscusSDK {
     });
   }
 
-  // getFileList(roomIds, fileType, includeExtensions, excludeExtensions, page, limit)
   void getFileList({
-    @required List<int> roomIds,
+    List<int> roomIds,
     String fileType,
     List<String> includeExtensions,
     List<String> excludeExtensions,

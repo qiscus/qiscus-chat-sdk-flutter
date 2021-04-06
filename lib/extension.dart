@@ -397,7 +397,7 @@ extension XQiscusSDK on QiscusSDK {
   }
 
   Future<List<QMessage>> getFileList$({
-    @required List<int> roomIds,
+    List<int> roomIds,
     String fileType,
     List<String> includeExtensions,
     List<String> excludeExtensions,
