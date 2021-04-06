@@ -13,6 +13,12 @@
             "console": "terminal"
         },
         {
+            "name": "Flutter: Run bin",
+            "type": "dart",
+            "request": "launch",
+            "program": "./bin/qiscus_chat.dart"
+        },
+        {
             "name": "chat-core",
             "request": "launch",
             "type": "dart"

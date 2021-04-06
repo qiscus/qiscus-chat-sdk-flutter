@@ -211,7 +211,7 @@ class FileListRequest extends IApiRequest<Iterable<QMessage>> {
   @override
   Map<String, dynamic> get body => <String, dynamic>{
         'query': query,
-        'room_ids': roomIds.map((it) => it.toString()).toList(),
+        'room_ids': roomIds?.map((it) => it.toString())?.toList(),
         'sender': sender,
         'file_type': fileType,
         'include_extensions': includeExtensions,
