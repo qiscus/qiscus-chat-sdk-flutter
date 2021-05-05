@@ -14,7 +14,8 @@ String dio2curl(RequestOptions requestOption) {
   }
 
   // Include data if there is data
-  if (requestOption.data != null) {
+  if (requestOption.data != null &&
+      (requestOption.data is Map && (requestOption.data as Map).isNotEmpty)) {
     curl += ' --data-binary \'${requestOption.data}\'';
   }
 
