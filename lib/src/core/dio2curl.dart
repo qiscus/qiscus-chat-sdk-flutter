@@ -4,9 +4,13 @@ part of qiscus_chat_sdk.core;
 String dio2curl(RequestOptions requestOption) {
   var curl = '';
 
-  // Add PATH + REQUEST_METHOD
-  curl +=
-      'curl --request ${requestOption.method} \'${requestOption.baseUrl}${requestOption.path}\'';
+  if (requestOption.path.startsWith('http')) {
+    curl += 'curl --request ${requestOption.method} \'${requestOption.path}\'';
+  } else {
+    // Add PATH + REQUEST_METHOD
+    curl +=
+        'curl --request ${requestOption.method} \'${requestOption.baseUrl}${requestOption.path}\'';
+  }
 
   // Include headers
   for (var key in requestOption.headers.keys) {
