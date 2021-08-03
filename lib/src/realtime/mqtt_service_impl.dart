@@ -408,8 +408,9 @@ class MqttServiceImpl implements IRealtimeService {
   @override
   Future<bool> closeConnection() async {
     try {
-      await end();
       _isForceClosed = true;
+      _mqtt.autoReconnect = false;
+      await end();
     } catch (_) {
       return false;
     }
@@ -420,8 +421,9 @@ class MqttServiceImpl implements IRealtimeService {
   @override
   Future<bool> openConnection() async {
     try {
-      await connect();
       _isForceClosed = false;
+      _mqtt.autoReconnect = true;
+      await connect();
     } catch (_) {
       return false;
     }
