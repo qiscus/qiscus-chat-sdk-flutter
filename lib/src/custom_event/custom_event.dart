@@ -1,6 +1,6 @@
 library qiscus_chat_sdk.usecase.custom_event;
 
-import 'package:meta/meta.dart';
+import 'package:flutter/widgets.dart';
 
 import '../core.dart';
 import '../type_utils.dart';

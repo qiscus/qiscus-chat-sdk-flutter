@@ -1,8 +1,8 @@
-import 'package:meta/meta.dart';
+import 'package:flutter/widgets.dart';
 
 import 'user-model.dart';
 
-@sealed
+
 abstract class IUserService {
   Future<QUser> authenticate({
     @required String userId,
@@ -23,7 +23,7 @@ abstract class IUserService {
   Stream<QUserPresence> get onUserPresence;
 }
 
-@sealed
+
 class UserService extends IUserService {
   @override
   authenticate({

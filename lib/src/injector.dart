@@ -1,6 +1,6 @@
 part of qiscus_chat_sdk;
 
-@sealed
+
 class Injector {
   final c = GetIt.asNewInstance();
 

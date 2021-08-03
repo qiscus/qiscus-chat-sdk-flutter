@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/widgets.dart';
 import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
 
 import 'src/core.dart';
 import 'src/message/message.dart';

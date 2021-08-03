@@ -2,7 +2,7 @@ part of qiscus_chat_sdk.core;
 
 Dio getDio(Storage storage, Logger logger) {
   final interceptor = InterceptorsWrapper(
-    onRequest: (request) {
+    onRequest: (request, handler) {
       request.baseUrl = '${storage?.baseUrl}/api/v2/mobile/';
       request.headers['qiscus-sdk-app-id'] = storage.appId;
       request.headers['qiscus-sdk-version'] = '$sdkPlatformName-$sdkVersion';
@@ -21,9 +21,9 @@ Dio getDio(Storage storage, Logger logger) {
     },
   );
   var curl = InterceptorsWrapper(
-    onRequest: (request) {
+    onRequest: (request, handler) {
       logger.log('QiscusSDK ->: ${dio2curl(request)}');
-      return request;
+      return handler.next(request);
     },
   );
   var dio = Dio(BaseOptions())

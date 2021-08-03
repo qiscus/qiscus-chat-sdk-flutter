@@ -1,6 +1,6 @@
 part of qiscus_chat_sdk.usecase.custom_event;
 
-@sealed
+
 @immutable
 class CustomEvent {
   CustomEvent({

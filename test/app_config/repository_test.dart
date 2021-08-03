@@ -30,6 +30,7 @@ void main() {
       },
       'status': 200
     };
+    var options = RequestOptions(path: '');
     when(dio.request<Map<String, dynamic>>(
       any,
       options: anyNamed('options'),
@@ -37,7 +38,7 @@ void main() {
       onReceiveProgress: anyNamed('onReceiveProgress'),
       queryParameters: anyNamed('queryParameters'),
       data: anyNamed('data'),
-    )).thenAnswer((_) async => Response(data: json));
+    )).thenAnswer((_) async => Response(requestOptions: options, data: json));
 
     var config = await repo.getConfig();
 

@@ -3,7 +3,7 @@ library qiscus_chat_sdk.usecase.room;
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/widgets.dart';
 
 import '../core.dart';
 import '../message/message.dart';

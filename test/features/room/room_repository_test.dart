@@ -12,11 +12,12 @@ void main() {
   });
 
   test('getRoomWithUserId', () async {
+    var options = RequestOptions(path: '');
     when(dio.post<String>(
       any,
       data: anyNamed,
     )).thenAnswer((_) {
-      return Future.value(Response(data: ''));
+      return Future.value(Response(requestOptions: options, data: ''));
     });
   }, skip: true);
 }

@@ -94,7 +94,7 @@ extension QMessageStatusStr on QMessageStatus {
   }
 }
 
-@sealed
+
 class Message {
   final Option<int> id;
   final Option<int> chatRoomId, previousMessageId;

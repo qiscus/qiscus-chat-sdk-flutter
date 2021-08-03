@@ -12,23 +12,18 @@ dependencies:
   flutter:
     sdk: flutter
   sealed_unions: ^3.0.2+2
-  async: ^2.4.1
-  meta: ^1.1.8
-  mqtt_client: ^6.0.0
-  dio: ^3.0.8
-  equatable: ^1.1.1
+  mqtt_client: ^9.4.2
+  dio: ^4.0.0
+  equatable: ^2.0.3
   pretty_dio_logger: ^1.1.1
-  get_it: ^4.0.2
+  get_it: ^7.0.0
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  grinder: ^0.8.5
-  build_runner: ^1.8.0
-  mockito: ^4.1.1
+  build_runner: ^2.1.0
+  mockito: ^5.0.13
   pedantic: ^1.8.0
   test: ^1.6.0
-  test_coverage: ^0.4.3
-  clock: ^1.0.1
   fake_async: ^1.1.0

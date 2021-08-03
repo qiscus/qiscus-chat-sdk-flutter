@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
 import 'package:sealed_unions/sealed_unions.dart';
 
 class Option<T extends Object> extends Union2Impl<Some<T>, None> {
@@ -59,7 +58,7 @@ class Option<T extends Object> extends Union2Impl<Some<T>, None> {
   static bool isSome(Option o) => o.fold(() => false, (_) => true);
 }
 
-@sealed
+
 class Some<T> with EquatableMixin {
   const Some._(this.value);
 
@@ -69,7 +68,7 @@ class Some<T> with EquatableMixin {
   List<Object> get props => [value];
 }
 
-@sealed
+
 class None with EquatableMixin {
   const None._();
 

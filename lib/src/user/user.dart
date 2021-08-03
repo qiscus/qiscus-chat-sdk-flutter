@@ -2,7 +2,7 @@ library qiscus_chat_sdk.usecase.user;
 
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/widgets.dart';
 
 import '../core.dart';
 import '../realtime/realtime.dart';
@@ -26,7 +26,7 @@ part 'usecases/unblock_user.dart';
 part 'usecases/update_user.dart';
 part 'user_api_request.dart';
 
-@sealed
+
 @immutable
 class UserTyping with EquatableMixin {
   UserTyping({
@@ -43,7 +43,7 @@ class UserTyping with EquatableMixin {
   List<Object> get props => [roomId, userId, isTyping];
 }
 
-@sealed
+
 @immutable
 class UserPresence with EquatableMixin {
   UserPresence({

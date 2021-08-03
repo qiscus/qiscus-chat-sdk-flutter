@@ -34,7 +34,8 @@ extension DioX on Dio {
 
   static Future<Response<Map<String, dynamic>>> makeResponse(
       Map<String, dynamic> json) {
-    return Future.value(Response(data: json));
+        var options = RequestOptions(path: '');
+    return Future.value(Response(requestOptions: options, data: json));
   }
 }
 

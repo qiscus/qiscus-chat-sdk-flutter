@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:async/async.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/widgets.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:sealed_unions/sealed_unions.dart';
 

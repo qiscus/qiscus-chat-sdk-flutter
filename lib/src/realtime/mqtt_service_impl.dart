@@ -1,6 +1,5 @@
 part of qiscus_chat_sdk.usecase.realtime;
 
-@sealed
 class MessageDeleted {
   final String messageUniqueId;
   final int roomId;
@@ -432,7 +431,6 @@ class MqttServiceImpl implements IRealtimeService {
   }
 }
 
-@sealed
 class Notification extends Union2Impl<MessageDeleted, RoomCleared> {
   static final Doublet<MessageDeleted, RoomCleared> _factory =
       const Doublet<MessageDeleted, RoomCleared>();
@@ -468,7 +466,6 @@ class Notification extends Union2Impl<MessageDeleted, RoomCleared> {
   }
 }
 
-@sealed
 class RoomCleared {
   final int roomId;
 

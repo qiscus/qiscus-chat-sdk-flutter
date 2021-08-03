@@ -7,7 +7,7 @@ import 'dart:math';
 import 'package:async/async.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/widgets.dart' hide Interval, Notification;
 import 'package:mqtt_client/mqtt_client.dart';
 
 import 'core.dart';
@@ -107,7 +107,7 @@ class QiscusSDK {
   IRoomRepository get _room$$ => __<IRoomRepository>();
   Storage get storage => __<Storage>();
 
-  void addHttpInterceptors(RequestOptions Function(RequestOptions) onRequest) {
+  void addHttpInterceptors(RequestOptions Function(RequestOptions, RequestInterceptorHandler) onRequest) {
     __<Dio>().interceptors.add(InterceptorsWrapper(
           onRequest: onRequest,
         ));

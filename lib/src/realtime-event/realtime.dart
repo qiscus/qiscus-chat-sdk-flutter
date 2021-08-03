@@ -2,7 +2,7 @@ library qiscus_chat_sdk.realtime;
 
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
+import 'package:flutter/widgets.dart' hide Notification, Interval;
 import 'package:mqtt_client/mqtt_client.dart';
 
 import '../custom_event/custom_event.dart';

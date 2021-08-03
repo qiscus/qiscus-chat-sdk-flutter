@@ -1,6 +1,5 @@
 part of qiscus_chat_sdk.usecase.realtime;
 
-@sealed
 abstract class RealtimeEvent {
   static List<RealtimeEvent> fromJson(Map<String, dynamic> json) {
     var events = (json['events'] as List).cast<Map<String, dynamic>>();

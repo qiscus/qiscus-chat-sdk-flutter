@@ -25,8 +25,9 @@ void main() {
     // dio.interceptors.forEach((element) {});
     expect(dio.interceptors.length, 1);
     var interceptor = dio.interceptors.first;
-    var options = RequestOptions();
-    options = (await interceptor.onRequest(options)) as RequestOptions;
+    var options = RequestOptions(path: '');
+    var handler = RequestInterceptorHandler();
+    options = (interceptor.onRequest(options, handler)) as RequestOptions;
 
     expect(options.baseUrl, 'base-url/api/v2/mobile/');
     expect(options.headers['qiscus-sdk-app-id'], 'app-id');
