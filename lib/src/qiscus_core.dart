@@ -105,6 +105,7 @@ class QiscusSDK {
   String get token => __<Storage>()?.token;
   Future<bool> get _authenticated => __<Storage>().authenticated$;
   IRoomRepository get _room$$ => __<IRoomRepository>();
+  Storage get storage => __<Storage>();
 
   void addHttpInterceptors(RequestOptions Function(RequestOptions) onRequest) {
     __<Dio>().interceptors.add(InterceptorsWrapper(
@@ -931,6 +932,27 @@ class QiscusSDK {
         ))
         .then((it) => it.toList())
         .toCallback2(callback);
+  }
+
+  void closeRealtimeConnection(
+    void Function(bool) callback,
+  ) async {
+    try {
+      await _authenticated;
+      await __<IRealtimeService>().closeConnection();
+      callback(true);
+    } catch (_) {
+      callback(false);
+    }
+  }
+  void openRealtimeConnection(void Function(bool) callback) async {
+    try {
+      await _authenticated;
+      await __<IRealtimeService>().openConnection();
+      callback(true);
+    } catch (_) {
+      callback(false);
+    }
   }
 
   String _generateUniqueId() =>

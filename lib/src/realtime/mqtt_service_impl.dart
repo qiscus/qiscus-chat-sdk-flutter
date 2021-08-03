@@ -27,9 +27,12 @@ class MqttServiceImpl implements IRealtimeService {
   final _subscriptions = <String, int>{};
   final List<String> _subscriptionBuffer = [];
   final List<String> _unsubscriptionBuffer = [];
+  bool _isForceClosed = false;
 
   MqttServiceImpl(this._getClient, this._s, this._logger, this._dio) {
-    _mqtt.onConnected = () => log('@mqtt connected');
+    _mqtt.onConnected = () {
+      log('@mqtt connected to ${_mqtt.server}:${_mqtt.port}');
+    };
     _mqtt.onDisconnected = () {
       log('@mqtt.disconnected(${_mqtt.connectionStatus})');
       _onDisconnected(_mqtt.connectionStatus);
@@ -50,8 +53,10 @@ class MqttServiceImpl implements IRealtimeService {
 
   @override
   bool get isConnected {
-    return _mqtt?.connectionStatus?.state == MqttConnectionState.connected ??
+    var mqttConnected = _mqtt?.connectionStatus?.state == MqttConnectionState.connected ??
         false;
+
+    return mqttConnected || _isForceClosed;
   }
 
   Stream<bool> get isConnected$ {
@@ -340,6 +345,12 @@ class MqttServiceImpl implements IRealtimeService {
   }
 
   void _onDisconnected(MqttClientConnectionStatus connectionStatus) async {
+    // if forced close connection by calling `closeConnection`
+    if (_isForceClosed) {
+      log('Mqtt forced disconnection');
+      return;
+    }
+
     // if connected state are not disconnected
     if ((_mqtt?.connectionStatus?.state ?? false) !=
         MqttConnectionState.disconnected) {
@@ -392,6 +403,30 @@ class MqttServiceImpl implements IRealtimeService {
         log('got error when reconnecting mqtt: $e');
       }
     }
+  }
+
+  @override
+  Future<bool> closeConnection() async {
+    try {
+      await end();
+      _isForceClosed = true;
+    } catch (_) {
+      return false;
+    }
+
+    return true;
+  }
+
+  @override
+  Future<bool> openConnection() async {
+    try {
+      await connect();
+      _isForceClosed = false;
+    } catch (_) {
+      return false;
+    }
+
+    return true;
   }
 }
 

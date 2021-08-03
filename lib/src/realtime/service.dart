@@ -65,4 +65,7 @@ abstract class IRealtimeService {
 
   Future<void> synchronize([int lastMessageId]);
   Future<void> synchronizeEvent([String lastEventId]);
+
+  Future<bool> closeConnection();
+  Future<bool> openConnection();
 }

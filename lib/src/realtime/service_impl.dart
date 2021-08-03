@@ -169,4 +169,14 @@ class RealtimeServiceImpl implements IRealtimeService {
   Future<void> synchronizeEvent([String lastEventId]) {
     return _syncService.synchronizeEvent(lastEventId);
   }
+
+  @override
+  Future<bool> closeConnection() {
+    return _mqttService.closeConnection();
+  }
+
+  @override
+  Future<bool> openConnection() {
+    return _mqttService.openConnection();
+  }
 }

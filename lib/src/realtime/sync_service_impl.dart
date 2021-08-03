@@ -208,4 +208,14 @@ class SyncServiceImpl implements IRealtimeService {
       storage.lastMessageId = res.first;
     }
   }
+
+  @override
+  Future<bool> closeConnection() async {
+    return true;
+  }
+
+  @override
+  Future<bool> openConnection() async {
+    return true;
+  }
 }

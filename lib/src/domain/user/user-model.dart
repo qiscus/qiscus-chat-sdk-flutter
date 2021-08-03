@@ -46,7 +46,7 @@ class QDeviceToken {
   const QDeviceToken(this.token, [this.isDevelopment = false]);
   final String token;
   final bool isDevelopment;
-  final deviceType = 'rn';
+  final deviceType = 'flutter';
 }
 
 class QUserTyping {
