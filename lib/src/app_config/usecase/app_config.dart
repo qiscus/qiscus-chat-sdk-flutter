@@ -8,8 +8,12 @@ class AppConfigUseCase
 
   @override
   Future<AppConfig> call(_) async {
-    var config = await repository.getConfig();
-    config.hydrateStorage(_storage);
-    return config;
+    try {
+      var config = await repository.getConfig();
+      config.hydrateStorage(_storage);
+      return config;
+    } catch (_) {
+      return _storage.appConfig;
+    }
   }
 }
