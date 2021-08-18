@@ -1,3 +1,16 @@
+# 1.0.18
+
+- fix error on appconfig failing `setup` process
+- fix not sending ajax request after updating to dio 4.0
+- [internal] support for generating `AppConfig` from `Storage`
+- updating some dependencies to latest version and removing least used dependencies
+  - mqtt_client: ^6.0.0 -> ^9.4.2
+  - dio: ^3.0.8 -> ^4.0.0
+  - equatable: ^1.1.1 -> ^2.0.3
+  - get_it: ^4.0.2 -> ^7.0.0
+  - async: ^2.4.1 -> ^2.5.0
+  - meta: removed
+
 # 1.0.17
 
 - Make `roomIds` parameter not required on `getFileList`
