@@ -51,4 +51,16 @@ extension StorageX on Storage {
           .map((_) => currentUser != null)
           .distinct()
           .firstWhere((it) => it == true);
+
+  AppConfig get appConfig => AppConfig(
+        baseUrl: Option.some(baseUrl),
+        brokerLbUrl: Option.some(brokerLbUrl),
+        brokerUrl: Option.some(brokerUrl),
+        enableEventReport: Option.none(),
+        enableRealtime: Option.some(isRealtimeEnabled),
+        enableRealtimeCheck: Option.some(isRealtimeCheckEnabled),
+        extras: Option.some(configExtras),
+        syncInterval: Option.some(syncInterval.inMilliseconds),
+        syncOnConnect: Option.some(syncIntervalWhenConnected.inMilliseconds),
+      );
 }

@@ -10,6 +10,7 @@ import 'package:equatable/equatable.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:qiscus_chat_sdk/src/app_config/app_config.dart';
 import 'package:qiscus_chat_sdk/src/type_utils.dart';
 
 import 'realtime/realtime.dart';
