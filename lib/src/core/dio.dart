@@ -17,7 +17,7 @@ Dio getDio(Storage storage, Logger logger) {
       if (storage?.customHeaders?.isNotEmpty == true) {
         request.headers.addAll(storage.customHeaders);
       }
-      return request;
+      handler.next(request);
     },
   );
   var curl = InterceptorsWrapper(
