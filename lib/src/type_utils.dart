@@ -93,3 +93,23 @@ class Tuple2<T1, T2> with EquatableMixin {
         ')');
   }
 }
+
+class Tuple3<T1, T2, T3> with EquatableMixin {
+  const Tuple3(this.first, this.second, this.third);
+
+  final T1 first;
+  final T2 second;
+  final T3 third;
+
+  @override
+  List<Object> get props => [first, second, third];
+
+  @override
+  String toString() {
+    return ('Tuple2('
+        'first=$first,'
+        ' second=$second,'
+        ' third=$third'
+        ')');
+  }
+}
