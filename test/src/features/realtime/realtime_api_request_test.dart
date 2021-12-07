@@ -1,7 +1,7 @@
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/message/message.dart';
 import 'package:qiscus_chat_sdk/src/realtime/realtime.dart';
-import 'package:qiscus_chat_sdk/src/type_utils.dart';
+import 'package:qiscus_chat_sdk/src/type-utils.dart';
 import 'package:test/test.dart';
 import '../realtime/json.dart';
 
@@ -65,7 +65,7 @@ void main() {
       expect(deliveredEvent.first.messageId, 123);
 
       expect(roomClearedEvent.length, 1);
-      expect(roomClearedEvent.first.roomId, 123);
+      expect(roomClearedEvent.first.messageId, 123);
 
       expect(deletedEvent.length, 1);
       expect(deletedEvent.first.messageUniqueId, '12345');

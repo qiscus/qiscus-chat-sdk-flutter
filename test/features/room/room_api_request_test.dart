@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/room/room.dart';
-import 'package:qiscus_chat_sdk/src/type_utils.dart';
+import 'package:qiscus_chat_sdk/src/type-utils.dart';
 import 'package:test/test.dart';
 
 import 'backend_response.dart';
@@ -39,7 +39,7 @@ void main() {
     GetRoomByIdRequest request;
 
     setUp(() {
-      request = GetRoomByIdRequest(roomId: 123);
+      request = GetRoomByIdRequest(messageId: 123);
     });
 
     test('body', () {
@@ -67,7 +67,7 @@ void main() {
 
     AddParticipantRequest request;
     setUp(() {
-      request = AddParticipantRequest(roomId: 123, userIds: ['guest-101']);
+      request = AddParticipantRequest(messageId: 123, userIds: ['guest-101']);
     });
 
     test('body', () {

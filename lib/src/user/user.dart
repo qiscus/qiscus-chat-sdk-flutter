@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 
 import '../core.dart';
 import '../realtime/realtime.dart';
-import '../type_utils.dart';
+import '../type-utils.dart';
 
 part 'entity/account.dart';
 part 'entity/participant.dart';

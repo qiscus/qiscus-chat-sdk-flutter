@@ -1,5 +1,5 @@
 import 'package:qiscus_chat_sdk/src/user/user.dart';
-import 'package:qiscus_chat_sdk/src/type_utils.dart';
+import 'package:qiscus_chat_sdk/src/type-utils.dart';
 import 'package:test/test.dart';
 
 void main() {

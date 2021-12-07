@@ -81,7 +81,7 @@ void main() async {
 //        throwIf(err != null, err);
 //      }, reason: 'marking as delivered'));
       qiscus2.markAsRead(
-          roomId: room.id,
+          messageId: room.id,
           messageId: message.id,
           callback: expectAsync1((err) {
             throwIf(err != null, err);

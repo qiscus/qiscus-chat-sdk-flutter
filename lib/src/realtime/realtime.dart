@@ -15,7 +15,7 @@ import '../custom_event/custom_event.dart';
 import '../message/message.dart';
 import '../realtime-event/realtime.dart';
 import '../room/room.dart';
-import '../type_utils.dart';
+import '../type-utils.dart';
 import '../user/user.dart';
 
 part 'interval.dart';

@@ -21,26 +21,30 @@ extension QMessageTypeString on QMessageType {
 }
 
 class QMessage {
-  int id, chatRoomId, previousMessageId;
-  String uniqueId, text;
+  int id;
+  int chatRoomId;
+  int previousMessageId;
+  String uniqueId;
+  String text;
   QMessageStatus status;
   QMessageType type;
-  Map<String, dynamic> extras, payload;
+  Map<String, dynamic>? extras;
+  Map<String, dynamic>? payload;
   QUser sender;
   DateTime timestamp;
 
   QMessage({
-    @required this.id,
-    @required this.chatRoomId,
-    @required this.previousMessageId,
-    @required this.uniqueId,
-    @required this.text,
-    @required this.status,
-    @required this.type,
-    @required this.extras,
-    @required this.payload,
-    @required this.sender,
-    @required this.timestamp,
+    required this.id,
+    required this.chatRoomId,
+    required this.previousMessageId,
+    required this.uniqueId,
+    required this.text,
+    required this.status,
+    required this.type,
+    required this.extras,
+    required this.payload,
+    required this.sender,
+    required this.timestamp,
   });
 
   @override
@@ -71,6 +75,57 @@ class QMessage {
   int get hashCode => uniqueId.hashCode;
 }
 
+QMessage messageFromJson(Map<String, dynamic> json) {
+  var extras = Option.fromNullable(json['extras']).flatMap(decodeJson);
+  var payload = Option.fromNullable(json['payload']).flatMap(decodeJson);
+  var status = Option.fromNullable(json['status'] as String?).map((status) {
+    switch (status) {
+      case 'read':
+        return QMessageStatus.read;
+      case 'delivered':
+        return QMessageStatus.delivered;
+      case 'sent':
+      default:
+        return QMessageStatus.sent;
+    }
+  }).getOrElse(() => QMessageStatus.sent);
+  var type = Option.of(json['type'] as String).map((type) {
+    switch (type) {
+      case 'custom':
+        return QMessageType.custom;
+      case 'file_attachment':
+        return QMessageType.attachment;
+      case 'text':
+      default:
+        return QMessageType.text;
+    }
+  }).getOrElse(() => QMessageType.text);
+  var timestamp = DateTime.fromMillisecondsSinceEpoch(
+    ((json['unix_nano_timestamp'] as int) / 1e6).round(),
+    isUtc: true,
+  );
+
+  var sender = QUser(
+    id: json['email'] as String,
+    name: json['username'] as String,
+    avatarUrl: json['user_avatar_url'] as String,
+  );
+
+  return QMessage(
+    id: json['id'] as int,
+    chatRoomId: json['room_id'] as int,
+    previousMessageId: json['comment_before_id'] as int,
+    uniqueId: json['unique_temp_id'] as String,
+    text: json['message'] as String,
+    status: status,
+    type: type,
+    extras: extras.toNullable(),
+    payload: payload.toNullable(),
+    timestamp: timestamp,
+    sender: sender,
+  );
+}
+
 enum QMessageStatus {
   sending,
   sent,
@@ -92,148 +147,4 @@ extension QMessageStatusStr on QMessageStatus {
         return 'sent';
     }
   }
-}
-
-
-class Message {
-  final Option<int> id;
-  final Option<int> chatRoomId, previousMessageId;
-  final Option<String> uniqueId, text;
-  final Option<QMessageStatus> status;
-  final Option<QMessageType> type;
-  final Option<Map<String, dynamic>> extras, payload;
-  final Option<User> sender;
-  final Option<DateTime> timestamp;
-
-  Message._({
-    @required this.id,
-    this.chatRoomId,
-    this.previousMessageId,
-    this.uniqueId,
-    this.text,
-    this.status,
-    this.type,
-    this.extras,
-    this.payload,
-    this.sender,
-    this.timestamp,
-  });
-
-  factory Message({
-    Option<int> id,
-    Option<int> chatRoomId,
-    Option<int> previousMessageId,
-    Option<String> uniqueId,
-    Option<String> text,
-    Option<QMessageStatus> status,
-    Option<QMessageType> type,
-    Option<Map<String, dynamic>> extras,
-    Option<Map<String, dynamic>> payload,
-    Option<User> sender,
-    Option<DateTime> timestamp,
-  }) =>
-      Message._(
-        id: id ?? Option.none(),
-        chatRoomId: chatRoomId ?? Option.none(),
-        previousMessageId: previousMessageId ?? Option.none(),
-        uniqueId: uniqueId ?? Option.none(),
-        text: text ?? Option.none(),
-        status: status ?? Option.none(),
-        type: type ?? Option.none(),
-        extras: extras ?? Option.none(),
-        payload: payload ?? Option.none(),
-        sender: sender ?? Option.none(),
-        timestamp: timestamp ?? Option.none(),
-      );
-
-  factory Message.fromJson(Map<String, dynamic> json) {
-    var extras = Option.of(json['extras'] as Object).flatMap(decodeJson);
-    var payload = Option.of(json['payload'] as Object).flatMap(decodeJson);
-
-    return Message(
-      id: Option.of(json['id'] as int),
-      chatRoomId: Option.of(json['room_id'] as int),
-      previousMessageId: Option.of(
-        json['comment_before_id'] as int,
-      ),
-      uniqueId: Option.of(json['unique_temp_id'] as String),
-      text: Option.of(json['message'] as String),
-      status: Option.of(json['status'] as String).map((status) {
-        switch (status) {
-          case 'read':
-            return QMessageStatus.read;
-          case 'delivered':
-            return QMessageStatus.delivered;
-          case 'sent':
-          default:
-            return QMessageStatus.sent;
-        }
-      }),
-      type: Option.of(json['type'] as String).map((type) {
-        switch (type) {
-          case 'custom':
-            return QMessageType.custom;
-          case 'file_attachment':
-            return QMessageType.attachment;
-          case 'text':
-          default:
-            return QMessageType.text;
-        }
-      }),
-      extras: extras,
-      payload: payload,
-      timestamp: Option.of(json['unix_nano_timestamp'] as int).map(
-        (it) => DateTime.fromMillisecondsSinceEpoch(
-          (it / 1e6).round(),
-          isUtc: true,
-        ),
-      ),
-      sender: Option.of(User(
-        id: Option.of(json['email'] as String),
-        name: Option.of(json['username'] as String),
-        avatarUrl: Option.of(json['user_avatar_url'] as String),
-      )),
-    );
-  }
-
-  QMessage toModel() => QMessage(
-        id: id.toNullable(),
-        sender: sender.map((it) => it.toModel()).toNullable(),
-        uniqueId: uniqueId.toNullable(),
-        previousMessageId: previousMessageId.toNullable(),
-        chatRoomId: chatRoomId.toNullable(),
-        extras: extras.toNullable(),
-        type: type.map((it) => it).toNullable(),
-        timestamp: timestamp.toNullable(),
-        text: text.toNullable(),
-        status: status.toNullable(),
-        payload: payload.toNullable(),
-      );
-
-  @override
-  String toString() => 'Message('
-      ' id=$id,'
-      ' text=$text,'
-      ' chatRoomId=$chatRoomId,'
-      ' sender=$sender,'
-      ' uniqueId=$uniqueId,'
-      ' type=$type,'
-      ' status=$status,'
-      ' extras=$extras,'
-      ' payload=$payload,'
-      ' timestamp=$timestamp,'
-      ' previousMessageId=$previousMessageId'
-      ')';
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Message &&
-          runtimeType == other.runtimeType &&
-          uniqueId == other.uniqueId;
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => uniqueId.hashCode;
 }

@@ -2,8 +2,6 @@
 
 > Qiscus Chat SDK for Flutter
 
-![Coverage](https://raw.githubusercontent.com/qiscus/qiscus-chat-sdk-flutter/master/coverage_badge.svg?sanitize=true)
-
 ## Introduction
 
 Qiscus Chat SDK (Software Development Kit) is a product provided by Qiscus

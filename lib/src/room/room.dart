@@ -8,7 +8,7 @@ import 'package:flutter/widgets.dart';
 import '../core.dart';
 import '../message/message.dart';
 import '../realtime/realtime.dart';
-import '../type_utils.dart';
+import '../type-utils.dart';
 import '../user/user.dart';
 
 part 'entity.dart';

@@ -9,7 +9,7 @@ import 'package:qiscus_chat_sdk/src/custom_event/custom_event.dart';
 
 import 'package:qiscus_chat_sdk/src/realtime-event/realtime.dart';
 import 'package:qiscus_chat_sdk/src/realtime/realtime.dart';
-import 'package:qiscus_chat_sdk/src/type_utils.dart';
+import 'package:qiscus_chat_sdk/src/type-utils.dart';
 import 'package:test/test.dart';
 
 import '../../../utils.dart';
@@ -166,7 +166,7 @@ void main() {
 
   test('MqttServiceImpl.subscribeMessageDelivered()', () {
     var event = MessageDeliveredEvent(
-      roomId: 1,
+      messageId: 1,
       userId: '123',
       messageId: 11,
       messageUniqueId: '11',
@@ -175,7 +175,7 @@ void main() {
     makeMqttMessage(topic, '${event.messageId}:${event.messageUniqueId}')(mqtt);
 
     service
-        .subscribeMessageDelivered(roomId: event.roomId)
+        .subscribeMessageDelivered(roomId: event.messageId)
         .listen(expectAsync1((m) {
           expect(m.id, Option.some(event.messageId));
           expect(m.uniqueId, Option.some(event.messageUniqueId));
@@ -183,7 +183,7 @@ void main() {
   });
   test('MqttServiceImpl.subscribeMessageRead()', () {
     var event = MessageReadEvent(
-      roomId: 1,
+      messageId: 1,
       userId: '123',
       messageId: 11,
       messageUniqueId: '11',
@@ -191,7 +191,7 @@ void main() {
     var topic = 'r/1/1/123/r';
     makeMqttMessage(topic, '${event.messageId}:${event.messageUniqueId}')(mqtt);
 
-    service.subscribeMessageRead(roomId: event.roomId).listen(expectAsync1((m) {
+    service.subscribeMessageRead(roomId: event.messageId).listen(expectAsync1((m) {
           expect(m.id, Option.some(event.messageId));
           expect(m.uniqueId, Option.some(event.messageUniqueId));
         }, count: 1));
@@ -237,16 +237,16 @@ void main() {
   });
 
   test('MqttServiceImpl.subscribeUserTyping()', () {
-    var event = UserTypingEvent(userId: '123', isTyping: true, roomId: 12);
-    var topic = TopicBuilder.typing('${event.roomId}', event.userId);
+    var event = UserTypingEvent(userId: '123', isTyping: true, messageId: 12);
+    var topic = TopicBuilder.typing('${event.messageId}', event.userId);
 
     makeMqttMessage(topic, '1')(mqtt);
     service
-        .subscribeUserTyping(roomId: event.roomId)
+        .subscribeUserTyping(roomId: event.messageId)
         .listen(expectAsync1((data) {
           expect(data.userId, event.userId);
           expect(data.isTyping, true);
-          expect(data.roomId, event.roomId);
+          expect(data.roomId, event.messageId);
         }, count: 1));
   });
 

@@ -1,12 +1,18 @@
 library qiscus_chat_sdk.usecase.app_config;
 
-import 'package:dio/dio.dart';
-import 'package:flutter/widgets.dart';
+import 'package:fpdart/fpdart.dart';
 
-import '../type_utils.dart';
 import '../core.dart';
 
 part 'api.dart';
 part 'entity.dart';
-part 'repository.dart';
-part 'usecase/app_config.dart';
+
+RTE<AppConfig> getAppConfig = Reader((dio) {
+  return tryCatch(() async {
+    final req = GetConfigRequest();
+    var appConfig = await req(dio);
+    return appConfig;
+  });
+});
+
+RTE<State<Storage, void>> appConfigUseCase = getAppConfig.map((task) => task.map((config) => config.hydrate()));

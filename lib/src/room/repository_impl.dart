@@ -27,7 +27,7 @@ class RoomRepositoryImpl implements IRoomRepository {
     int roomId,
   ) async {
     await storage.authenticated$;
-    var request = GetRoomByIdRequest(roomId: roomId);
+    var request = GetRoomByIdRequest(messageId: roomId);
 
     var res = dio.sendApiRequest(request).then((data) => request.format(data));
     return res;
@@ -40,7 +40,7 @@ class RoomRepositoryImpl implements IRoomRepository {
   ) async {
     await storage.authenticated$;
     var request = AddParticipantRequest(
-      roomId: roomId,
+      messageId: roomId,
       userIds: participantIds,
     );
     return dio.sendApiRequest(request).then(request.format);

@@ -18,12 +18,12 @@ mixin SubscriptionMixin<Service extends IRealtimeService,
     _subscriptions.clear();
   }
 
-  Future<void> unsubscribe(Params params) {
+  Future<void> unsubscribe(Params params) async {
     var removeSubscription = () => _subscriptions.remove(params)?.cancel();
-    return topic(params)
+    await topic(params)
         .map((it) => repository.unsubscribe(it))
         .map((_) => removeSubscription())
-        .getOrElse(() => Future.value(null));
+        .toNullable();
   }
 
   Stream<Response> subscribe(Params params) {
@@ -44,9 +44,9 @@ mixin SubscriptionMixin<Service extends IRealtimeService,
 
   StreamSubscription<Response> listen(
     void Function(Response) onResponse, {
-    Function onError,
-    bool cancelOnError,
-    void Function() onDone,
+    Function? onError,
+    bool? cancelOnError,
+    void Function()? onDone,
   }) {
     return _stream.listen(
       onResponse,

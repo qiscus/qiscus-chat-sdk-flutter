@@ -13,7 +13,7 @@ class MessageRepositoryImpl implements MessageRepository {
     int limit = 20,
   }) async {
     var request = GetMessagesRequest(
-      roomId: roomId,
+      messageId: roomId,
       lastMessageId: lastMessageId,
       after: after,
       limit: limit,
@@ -48,7 +48,7 @@ class MessageRepositoryImpl implements MessageRepository {
     int deliveredId = 0,
   }) {
     var request = UpdateMessageStatusRequest(
-      roomId: roomId,
+      messageId: roomId,
       lastDeliveredId: deliveredId,
       lastReadId: readId,
     );

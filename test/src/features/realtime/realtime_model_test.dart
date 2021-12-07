@@ -25,18 +25,18 @@ void main() {
 
       expect(read.first.messageId, 123);
       expect(read.first.messageUniqueId, '123--');
-      expect(read.first.roomId, 1234);
+      expect(read.first.messageId, 1234);
       expect(read.first.userId, 'user-id');
 
       expect(delivered.first.messageId, 123);
       expect(delivered.first.messageUniqueId, '123--');
-      expect(delivered.first.roomId, 1234);
+      expect(delivered.first.messageId, 1234);
       expect(delivered.first.userId, 'user-id');
 
-      expect(msgDeleted.first.roomId, 12345);
+      expect(msgDeleted.first.messageId, 12345);
       expect(msgDeleted.first.messageUniqueId, '12345');
 
-      expect(roomCleared.first.roomId, 123);
+      expect(roomCleared.first.messageId, 123);
 
       var unknownEvent = res.whereType<UnknownEvent>();
       expect(unknownEvent.first.actionType, 'clear_room_unknown');
@@ -50,7 +50,7 @@ void main() {
       var data = MessageReadEvent.fromJson(json);
       expect(data.messageId, 123);
       expect(data.messageUniqueId, '123--');
-      expect(data.roomId, 1234);
+      expect(data.messageId, 1234);
       expect(data.userId, 'user-id');
     });
 
@@ -69,7 +69,7 @@ void main() {
       var data = MessageDeliveredEvent.fromJson(json);
       expect(data.messageId, 123);
       expect(data.messageUniqueId, '123--');
-      expect(data.roomId, 1234);
+      expect(data.messageId, 1234);
       expect(data.userId, 'user-id');
     });
 
@@ -87,7 +87,7 @@ void main() {
 
     test('should parse json successfully', () {
       var data = MessageDeletedEvent.fromJson(json);
-      expect(data.first.roomId, 12345);
+      expect(data.first.messageId, 12345);
       expect(data.first.messageUniqueId, '12345');
     });
 
@@ -104,7 +104,7 @@ void main() {
 
     test('should parse json successfully', () {
       var data = RoomClearedEvent.fromJson(json);
-      expect(data.first.roomId, 123);
+      expect(data.first.messageId, 123);
     });
 
     test('equality', () {

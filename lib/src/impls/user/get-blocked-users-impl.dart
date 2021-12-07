@@ -1,0 +1,48 @@
+
+import 'package:dio/dio.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:qiscus_chat_sdk/src/core.dart';
+import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
+import 'package:qiscus_chat_sdk/src/impls/user/user-from-json-impl.dart';
+
+
+ReaderTaskEither<Dio, String, Iterable<QUser>> getBlockedUsersImpl({
+  int? page,
+  int? limit,
+}) {
+  return Reader((dio) {
+    return TaskEither.tryCatch(() async {
+      var req = GetBlockedUsersRequest(page: page, limit: limit);
+      return req(dio);
+    }, (e, _) => e.toString());
+  });
+}
+
+
+class GetBlockedUsersRequest extends IApiRequest<Iterable<QUser>> {
+  GetBlockedUsersRequest({
+    this.page,
+    this.limit,
+  });
+  final int? page;
+  final int? limit;
+
+  @override
+  String get url => 'get_blocked_users';
+  @override
+  IRequestMethod get method => IRequestMethod.get;
+  @override
+  Map<String, dynamic> get params => <String, dynamic>{
+        'page': page,
+        'limit': limit,
+      };
+
+  @override
+  Iterable<QUser> format(Map<String, dynamic> json) sync* {
+    var blockedUsers = json['results']['blocked_users'] as List;
+
+    for (var item in blockedUsers.cast<Map<String, dynamic>>()) {
+      yield userFromJson(item);
+    }
+  }
+}

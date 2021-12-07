@@ -1,6 +1,6 @@
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/app_config/app_config.dart';
-import 'package:qiscus_chat_sdk/src/type_utils.dart';
+import 'package:qiscus_chat_sdk/src/type-utils.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
 

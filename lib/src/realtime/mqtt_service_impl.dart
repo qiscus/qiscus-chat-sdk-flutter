@@ -10,7 +10,7 @@ class MessageDeleted {
   });
 
   MessageDeletedEvent toResponse() => MessageDeletedEvent(
-        roomId: roomId,
+        messageId: roomId,
         messageUniqueId: messageUniqueId,
       );
 }

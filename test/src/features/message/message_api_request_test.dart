@@ -1,6 +1,5 @@
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/message/message.dart';
-import 'package:qiscus_chat_sdk/src/type_utils.dart';
 import 'package:test/test.dart';
 
 import 'jsons.dart';
@@ -38,7 +37,7 @@ void main() {
 
     setUp(() {
       request = GetMessagesRequest(
-        roomId: 0,
+        messageId: 0,
         lastMessageId: 0,
       );
     });

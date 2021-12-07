@@ -23,20 +23,6 @@ extension FlatStream<V> on Stream<Stream<V>> {
 }
 
 extension FutureX<T> on Future<T> {
-  void toCallback1(void Function(Exception) callback) {
-    then(
-      (_) => callback(null),
-      onError: (dynamic error) => callback(error as Exception),
-    );
-  }
-
-  void toCallback2(void Function(T, Exception) callback) {
-    then(
-      (value) => callback(value, null),
-      onError: (dynamic error) => callback(null, error as Exception),
-    );
-  }
-
   Future<T> tap(void Function(T) tapFn) async {
     try {
       tapFn(await this);

@@ -1,17 +1,16 @@
-import 'package:flutter/widgets.dart';
 
 import 'user-model.dart';
 
 
 abstract class IUserService {
   Future<QUser> authenticate({
-    @required String userId,
-    @required String userKey,
-    String name,
-    String avatarUrl,
-    Map<String, dynamic> extras,
+    required String userId,
+    required String userKey,
+    String? name,
+    String? avatarUrl,
+    Map<String, dynamic>? extras,
   });
-  Future<QUser> authenticateWithIdentityToken({@required String identityToken});
+  Future<QUser> authenticateWithIdentityToken({required String identityToken});
   Future<bool> block(String userId);
   Future<bool> unblock(String userId);
   Future<Iterable<QUser>> getUsers();
@@ -27,17 +26,17 @@ abstract class IUserService {
 class UserService extends IUserService {
   @override
   authenticate({
-    String userId,
-    String userKey,
-    String name,
-    String avatarUrl,
-    Map<String, dynamic> extras,
+    required String userId,
+    required String userKey,
+    String? name,
+    String? avatarUrl,
+    Map<String, dynamic>? extras,
   }) async {
     throw UnimplementedError();
   }
 
   @override
-  authenticateWithIdentityToken({String identityToken}) async {
+  authenticateWithIdentityToken({required String identityToken}) async {
     throw UnimplementedError();
   }
 

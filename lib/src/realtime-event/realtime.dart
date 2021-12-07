@@ -8,7 +8,7 @@ import 'package:mqtt_client/mqtt_client.dart';
 import '../custom_event/custom_event.dart';
 import '../message/message.dart';
 import '../realtime/realtime.dart';
-import '../type_utils.dart';
+import '../type-utils.dart';
 import '../user/user.dart';
 
 part 'custom_event.dart';

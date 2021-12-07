@@ -4,19 +4,19 @@ part of qiscus_chat_sdk;
 class Injector {
   final c = GetIt.asNewInstance();
 
-  void singleton<T>(T Function() inst, [String name]) {
+  void singleton<T extends Object>(T Function() inst, [String? name]) {
     c.registerLazySingleton<T>(inst, instanceName: name);
   }
 
-  void factory_<T>(T Function() inst, [String name]) {
+  void factory_<T extends Object>(T Function() inst, [String? name]) {
     c.registerFactory(inst, instanceName: name);
   }
 
-  T resolve<T>([String name]) {
+  T resolve<T extends Object>([String? name]) {
     return c.get<T>(instanceName: name);
   }
 
-  T get<T>([String name]) {
+  T get<T extends Object>([String? name]) {
     return resolve<T>(name);
   }
 

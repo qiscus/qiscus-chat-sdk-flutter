@@ -64,7 +64,7 @@ class SyncServiceImpl implements IRealtimeService {
     return _messageRead$.asyncMap((event) => Message(
           id: Option.of(event.messageId),
           uniqueId: Option.of(event.messageUniqueId),
-          chatRoomId: Option.of(event.roomId),
+          chatRoomId: Option.of(event.messageId),
           sender: Option.of(User(
             id: Option.of(event.userId),
           )),
@@ -79,7 +79,7 @@ class SyncServiceImpl implements IRealtimeService {
   @override
   Stream<ChatRoom> subscribeRoomCleared() {
     return _roomCleared$.map((event) => ChatRoom(
-          id: Option.of(event.roomId),
+          id: Option.of(event.messageId),
         ));
   }
 
@@ -125,7 +125,7 @@ class SyncServiceImpl implements IRealtimeService {
   Stream<Message> subscribeMessageDeleted() {
     return _messageDeleted$.map(
       (event) => Message(
-        chatRoomId: Option.of(event.roomId),
+        chatRoomId: Option.of(event.messageId),
         uniqueId: Option.of(event.messageUniqueId),
       ),
     );
@@ -135,7 +135,7 @@ class SyncServiceImpl implements IRealtimeService {
   Stream<Message> subscribeMessageDelivered({int roomId}) {
     return _messageDelivered$.map((event) {
       return Message(
-        chatRoomId: Option.of(event.roomId),
+        chatRoomId: Option.of(event.messageId),
         id: Option.of(event.messageId),
         uniqueId: Option.of(event.messageUniqueId),
         sender: Option.of(User(id: Option.of(event.userId))),

@@ -1,13 +1,12 @@
 part of qiscus_chat_sdk.usecase.app_config;
 
-Option<T> optionFromJson<T>(T json) {
+Option<T> optionFromJson<T extends Object>(T json) {
   if ((json is String) && json.isEmpty) {
     return Option<T>.none();
   }
   return Option<T>.of(json);
 }
 
-@immutable
 class AppConfig {
   final Option<String> baseUrl;
   final Option<String> brokerLbUrl;
@@ -20,15 +19,15 @@ class AppConfig {
   final Option<int> syncOnConnect;
 
   AppConfig({
-    @required this.baseUrl,
-    @required this.brokerLbUrl,
-    @required this.brokerUrl,
-    @required this.enableEventReport,
-    @required this.enableRealtime,
-    @required this.enableRealtimeCheck,
-    @required this.extras,
-    @required this.syncInterval,
-    @required this.syncOnConnect,
+    required this.baseUrl,
+    required this.brokerLbUrl,
+    required this.brokerUrl,
+    required this.enableEventReport,
+    required this.enableRealtime,
+    required this.enableRealtimeCheck,
+    required this.extras,
+    required this.syncInterval,
+    required this.syncOnConnect,
   });
 
   factory AppConfig.fromJson(Map<String, dynamic> json) {
@@ -52,18 +51,24 @@ class AppConfig {
     );
   }
 
-  void hydrateStorage(Storage s) {
-    baseUrl.fold(() {}, (it) => s.baseUrl = it);
-    brokerLbUrl.fold(() {}, (it) => s.brokerLbUrl = it);
-    brokerUrl.fold(() {}, (it) => s.brokerUrl = it);
-    enableEventReport.fold(() {}, (it) => s.enableEventReport = it);
-    enableRealtime.fold(() {}, (it) => s.isRealtimeEnabled = it);
-    enableRealtimeCheck.fold(() {}, (it) => s.isRealtimeCheckEnabled = it);
-    syncInterval.fold(() {}, (it) => s.syncInterval = it.milliseconds);
-    syncOnConnect.fold(
-      () {},
-      (it) => s.syncIntervalWhenConnected = it.milliseconds,
-    );
-    extras.fold(() {}, (it) => s.configExtras = it);
+  State<Storage, void> hydrate() {
+    return State<Storage, void>((s) {
+      baseUrl.match((it) => s.baseUrl = it, () {});
+      brokerLbUrl.match((it) => s.brokerLbUrl = it, () {});
+      brokerUrl.match((it) => s.brokerUrl = it, () {});
+      enableEventReport.match((it) => s.enableEventReport = it, () {});
+      enableRealtime.match((it) => s.isRealtimeEnabled = it, () {});
+      enableRealtimeCheck.match((it) => s.isRealtimeCheckEnabled = it, () {});
+      syncInterval.match((it) => s.syncInterval = it.milliseconds, () {});
+      syncOnConnect.match(
+        (it) => s.syncIntervalWhenConnected = it.milliseconds,
+        () {},
+      );
+      extras.match((it) => s.configExtras = it, () {});
+
+      return Tuple2(null, s);
+    });
   }
 }
+
+

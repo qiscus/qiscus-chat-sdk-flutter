@@ -8,6 +8,7 @@ analyzer:
     strict-inference: true
     strict-raw-types: true
   errors:
+    mixin_inherits_from_not_object: ignore
     public_member_api_docs: ignore
     always_require_non_null_named_parameters: true
     annotate_overrides: ignore
