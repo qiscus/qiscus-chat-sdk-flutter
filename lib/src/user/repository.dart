@@ -16,8 +16,8 @@ abstract class IUserRepository {
   Future<User> blockUser({@required String userId});
 
   Future<List<User>> getBlockedUser({
-    int page,
-    int limit,
+    int? page,
+    int? limit,
   });
 
   Future<String> getNonce();
@@ -25,9 +25,9 @@ abstract class IUserRepository {
   Future<Account> getUserData();
 
   Future<List<User>> getUsers({
-    String query,
-    int page,
-    int limit,
+    String? query,
+    int? page,
+    int? limit,
   });
 
   Future<bool> registerDeviceToken({
@@ -43,8 +43,8 @@ abstract class IUserRepository {
   });
 
   Future<Account> updateUser({
-    String name,
-    String avatarUrl,
-    Map<String, dynamic> extras,
+    String? name,
+    String? avatarUrl,
+    Map<String, dynamic>? extras,
   });
 }

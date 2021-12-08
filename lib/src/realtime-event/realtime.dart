@@ -41,20 +41,15 @@ abstract class IMqttPublish<I> {
 extension IMqttReceiveX on MqttClient {
   Stream<Tuple2<String, String>> forTopic(String topic) async* {
     await isConnected$;
-    if (updates == null) {
-      yield* Stream.empty();
-    } else {
-      yield* MqttClientTopicFilter(topic, updates)
-          .updates
-          ?.expand((events) => events)
-          ?.asyncMap((event) {
-        var p = event.payload as MqttPublishMessage;
-        var m = p.payload.message;
-        var payload = utf8.decode(m);
 
-        return Tuple2(event.topic, payload);
-      });
-    }
+    yield* MqttClientTopicFilter(topic, updates)
+        .updates
+        .expand((it) => it)
+        .asyncMap((event) {
+      var p = event.payload as MqttPublishMessage;
+      var payload = utf8.decode(p.payload.message);
+      return Tuple2(event.topic, payload);
+    });
   }
 
   Stream<O> onEvent<O>(IMqttReceive<O> handler) async* {
@@ -66,8 +61,8 @@ extension IMqttReceiveX on MqttClient {
 
   Future<void> sendEvent<I>(IMqttPublish<I> handler) async {
     await isConnected$;
-    var payload = MqttClientPayloadBuilder()..addString(handler.publish());
-    publishMessage(handler.topic, MqttQos.atLeastOnce, payload.payload);
+    var payload = MqttClientPayloadBuilder().addString(handler.publish());
+    publishMessage(handler.topic, MqttQos.atLeastOnce, payload.payload!);
   }
 
   Future<bool> get isConnected$ {
@@ -78,7 +73,7 @@ extension IMqttReceiveX on MqttClient {
   }
 
   bool get isConnected {
-    return connectionStatus.state == MqttConnectionState.connected;
+    return connectionStatus?.state == MqttConnectionState.connected;
   }
 
   void subscribe$(String topic) async {

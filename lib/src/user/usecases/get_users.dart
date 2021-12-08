@@ -2,8 +2,8 @@ part of qiscus_chat_sdk.usecase.user;
 
 @immutable
 class GetUserParams {
-  final String query;
-  final int page, limit;
+  final String? query;
+  final int? page, limit;
   const GetUserParams({this.query, this.page, this.limit});
 }
 

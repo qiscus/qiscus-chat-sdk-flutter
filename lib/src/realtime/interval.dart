@@ -22,7 +22,7 @@ class Interval {
     if (!_stopped) _stopped = true;
   }
 
-  Stream<void> interval([Stream<Duration> interval]) async* {
+  Stream<void> interval([Stream<Duration>? interval]) async* {
     var accumulator = 0.milliseconds;
     var interval$ = interval ??
         Stream.periodic(

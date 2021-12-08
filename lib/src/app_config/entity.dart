@@ -1,6 +1,6 @@
 part of qiscus_chat_sdk.usecase.app_config;
 
-Option<T> optionFromJson<T>(T json) {
+Option<T> optionFromJson<T extends Object>(T json) {
   if ((json is String) && json.isEmpty) {
     return Option<T>.none();
   }
@@ -20,15 +20,15 @@ class AppConfig {
   final Option<int> syncOnConnect;
 
   AppConfig({
-    @required this.baseUrl,
-    @required this.brokerLbUrl,
-    @required this.brokerUrl,
-    @required this.enableEventReport,
-    @required this.enableRealtime,
-    @required this.enableRealtimeCheck,
-    @required this.extras,
-    @required this.syncInterval,
-    @required this.syncOnConnect,
+    required this.baseUrl,
+    required this.brokerLbUrl,
+    required this.brokerUrl,
+    required this.enableEventReport,
+    required this.enableRealtime,
+    required this.enableRealtimeCheck,
+    required this.extras,
+    required this.syncInterval,
+    required this.syncOnConnect,
   });
 
   factory AppConfig.fromJson(Map<String, dynamic> json) {

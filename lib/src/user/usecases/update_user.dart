@@ -2,9 +2,9 @@ part of qiscus_chat_sdk.usecase.user;
 
 @immutable
 class UpdateUserParams {
-  final String name;
-  final String avatarUrl;
-  final Map<String, dynamic> extras;
+  final String? name;
+  final String? avatarUrl;
+  final Map<String, dynamic>? extras;
   const UpdateUserParams({
     this.name,
     this.avatarUrl,
@@ -26,9 +26,9 @@ class UpdateUserUseCase
       extras: p.extras,
     );
     _storage.currentUser = _storage.currentUser?.copy(
-      name: user.name ?? immutable,
-      avatarUrl: user.avatarUrl ?? immutable,
-      extras: user.extras ?? immutable,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      extras: user.extras,
     );
 
     return user;

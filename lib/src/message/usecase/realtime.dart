@@ -29,10 +29,10 @@ class OnMessageDeleted
   OnMessageDeleted._(this._service);
 
   final IRealtimeService _service;
+  static OnMessageDeleted? _instance;
 
   factory OnMessageDeleted(IRealtimeService s) =>
       _instance ??= OnMessageDeleted._(s);
-  static OnMessageDeleted _instance;
 
   @override
   Stream<Message> mapStream(_) => repository //
@@ -54,7 +54,7 @@ class OnMessageRead
   final IRealtimeService _service;
 
   factory OnMessageRead(IRealtimeService s) => _instance ??= OnMessageRead._(s);
-  static OnMessageRead _instance;
+  static OnMessageRead? _instance;
 
   @override
   Stream<Message> mapStream(RoomIdParams p) {
@@ -95,7 +95,7 @@ class OnMessageReceived
 
         await roomId.fold(() async {}, (roomId) {
           return _updateMessageStatus(
-            UpdateStatusParams(roomId, messageId.toNullable(), status),
+            UpdateStatusParams(roomId, messageId.toNullable()!, status),
           );
         });
       },
@@ -104,7 +104,8 @@ class OnMessageReceived
 
   final IRealtimeService _service;
   final UpdateMessageStatusUseCase _updateMessageStatus;
-  StreamTransformer<Message, Message> _receiveMessage;
+  late StreamTransformer<Message, Message> _receiveMessage;
+  static OnMessageReceived? _instance;
 
   factory OnMessageReceived(
     IRealtimeService s,
@@ -113,7 +114,6 @@ class OnMessageReceived
     return _instance ??= OnMessageReceived._(s, us);
   }
 
-  static OnMessageReceived _instance;
 
   @override
   Stream<Message> mapStream(p) => repository //
@@ -133,7 +133,7 @@ class OnMessageUpdated
     with SubscriptionMixin<IRealtimeService, TokenParams, Message> {
   OnMessageUpdated._(this.repository);
 
-  static OnMessageUpdated _instance;
+  static OnMessageUpdated? _instance;
   @override
   final IRealtimeService repository;
 
@@ -154,10 +154,10 @@ class OnMessageDelivered
   OnMessageDelivered._(this._service);
 
   final IRealtimeService _service;
+  static OnMessageDelivered? _instance;
 
   factory OnMessageDelivered(IRealtimeService s) =>
       _instance ??= OnMessageDelivered._(s);
-  static OnMessageDelivered _instance;
 
   @override
   Stream<Message> mapStream(RoomIdParams p) {

@@ -4,41 +4,41 @@ abstract class MessageRepository {
   Future<Message> sendMessage(
     int roomId,
     String message, {
+    required String uniqueId,
     String type = 'text',
-    String uniqueId,
-    Map<String, dynamic> extras,
-    Map<String, dynamic> payload,
+    Map<String, dynamic>? extras,
+    Map<String, dynamic>? payload,
   });
 
   Future<List<Message>> getMessages(
     int roomId,
     int lastMessageId, {
-    bool after,
-    int limit,
+    int? limit,
+    bool? after,
   });
 
   Future<void> updateStatus({
-    int roomId,
-    int readId,
-    int deliveredId,
+    required int roomId,
+    int? readId,
+    int? deliveredId,
   });
 
-  Future<Message> updateMessage({@required QMessage message});
+  Future<Message> updateMessage({required QMessage message});
 
   Future<List<Message>> deleteMessages({
-    @required List<String> uniqueIds,
+    required List<String> uniqueIds,
     bool isForEveryone = true,
     bool isHard = true,
   });
 
   Future<Iterable<QMessage>> getFileList({
-    final String query,
-    final String userId,
-    final List<int> roomIds,
-    final String fileType,
-    final List<String> includeExtensions,
-    final List<String> excludeExtensions,
-    final int page,
-    final int limit,
+    final String? query,
+    final String? userId,
+    final List<int>? roomIds,
+    final String? fileType,
+    final List<String>? includeExtensions,
+    final List<String>? excludeExtensions,
+    final int? page,
+    final int? limit,
   });
 }

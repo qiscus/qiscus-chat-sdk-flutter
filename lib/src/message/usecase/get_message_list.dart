@@ -8,8 +8,10 @@ class GetMessageListParams {
     this.limit,
   });
 
-  final int roomId, lastMessageId, limit;
-  final bool after;
+  final int roomId;
+  final int lastMessageId;
+  final int? limit;
+  final bool? after;
 }
 
 class GetMessageListUseCase

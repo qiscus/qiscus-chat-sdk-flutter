@@ -1,7 +1,7 @@
 part of qiscus_chat_sdk.realtime;
 
 class MqttMessageDelivered extends IMqttReceive<Message> {
-  const MqttMessageDelivered({@required this.roomId});
+  const MqttMessageDelivered({required this.roomId});
   final String roomId;
 
   @override

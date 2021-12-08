@@ -4,7 +4,7 @@ class CustomEventUseCase extends UseCase<IRealtimeService, void, CustomEvent>
     with SubscriptionMixin<IRealtimeService, RoomIdParams, CustomEvent> {
   CustomEventUseCase._(IRealtimeService s) : super(s);
 
-  static CustomEventUseCase _instance;
+  static CustomEventUseCase? _instance;
 
   factory CustomEventUseCase(IRealtimeService s) =>
       _instance ??= CustomEventUseCase._(s);

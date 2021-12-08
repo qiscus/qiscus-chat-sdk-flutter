@@ -36,13 +36,13 @@ class AuthenticateUserUseCase extends UseCase<IUserRepository,
 class AuthenticateParams {
   final String userId;
   final String userKey;
-  final String name;
-  final String avatarUrl;
-  final Map<String, dynamic> extras;
+  final String? name;
+  final String? avatarUrl;
+  final Map<String, dynamic>? extras;
 
   const AuthenticateParams({
-    @required this.userId,
-    @required this.userKey,
+    required this.userId,
+    required this.userKey,
     this.name,
     this.avatarUrl,
     this.extras,

@@ -3,8 +3,8 @@ part of qiscus_chat_sdk.realtime;
 class MqttUserTyping
     implements IMqttReceive<UserTyping>, IMqttPublish<UserTyping> {
   const MqttUserTyping({
-    @required this.roomId,
-    @required this.userId,
+    required this.roomId,
+    required this.userId,
     this.isTyping = true,
   });
   final String roomId;
@@ -29,7 +29,7 @@ class MqttUserTyping
 
   @override
   String publish() {
-    if (isTyping != null && isTyping == true) return '1';
+    if (isTyping) return '1';
     return '0';
   }
 }

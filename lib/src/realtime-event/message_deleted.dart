@@ -1,7 +1,7 @@
 part of qiscus_chat_sdk.realtime;
 
 class MqttMessageDeleted extends IMqttReceive<Tuple2<int, String>> {
-  const MqttMessageDeleted({@required this.token});
+  const MqttMessageDeleted({required this.token});
   final String token;
 
   @override

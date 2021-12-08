@@ -29,9 +29,9 @@ class RealtimeServiceImpl implements IRealtimeService {
 
   @override
   Future<void> publishPresence({
-    bool isOnline,
-    DateTime lastSeen,
-    String userId,
+    required String userId,
+    required DateTime lastSeen,
+    bool isOnline = true,
   }) {
     return _mqttService.publishPresence(
       isOnline: isOnline,
@@ -42,9 +42,9 @@ class RealtimeServiceImpl implements IRealtimeService {
 
   @override
   Future<void> publishTyping({
-    bool isTyping,
-    String userId,
-    int roomId,
+    required int roomId,
+    required String userId,
+    bool isTyping = true,
   }) {
     return _mqttService.publishTyping(
       isTyping: isTyping,
@@ -54,7 +54,7 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<Message> subscribeChannelMessage({String uniqueId}) {
+  Stream<Message> subscribeChannelMessage({required String uniqueId}) {
     return StreamGroup.merge([
       _mqttService.subscribeChannelMessage(uniqueId: uniqueId),
       _syncService.subscribeChannelMessage(uniqueId: uniqueId),
@@ -70,7 +70,7 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<Message> subscribeMessageDelivered({int roomId}) {
+  Stream<Message> subscribeMessageDelivered({required int roomId}) {
     return StreamGroup.merge([
       _mqttService.subscribeMessageDelivered(roomId: roomId),
       _syncService.subscribeMessageDelivered(roomId: roomId),
@@ -78,7 +78,7 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<Message> subscribeMessageRead({int roomId}) {
+  Stream<Message> subscribeMessageRead({required int roomId}) {
     return StreamGroup.merge([
       _mqttService.subscribeMessageRead(roomId: roomId),
       _syncService.subscribeMessageRead(roomId: roomId),
@@ -110,12 +110,12 @@ class RealtimeServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<UserPresence> subscribeUserPresence({String userId}) {
+  Stream<UserPresence> subscribeUserPresence({required String userId}) {
     return _mqttService.subscribeUserPresence(userId: userId);
   }
 
   @override
-  Stream<UserTyping> subscribeUserTyping({int roomId}) {
+  Stream<UserTyping> subscribeUserTyping({required int roomId}) {
     return _mqttService.subscribeUserTyping(roomId: roomId);
   }
 
@@ -149,19 +149,19 @@ class RealtimeServiceImpl implements IRealtimeService {
   Stream<void> onReconnecting() => _mqttService.onReconnecting();
 
   @override
-  Stream<CustomEvent> subscribeCustomEvent({int roomId}) =>
+  Stream<CustomEvent> subscribeCustomEvent({required int roomId}) =>
       _mqttService.subscribeCustomEvent(roomId: roomId);
 
   @override
   Future<void> publishCustomEvent({
-    @required int roomId,
-    @required Map<String, dynamic> payload,
+    required int roomId,
+    required Map<String, dynamic> payload,
   }) {
     return _mqttService.publishCustomEvent(roomId: roomId, payload: payload);
   }
 
   @override
-  Future<void> synchronize([int lastMessageId]) {
+  Future<void> synchronize([int? lastMessageId]) {
     return _syncService.synchronize(lastMessageId);
   }
 

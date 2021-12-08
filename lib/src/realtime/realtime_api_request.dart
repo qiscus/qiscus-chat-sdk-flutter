@@ -1,7 +1,7 @@
 part of qiscus_chat_sdk.usecase.realtime;
 
 class SynchronizeRequest extends IApiRequest<Tuple2<int, List<Message>>> {
-  final int lastMessageId;
+  final int? lastMessageId;
 
   SynchronizeRequest({
     this.lastMessageId = 0,

@@ -50,8 +50,8 @@ class Option<T extends Object> extends Union2Impl<Some<T>, None> {
     return join((s) => onSome(s.value), (_) => onNone());
   }
 
-  T toNullable() {
-    return getOrElse(() => null);
+  T? toNullable() {
+    return join((it) => it.value, (_) => null);
   }
 
   static bool isNone(Option o) => o.fold(() => true, (_) => false);

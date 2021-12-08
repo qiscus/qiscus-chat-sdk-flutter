@@ -1,7 +1,7 @@
 part of qiscus_chat_sdk.realtime;
 
 class MqttMessageReceived extends IMqttReceive<Message> {
-  const MqttMessageReceived({@required this.token}) : super();
+  const MqttMessageReceived({required this.token}) : super();
   final String token;
 
   @override

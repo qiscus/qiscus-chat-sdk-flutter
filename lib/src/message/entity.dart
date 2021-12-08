@@ -21,26 +21,27 @@ extension QMessageTypeString on QMessageType {
 }
 
 class QMessage {
-  int id, chatRoomId, previousMessageId;
+  int id, chatRoomId;
+  int? previousMessageId;
   String uniqueId, text;
   QMessageStatus status;
   QMessageType type;
-  Map<String, dynamic> extras, payload;
+  Map<String, dynamic>? extras, payload;
   QUser sender;
   DateTime timestamp;
 
   QMessage({
-    @required this.id,
-    @required this.chatRoomId,
-    @required this.previousMessageId,
-    @required this.uniqueId,
-    @required this.text,
-    @required this.status,
-    @required this.type,
-    @required this.extras,
-    @required this.payload,
-    @required this.sender,
-    @required this.timestamp,
+    required this.id,
+    required this.chatRoomId,
+    required this.previousMessageId,
+    required this.uniqueId,
+    required this.text,
+    required this.status,
+    required this.type,
+    required this.extras,
+    required this.payload,
+    required this.sender,
+    required this.timestamp,
   });
 
   @override
@@ -106,31 +107,31 @@ class Message {
   final Option<DateTime> timestamp;
 
   Message._({
-    @required this.id,
-    this.chatRoomId,
-    this.previousMessageId,
-    this.uniqueId,
-    this.text,
-    this.status,
-    this.type,
-    this.extras,
-    this.payload,
-    this.sender,
-    this.timestamp,
+    required this.id,
+    required this.chatRoomId,
+    required this.previousMessageId,
+    required this.uniqueId,
+    required this.text,
+    required this.status,
+    required this.type,
+    required this.extras,
+    required this.payload,
+    required this.sender,
+    required this.timestamp,
   });
 
   factory Message({
-    Option<int> id,
-    Option<int> chatRoomId,
-    Option<int> previousMessageId,
-    Option<String> uniqueId,
-    Option<String> text,
-    Option<QMessageStatus> status,
-    Option<QMessageType> type,
-    Option<Map<String, dynamic>> extras,
-    Option<Map<String, dynamic>> payload,
-    Option<User> sender,
-    Option<DateTime> timestamp,
+    Option<int>? id,
+    Option<int>? chatRoomId,
+    Option<int>? previousMessageId,
+    Option<String>? uniqueId,
+    Option<String>? text,
+    Option<QMessageStatus>? status,
+    Option<QMessageType>? type,
+    Option<Map<String, dynamic>>? extras,
+    Option<Map<String, dynamic>>? payload,
+    Option<User>? sender,
+    Option<DateTime>? timestamp,
   }) =>
       Message._(
         id: id ?? Option.none(),
@@ -197,18 +198,18 @@ class Message {
   }
 
   QMessage toModel() => QMessage(
-        id: id.toNullable(),
-        sender: sender.map((it) => it.toModel()).toNullable(),
-        uniqueId: uniqueId.toNullable(),
-        previousMessageId: previousMessageId.toNullable(),
-        chatRoomId: chatRoomId.toNullable(),
-        extras: extras.toNullable(),
-        type: type.map((it) => it).toNullable(),
-        timestamp: timestamp.toNullable(),
-        text: text.toNullable(),
-        status: status.toNullable(),
-        payload: payload.toNullable(),
-      );
+    id: id.toNullable()!,
+    sender: sender.map((it) => it.toModel()).toNullable()!,
+    uniqueId: uniqueId.toNullable()!,
+    previousMessageId: previousMessageId.toNullable(),
+    chatRoomId: chatRoomId.toNullable()!,
+    extras: extras.toNullable(),
+    type: type.map((it) => it).toNullable()!,
+    timestamp: timestamp.toNullable()!,
+    text: text.toNullable()!,
+    status: status.toNullable()!,
+    payload: payload.toNullable(),
+  );
 
   @override
   String toString() => 'Message('

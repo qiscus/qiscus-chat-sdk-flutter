@@ -31,11 +31,11 @@ abstract class RealtimeEvent {
   }
 
   Out fold<Out>({
-    @required Out Function(UnknownEvent) unknown,
-    @required Out Function(MessageReadEvent) messageRead,
-    @required Out Function(MessageDeliveredEvent) messageDelivered,
-    @required Out Function(MessageDeletedEvent) messageDeleted,
-    @required Out Function(RoomClearedEvent) roomCleared,
+    required Out Function(UnknownEvent) unknown,
+    required Out Function(MessageReadEvent) messageRead,
+    required Out Function(MessageDeliveredEvent) messageDelivered,
+    required Out Function(MessageDeletedEvent) messageDeleted,
+    required Out Function(RoomClearedEvent) roomCleared,
   }) {
     if (this is MessageReadEvent) {
       return messageRead(this as MessageReadEvent);
@@ -54,11 +54,11 @@ abstract class RealtimeEvent {
   }
 
   void flow({
-    @required void Function(UnknownEvent) unknown,
-    @required void Function(MessageReadEvent) messageRead,
-    @required void Function(MessageDeliveredEvent) messageDelivered,
-    @required void Function(MessageDeletedEvent) messageDeleted,
-    @required void Function(RoomClearedEvent) roomCleared,
+    required void Function(UnknownEvent) unknown,
+    required void Function(MessageReadEvent) messageRead,
+    required void Function(MessageDeliveredEvent) messageDelivered,
+    required void Function(MessageDeletedEvent) messageDeleted,
+    required void Function(RoomClearedEvent) roomCleared,
   }) {
     fold<void>(
       unknown: unknown,
@@ -71,7 +71,7 @@ abstract class RealtimeEvent {
 }
 
 class UnknownEvent extends RealtimeEvent with EquatableMixin {
-  UnknownEvent({@required this.actionType});
+  UnknownEvent({required this.actionType});
   final String actionType;
   @override
   List<Object> get props => [];
@@ -84,10 +84,10 @@ class UnknownEvent extends RealtimeEvent with EquatableMixin {
 
 class MessageReadEvent extends RealtimeEvent with EquatableMixin {
   MessageReadEvent({
-    @required this.messageId,
-    @required this.roomId,
-    @required this.messageUniqueId,
-    @required this.userId,
+    required this.messageId,
+    required this.roomId,
+    required this.messageUniqueId,
+    required this.userId,
   });
 
   final int messageId, roomId;
@@ -109,10 +109,10 @@ class MessageReadEvent extends RealtimeEvent with EquatableMixin {
 
 class MessageDeliveredEvent extends RealtimeEvent with EquatableMixin {
   MessageDeliveredEvent({
-    @required this.userId,
-    @required this.roomId,
-    @required this.messageId,
-    @required this.messageUniqueId,
+    required this.userId,
+    required this.roomId,
+    required this.messageId,
+    required this.messageUniqueId,
   });
 
   final int messageId, roomId;
@@ -134,8 +134,8 @@ class MessageDeliveredEvent extends RealtimeEvent with EquatableMixin {
 
 class MessageDeletedEvent extends RealtimeEvent with EquatableMixin {
   MessageDeletedEvent({
-    @required this.roomId,
-    @required this.messageUniqueId,
+    required this.roomId,
+    required this.messageUniqueId,
   });
 
   final int roomId;
@@ -154,7 +154,7 @@ class MessageDeletedEvent extends RealtimeEvent with EquatableMixin {
           return (it['message_unique_ids'] as List).cast<String>().map((id) {
             return MessageDeletedEvent(
               messageUniqueId: id,
-              roomId: int.tryParse(it['room_id'] as String),
+              roomId: int.parse(it['room_id'] as String),
             );
           });
         })
@@ -165,7 +165,7 @@ class MessageDeletedEvent extends RealtimeEvent with EquatableMixin {
 
 class RoomClearedEvent extends RealtimeEvent with EquatableMixin {
   RoomClearedEvent({
-    @required this.roomId,
+    required this.roomId,
   });
 
   final int roomId;
@@ -184,16 +184,16 @@ class RoomClearedEvent extends RealtimeEvent with EquatableMixin {
 }
 
 class MessageReceivedEvent extends RealtimeEvent {
-  MessageReceivedEvent({@required this.message});
+  MessageReceivedEvent({required this.message});
 
   final Message message;
 }
 
 class UserTypingEvent extends RealtimeEvent {
   UserTypingEvent({
-    @required this.userId,
-    @required this.isTyping,
-    @required this.roomId,
+    required this.userId,
+    required this.isTyping,
+    required this.roomId,
   });
 
   final String userId;
@@ -203,9 +203,9 @@ class UserTypingEvent extends RealtimeEvent {
 
 class UserPresenceEvent extends RealtimeEvent {
   UserPresenceEvent({
-    @required this.userId,
-    @required this.lastSeen,
-    @required this.isOnline,
+    required this.userId,
+    required this.lastSeen,
+    required this.isOnline,
   });
 
   final String userId;

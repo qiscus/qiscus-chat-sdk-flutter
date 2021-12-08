@@ -2,7 +2,7 @@ part of qiscus_chat_sdk.usecase.user;
 
 @immutable
 class GetBlockedUserParams {
-  final int page, limit;
+  final int? page, limit;
   const GetBlockedUserParams({this.page, this.limit});
 }
 

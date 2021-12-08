@@ -1,7 +1,7 @@
 part of qiscus_chat_sdk.realtime;
 
 class MqttRoomCleared extends IMqttReceive<int> {
-  const MqttRoomCleared({@required this.token});
+  const MqttRoomCleared({required this.token});
 
   final String token;
 

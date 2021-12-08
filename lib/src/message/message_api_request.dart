@@ -5,13 +5,13 @@ class SendMessageRequest extends IApiRequest<Message> {
   final String message;
   final String type;
   final String uniqueId;
-  final Map<String, dynamic> extras;
-  final Map<String, dynamic> payload;
+  final Map<String, dynamic>? extras;
+  final Map<String, dynamic>? payload;
 
   SendMessageRequest({
-    @required this.roomId,
-    @required this.message,
-    this.uniqueId,
+    required this.roomId,
+    required this.message,
+    required this.uniqueId,
     this.type = 'text',
     this.extras,
     this.payload,
@@ -39,7 +39,7 @@ class SendMessageRequest extends IApiRequest<Message> {
 }
 
 class UpdateMessageRequest extends IApiRequest<Message> {
-  UpdateMessageRequest({@required this.message});
+  UpdateMessageRequest({required this.message});
   final QMessage message;
 
   @override
@@ -75,12 +75,12 @@ class UpdateMessageRequest extends IApiRequest<Message> {
 class GetMessagesRequest extends IApiRequest<List<Message>> {
   final int roomId;
   final int lastMessageId;
-  final int limit;
-  final bool after;
+  final int? limit;
+  final bool? after;
 
   GetMessagesRequest({
-    @required this.roomId,
-    @required this.lastMessageId,
+    required this.roomId,
+    required this.lastMessageId,
     this.after = false,
     this.limit = 20,
   });
@@ -108,11 +108,11 @@ class GetMessagesRequest extends IApiRequest<List<Message>> {
 
 class UpdateMessageStatusRequest extends IApiRequest<void> {
   final int roomId;
-  final int lastReadId;
-  final int lastDeliveredId;
+  final int? lastReadId;
+  final int? lastDeliveredId;
 
   UpdateMessageStatusRequest({
-    @required this.roomId,
+    required this.roomId,
     this.lastReadId,
     this.lastDeliveredId,
   });
@@ -135,8 +135,8 @@ class UpdateMessageStatusRequest extends IApiRequest<void> {
 }
 
 UpdateMessageStatusRequest markMessageAsRead({
-  @required int roomId,
-  @required int messageId,
+  required int roomId,
+  required int messageId,
 }) {
   return UpdateMessageStatusRequest(
     roomId: roomId,
@@ -145,8 +145,8 @@ UpdateMessageStatusRequest markMessageAsRead({
 }
 
 UpdateMessageStatusRequest markMessageAsDelivered({
-  @required int roomId,
-  @required int messageId,
+  required int roomId,
+  required int messageId,
 }) {
   return UpdateMessageStatusRequest(
     roomId: roomId,
@@ -160,7 +160,7 @@ class DeleteMessagesRequest extends IApiRequest<List<Message>> {
   final bool isForEveryone;
 
   DeleteMessagesRequest({
-    @required this.uniqueIds,
+    required this.uniqueIds,
     this.isForEveryone = true,
     this.isHardDelete = true,
   });
@@ -197,21 +197,21 @@ class FileListRequest extends IApiRequest<Iterable<QMessage>> {
     this.limit,
   });
 
-  final String query;
-  final String sender;
-  final List<int> roomIds;
-  final String fileType;
-  final List<String> includeExtensions;
-  final List<String> excludeExtensions;
-  final int page;
-  final int limit;
+  final String? query;
+  final String? sender;
+  final List<int>? roomIds;
+  final String? fileType;
+  final List<String>? includeExtensions;
+  final List<String>? excludeExtensions;
+  final int? page;
+  final int? limit;
 
   @override
   IRequestMethod get method => IRequestMethod.post;
   @override
   Map<String, dynamic> get body => <String, dynamic>{
         'query': query,
-        'room_ids': roomIds?.map((it) => it.toString())?.toList(),
+        'room_ids': roomIds?.map((it) => it.toString()).toList(),
         'sender': sender,
         'file_type': fileType,
         'include_extensions': includeExtensions,

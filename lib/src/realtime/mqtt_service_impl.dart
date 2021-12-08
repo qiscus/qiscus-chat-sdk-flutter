@@ -5,8 +5,8 @@ class MessageDeleted {
   final int roomId;
 
   MessageDeleted({
-    this.messageUniqueId,
-    this.roomId,
+    required this.messageUniqueId,
+    required this.roomId,
   });
 
   MessageDeletedEvent toResponse() => MessageDeletedEvent(
@@ -19,8 +19,8 @@ class MqttServiceImpl implements IRealtimeService {
   final Dio _dio;
   final Logger _logger;
   final MqttClient Function() _getClient;
-  MqttClient __mqtt;
-  StreamSubscription<MqttReceivedMessage<MqttMessage>> _logSubscription;
+  late MqttClient? __mqtt;
+  late StreamSubscription<MqttReceivedMessage<MqttMessage>> _logSubscription;
 
   final Storage _s;
   final _subscriptions = <String, int>{};
@@ -34,16 +34,18 @@ class MqttServiceImpl implements IRealtimeService {
     };
     _mqtt.onDisconnected = () {
       log('@mqtt.disconnected(${_mqtt.connectionStatus})');
-      _onDisconnected(_mqtt.connectionStatus);
+      _onDisconnected(_mqtt.connectionStatus!);
     };
     _mqtt.onSubscribed = (topic) {
       _subscriptions.update(topic, (it) => it + 1, ifAbsent: () => 1);
       log('@mqtt.subscribed($topic)');
     };
     _mqtt.onUnsubscribed = (topic) {
-      _subscriptions.update(topic, (it) => it - 1, ifAbsent: () => 0);
-      _subscriptions.removeWhere((it, count) => it == topic && count <= 0);
-      log('@mqtt-unsubscribed($topic)');
+      if (topic != null) {
+        _subscriptions.update(topic, (it) => it - 1, ifAbsent: () => 0);
+        _subscriptions.removeWhere((it, count) => it == topic && count <= 0);
+        log('@mqtt-unsubscribed($topic)');
+      }
     };
     _mqtt.onSubscribeFail = (topic) {
       log('@mqtt.subscribe-fail($topic)');
@@ -52,8 +54,8 @@ class MqttServiceImpl implements IRealtimeService {
 
   @override
   bool get isConnected {
-    var mqttConnected = _mqtt?.connectionStatus?.state == MqttConnectionState.connected ??
-        false;
+    var mqttConnected =
+        _mqtt.connectionStatus?.state == MqttConnectionState.connected;
 
     return mqttConnected || _isForceClosed;
   }
@@ -91,7 +93,7 @@ class MqttServiceImpl implements IRealtimeService {
       log('-> appId: ${_s.appId}');
     }
 
-    var stream = _restartSubscription(() => _mqtt.updates);
+    var stream = _restartSubscription(() => _mqtt.updates!);
     _logSubscription = stream.expand((it) => it).listen((data) {
       if (_logger.level == QLogLevel.verbose) {
         log('@mqtt.message(topic=(${data.topic}), payload=(${data.payload}))');
@@ -103,7 +105,7 @@ class MqttServiceImpl implements IRealtimeService {
 
   @override
   Future<void> end() async {
-    await _logSubscription?.cancel();
+    await _logSubscription.cancel();
     for (var subs in _subscriptions.entries) {
       var status = _mqtt.getSubscriptionsStatus(subs.key);
       if (status == MqttSubscriptionStatus.active) {
@@ -121,7 +123,7 @@ class MqttServiceImpl implements IRealtimeService {
   Stream<bool> onConnected() async* {
     yield* Stream<void>.periodic(const Duration(milliseconds: 300))
         .asyncMap((_) =>
-            _mqtt.connectionStatus.state == MqttConnectionState.connected)
+            _mqtt.connectionStatus?.state == MqttConnectionState.connected)
         .distinct()
         .where((it) => it == true)
         .asBroadcastStream();
@@ -131,7 +133,7 @@ class MqttServiceImpl implements IRealtimeService {
   Stream<bool> onDisconnected() async* {
     yield* Stream<void>.periodic(const Duration(milliseconds: 300))
         .asyncMap((_) =>
-            _mqtt.connectionStatus.state == MqttConnectionState.disconnected)
+            _mqtt.connectionStatus?.state == MqttConnectionState.disconnected)
         .distinct()
         .where((it) => it == true && _s.isRealtimeEnabled)
         .asBroadcastStream();
@@ -141,7 +143,7 @@ class MqttServiceImpl implements IRealtimeService {
   Stream<bool> onReconnecting() async* {
     yield* Stream<void>.periodic(const Duration(milliseconds: 300))
         .asyncMap((_) =>
-            _mqtt.connectionStatus.state == MqttConnectionState.disconnecting)
+            _mqtt.connectionStatus?.state == MqttConnectionState.disconnecting)
         .distinct()
         .where((it) => it == true)
         .asBroadcastStream();
@@ -149,8 +151,8 @@ class MqttServiceImpl implements IRealtimeService {
 
   @override
   Future<void> publishCustomEvent({
-    int roomId,
-    Map<String, dynamic> payload,
+    required int roomId,
+    required Map<String, dynamic> payload,
   }) async {
     await _mqtt.sendEvent(
       MqttCustomEvent(roomId: roomId, payload: payload),
@@ -159,22 +161,22 @@ class MqttServiceImpl implements IRealtimeService {
 
   @override
   Future<void> publishPresence({
-    bool isOnline,
-    DateTime lastSeen,
-    String userId,
+    required String userId,
+    required DateTime lastSeen,
+    bool isOnline = true,
   }) {
-    return _mqtt?.sendEvent(
+    return _mqtt.sendEvent(
       MqttUserPresence(userId: userId, lastSeen: lastSeen, isOnline: isOnline),
     );
   }
 
   @override
   Future<void> publishTyping({
-    bool isTyping,
-    String userId,
-    int roomId,
-  }) {
-    return _mqtt?.sendEvent(MqttUserTyping(
+    required int roomId,
+    required String userId,
+    bool isTyping = true,
+  }) async {
+    await _mqtt.sendEvent(MqttUserTyping(
       roomId: roomId.toString(),
       userId: userId,
       isTyping: isTyping,
@@ -189,18 +191,16 @@ class MqttServiceImpl implements IRealtimeService {
     await _isConnected;
     while (_subscriptionBuffer.isNotEmpty) {
       var topic = _subscriptionBuffer.removeAt(0);
-      if (topic != null) {
-        _mqtt.subscribe$(topic);
-      }
+      _mqtt.subscribe$(topic);
     }
   }
 
   Stream<O> _restartSubscription<O>(Stream<O> Function() source) {
     var stream = isConnected$;
 
-    StreamSubscription<bool> subs0;
-    StreamSubscription<O> subs1;
-    StreamController<O> controller;
+    StreamSubscription<bool>? subs0;
+    StreamSubscription<O>? subs1;
+    StreamController<O>? controller;
 
     controller = StreamController<O>(
       onListen: () {
@@ -208,7 +208,7 @@ class MqttServiceImpl implements IRealtimeService {
           if (!isConnected) {
             subs1?.cancel();
           } else {
-            subs1 = source().listen((data) => controller.sink.add(data));
+            subs1 = source().listen((data) => controller?.sink.add(data));
           }
         });
       },
@@ -238,8 +238,8 @@ class MqttServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<Message> subscribeChannelMessage({String uniqueId}) {
-    return _forTopic(TopicBuilder.channelMessageNew(_s.appId, uniqueId))
+  Stream<Message> subscribeChannelMessage({required String uniqueId}) {
+    return _forTopic(TopicBuilder.channelMessageNew(_s.appId!, uniqueId))
         .asyncMap((event) {
       // appId/channelId/c;
       var messageData = event.second.toString();
@@ -249,13 +249,13 @@ class MqttServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<CustomEvent> subscribeCustomEvent({int roomId}) async* {
+  Stream<CustomEvent> subscribeCustomEvent({required int roomId}) async* {
     yield* _onEvent(MqttCustomEvent(roomId: roomId));
   }
 
   @override
   Stream<Message> subscribeMessageDeleted() {
-    return _onEvent(MqttMessageDeleted(token: _s.token))?.map((tuple) {
+    return _onEvent(MqttMessageDeleted(token: _s.token!)).map((tuple) {
       return Message(
         id: Option.none(),
         chatRoomId: Option.some(tuple.first),
@@ -265,10 +265,10 @@ class MqttServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<Message> subscribeMessageDelivered({int roomId}) {
+  Stream<Message> subscribeMessageDelivered({required int roomId}) {
     return _forTopic(TopicBuilder.messageDelivered(roomId.toString()))
-        ?.where((it) => int.parse(it.first.split('/')[1]) == roomId)
-        ?.asyncMap((msg) {
+        .where((it) => int.parse(it.first.split('/')[1]) == roomId)
+        .asyncMap((msg) {
       // r/{roomId}/{roomId}/{userId}/d
       // {commentId}:{commentUniqueId}
       var payload = msg.second.toString().split(':');
@@ -289,46 +289,46 @@ class MqttServiceImpl implements IRealtimeService {
   }
 
   @override
-  Stream<Message> subscribeMessageRead({@required int roomId}) async* {
+  Stream<Message> subscribeMessageRead({required int roomId}) async* {
     yield* _onEvent(MqttMessageRead(roomId: roomId.toString()));
   }
 
   @override
   Stream<Message> subscribeMessageReceived() async* {
-    yield* _onEvent(MqttMessageReceived(token: _s.token));
+    yield* _onEvent(MqttMessageReceived(token: _s.token!));
   }
 
   @override
   Stream<Message> subscribeMessageUpdated() async* {
-    yield* _onEvent(MqttMessageUpdated(token: _s.token));
+    yield* _onEvent(MqttMessageUpdated(token: _s.token!));
   }
 
   @override
   Stream<ChatRoom> subscribeRoomCleared() async* {
-    yield* _onEvent(MqttRoomCleared(token: _s.token))
+    yield* _onEvent(MqttRoomCleared(token: _s.token!))
         .map((it) => ChatRoom(id: Option.some(it)));
   }
 
   @override
-  Stream<UserPresence> subscribeUserPresence({@required String userId}) async* {
+  Stream<UserPresence> subscribeUserPresence({required String userId}) async* {
     yield* _onEvent(MqttUserPresence(userId: userId));
   }
 
   @override
   Stream<Notification> subscribeNotification() async* {
-    yield* _onEvent(MqttNotification(token: _s.token));
+    yield* _onEvent(MqttNotification(token: _s.token!));
   }
 
   @override
-  Stream<UserTyping> subscribeUserTyping({int roomId}) async* {
+  Stream<UserTyping> subscribeUserTyping({required int roomId}) async* {
     yield* _onEvent(MqttUserTyping(roomId: roomId.toString(), userId: '+'));
   }
 
   @override
-  Future<void> synchronize([int lastMessageId]) async {}
+  Future<void> synchronize([int? lastMessageId]) async {}
 
   @override
-  Future<void> synchronizeEvent([String lastEventId]) async {}
+  Future<void> synchronizeEvent([String? lastEventId]) async {}
 
   @override
   Future<void> unsubscribe(String topic) async {
@@ -337,9 +337,7 @@ class MqttServiceImpl implements IRealtimeService {
     await _isConnected;
     while (_unsubscriptionBuffer.isNotEmpty) {
       var topic = _unsubscriptionBuffer.removeAt(0);
-      if (topic != null) {
-        _mqtt.unsubscribe(topic);
-      }
+      _mqtt.unsubscribe(topic);
     }
   }
 
@@ -351,7 +349,7 @@ class MqttServiceImpl implements IRealtimeService {
     }
 
     // if connected state are not disconnected
-    if ((_mqtt?.connectionStatus?.state ?? false) !=
+    if ((_mqtt.connectionStatus?.state ?? false) !=
         MqttConnectionState.disconnected) {
       log('Mqtt disconnected with unknown state: ${connectionStatus.state}');
       return;
@@ -367,17 +365,17 @@ class MqttServiceImpl implements IRealtimeService {
     // get a new broker url by calling lb
     var stream = Stream.periodic(
       const Duration(seconds: 2),
-      (_) => _mqtt?.isConnected,
+      (_) => _mqtt.isConnected,
     );
 
     // in case of no network connection,
     // we always retry to connect to mqtt server
     await for (var isConnected in stream) {
-      if (isConnected) return;
+      if (isConnected == true) return;
 
       try {
         var result = await _dio.get<Map<String, dynamic>>(_s.brokerLbUrl);
-        var data = result.data['data'] as Map<String, dynamic>;
+        var data = result.data?['data'] as Map<String, dynamic>;
         var url = data['url'] as String;
         _s.brokerUrl = url;
 
@@ -436,8 +434,8 @@ class Notification extends Union2Impl<MessageDeleted, RoomCleared> {
       const Doublet<MessageDeleted, RoomCleared>();
 
   factory Notification.message_deleted({
-    int roomId,
-    String messageUniqueId,
+    required int roomId,
+    required String messageUniqueId,
   }) {
     return Notification._(_factory.first(MessageDeleted(
       roomId: roomId,
@@ -446,7 +444,7 @@ class Notification extends Union2Impl<MessageDeleted, RoomCleared> {
   }
 
   factory Notification.room_cleared({
-    int roomId,
+    required int roomId,
   }) {
     return Notification._(_factory.second(RoomCleared(
       roomId: roomId,
@@ -470,7 +468,7 @@ class RoomCleared {
   final int roomId;
 
   RoomCleared({
-    this.roomId,
+    required this.roomId,
   });
 
   ChatRoom toResponse() => ChatRoom(id: Option.some(roomId));

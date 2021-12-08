@@ -11,11 +11,11 @@ class Storage {
   static const defaultSyncInterval = 5000;
   static const defaultSyncIntervalWhenConnected = 30000;
 
-  String appId;
-  String version;
-  String token;
-  Account currentUser;
-  Map<String, String> customHeaders;
+  String? appId;
+  String? version;
+  String? token;
+  Account? currentUser;
+  Map<String, String>? customHeaders;
 
   var baseUrl = defaultBaseUrl;
   var brokerUrl = defaultBrokerUrl;
@@ -29,7 +29,7 @@ class Storage {
   var accSyncInterval = defaultAccInterval.milliseconds;
   var debugEnabled = false;
   var brokerLbEnabled = true;
-  String get userId => currentUser.id;
+  String? get userId => currentUser?.id;
   var lastMessageId = 0;
   var lastEventId = 0;
   var enableEventReport = false;

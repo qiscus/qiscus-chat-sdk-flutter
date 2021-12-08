@@ -8,7 +8,6 @@ import 'package:async/async.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get_it/get_it.dart';
-import 'package:flutter/widgets.dart' hide Interval, Notification;
 import 'package:mqtt_client/mqtt_client.dart';
 
 import 'core.dart';
@@ -18,7 +17,6 @@ import 'message/message.dart';
 import 'realtime/realtime.dart';
 import 'room/room.dart';
 import 'user/user.dart';
-import 'type_utils.dart';
 
 part 'injector.dart';
 
@@ -29,7 +27,7 @@ class QiscusSDK {
   factory QiscusSDK() => QiscusSDK._internal();
 
   static Future<QiscusSDK> withAppId(String appId) async {
-    var sdk =  QiscusSDK();
+    var sdk = QiscusSDK();
     await sdk.setup(appId);
     return sdk;
   }
@@ -59,14 +57,15 @@ class QiscusSDK {
     _injector.setup();
   }
 
-  T __<T>([String name]) => _injector.get<T>(name);
-  String get appId => __<Storage>()?.appId;
-  QAccount get currentUser => __<Storage>()?.currentUser?.toModel();
-  bool get isLogin => __<Storage>()?.currentUser != null;
-  String get token => __<Storage>()?.token;
+  T __<T extends Object>([String? name]) => _injector.resolve<T>(name);
+  String? get appId => __<Storage>().appId;
+  QAccount? get currentUser => __<Storage>().currentUser?.toModel();
+  bool get isLogin => __<Storage>().currentUser != null;
+  String? get token => __<Storage>().token;
   Future<bool> get _authenticated => __<Storage>().authenticated$;
   IRoomRepository get _room$$ => __<IRoomRepository>();
   Storage get storage => __<Storage>();
+  Logger get _logger => __<Logger>();
 
   void addHttpInterceptors(
       RequestOptions Function(RequestOptions, RequestInterceptorHandler)
@@ -77,14 +76,14 @@ class QiscusSDK {
   }
 
   Future<List<QParticipant>> addParticipants({
-    @required int roomId,
-    @required List<String> userIds,
+    required int roomId,
+    required List<String> userIds,
   }) async {
     var res = await _room$$.addParticipant(roomId, userIds);
     return res.map((m) => m.toModel()).toList();
   }
 
-  Future<QUser> blockUser({@required String userId}) async {
+  Future<QUser> blockUser({required String userId}) async {
     final blockUser = __<BlockUserUseCase>();
 
     await _authenticated;
@@ -93,8 +92,8 @@ class QiscusSDK {
   }
 
   Future<QChatRoom> chatUser({
-    @required String userId,
-    Map<String, dynamic> extras,
+    required String userId,
+    Map<String, dynamic>? extras,
   }) async {
     await _authenticated;
     var res = await _room$$.getRoomWithUserId(userId: userId, extras: extras);
@@ -102,14 +101,14 @@ class QiscusSDK {
   }
 
   Future<void> clearMessagesByChatRoomId({
-    @required List<String> roomUniqueIds,
-    @required void Function(Exception) callback,
+    required List<String> roomUniqueIds,
+    required void Function(Exception) callback,
   }) async {
     await _authenticated;
     return _room$$.clearMessages(uniqueIds: roomUniqueIds);
   }
 
-  Future<void> clearUser({@required void Function(Exception) callback}) async {
+  Future<void> clearUser({required void Function(Exception) callback}) async {
     var clearSubscription = () => Future.wait([
           __<OnMessageDelivered>().clear(),
           __<OnMessageRead>().clear(),
@@ -131,10 +130,10 @@ class QiscusSDK {
   }
 
   Future<QChatRoom> createChannel({
-    @required String uniqueId,
-    String name,
-    String avatarUrl,
-    Map<String, dynamic> extras,
+    required String uniqueId,
+    String? name,
+    String? avatarUrl,
+    Map<String, dynamic>? extras,
   }) async {
     await _authenticated;
     var res = await _room$$.getOrCreateChannel(
@@ -148,10 +147,10 @@ class QiscusSDK {
   }
 
   Future<QChatRoom> createGroupChat({
-    @required String name,
-    @required List<String> userIds,
-    String avatarUrl,
-    Map<String, dynamic> extras,
+    required String name,
+    required List<String> userIds,
+    String? avatarUrl,
+    Map<String, dynamic>? extras,
   }) async {
     await _authenticated;
     var res = await _room$$.createGroup(
@@ -163,8 +162,9 @@ class QiscusSDK {
     return res.toModel();
   }
 
-  Future<List<QMessage>> deleteMessages(
-      {@required List<String> messageUniqueIds}) async {
+  Future<List<QMessage>> deleteMessages({
+    required List<String> messageUniqueIds,
+  }) async {
     final deleteMessages = __<DeleteMessageUseCase>();
 
     await _authenticated;
@@ -173,7 +173,7 @@ class QiscusSDK {
   }
 
   void enableDebugMode({
-    @required bool enable,
+    required bool enable,
     QLogLevel level = QLogLevel.log,
   }) {
     __<Storage>()
@@ -182,11 +182,11 @@ class QiscusSDK {
   }
 
   Future<List<QChatRoom>> getAllChatRooms({
-    bool showParticipant,
-    bool showRemoved,
-    bool showEmpty,
-    int limit,
-    int page,
+    bool? showParticipant,
+    bool? showRemoved,
+    bool? showEmpty,
+    int? limit,
+    int? page,
   }) async {
     await _authenticated;
     var res = await _room$$.getAllRooms(
@@ -200,8 +200,8 @@ class QiscusSDK {
   }
 
   Future<List<QUser>> getBlockedUsers({
-    int page,
-    int limit,
+    int? page,
+    int? limit,
   }) async {
     final params = GetBlockedUserParams(page: page, limit: limit);
     final useCase = __<GetBlockedUserUseCase>();
@@ -212,7 +212,7 @@ class QiscusSDK {
   }
 
   Future<QChatRoom> getChannel({
-    @required String uniqueId,
+    required String uniqueId,
   }) async {
     await _authenticated;
     var res = await _room$$.getOrCreateChannel(uniqueId: uniqueId);
@@ -220,18 +220,18 @@ class QiscusSDK {
   }
 
   Future<List<QChatRoom>> getChatRooms({
-    List<int> roomIds,
-    List<String> uniqueIds,
-    int page,
-    bool showRemoved,
-    bool showParticipants,
+    List<int> roomIds = const [],
+    List<String> uniqueIds = const [],
+    int? page,
+    bool? showRemoved,
+    bool? showParticipants,
   }) async {
     const ExceptionMessage = 'Please specify either `roomIds` or `uniqueIds`';
 
-    if ([roomIds, uniqueIds].every((it) => it == null)) {
+    if ([roomIds, uniqueIds].every((it) => it.isEmpty)) {
       throw ArgumentError(ExceptionMessage);
     }
-    if ([roomIds, uniqueIds].every((it) => it != null)) {
+    if ([roomIds, uniqueIds].every((it) => it.isNotEmpty)) {
       throw ArgumentError(ExceptionMessage);
     }
 
@@ -247,7 +247,7 @@ class QiscusSDK {
   }
 
   Future<QChatRoomWithMessages> getChatRoomWithMessages({
-    @required int roomId,
+    required int roomId,
   }) async {
     await _authenticated;
     var data = await _room$$.getRoomWithId(roomId);
@@ -262,9 +262,9 @@ class QiscusSDK {
   }
 
   Future<List<QMessage>> getNextMessagesById({
-    @required int roomId,
-    @required int messageId,
-    int limit,
+    required int roomId,
+    required int messageId,
+    int? limit,
   }) async {
     final useCase = __<GetMessageListUseCase>();
     final params = GetMessageListParams(
@@ -280,10 +280,10 @@ class QiscusSDK {
   }
 
   Future<List<QParticipant>> getParticipants({
-    @required String roomUniqueId,
-    int page,
-    int limit,
-    String sorting,
+    required String roomUniqueId,
+    int? page,
+    int? limit,
+    String? sorting,
   }) async {
     await _authenticated;
     var res = await _room$$.getParticipants(
@@ -295,9 +295,9 @@ class QiscusSDK {
   }
 
   Future<List<QMessage>> getPreviousMessagesById({
-    @required int roomId,
-    int limit,
-    int messageId,
+    required int roomId,
+    required int messageId,
+    int? limit,
   }) async {
     await _authenticated;
     var r = await __<GetMessageListUseCase>()(
@@ -314,8 +314,8 @@ class QiscusSDK {
     var result = url.replaceAllMapped(
       reThumbnailURL,
       (match) => match.input //
-          .replaceAll(match.group(1), r'/upload/w_320,h_320,c_limit/')
-          .replaceAll(match.group(2), r'.png'),
+          .replaceAll(match.group(1)!, r'/upload/w_320,h_320,c_limit/')
+          .replaceAll(match.group(2)!, r'.png'),
     );
     return result;
   }
@@ -325,8 +325,10 @@ class QiscusSDK {
       reThumbnailURL,
       (match) => match.input //
           .replaceAll(
-              match.group(1), r'/upload/w_320,h_320,c_limit,e_blur:300/')
-          .replaceAll(match.group(2), r'.png'),
+            match.group(1)!,
+            r'/upload/w_320,h_320,c_limit,e_blur:300/',
+          )
+          .replaceAll(match.group(2)!, r'.png'),
     );
     return result;
   }
@@ -341,9 +343,9 @@ class QiscusSDK {
   }
 
   Future<List<QUser>> getUsers({
-    @deprecated String searchUsername,
-    int page,
-    int limit,
+    @deprecated String? searchUsername,
+    int? page,
+    int? limit,
   }) async {
     final params = GetUserParams(
       query: searchUsername,
@@ -361,15 +363,15 @@ class QiscusSDK {
   }
 
   void intercept({
-    @required String interceptor,
-    @required Future<QMessage> Function(QMessage) callback,
+    required String interceptor,
+    required Future<QMessage> Function(QMessage) callback,
   }) {
     // FIXME: Work on this thing!
   }
 
   Future<void> markAsDelivered({
-    @required int roomId,
-    @required int messageId,
+    required int roomId,
+    required int messageId,
   }) async {
     await _authenticated.chain(__<UpdateMessageStatusUseCase>()(
       UpdateStatusParams(
@@ -381,8 +383,8 @@ class QiscusSDK {
   }
 
   Future<void> markAsRead({
-    @required int roomId,
-    @required int messageId,
+    required int roomId,
+    required int messageId,
   }) async {
     await _authenticated.chain(__<UpdateMessageStatusUseCase>()(
       UpdateStatusParams(
@@ -393,18 +395,18 @@ class QiscusSDK {
     ));
   }
 
-  Stream<int> onChatRoomCleared(void Function(int) handler) async* {
+  Stream<int> onChatRoomCleared() async* {
     await _authenticated;
-    var params = TokenParams(__<Storage>()?.token);
+    var params = TokenParams(storage.token!);
     var stream = __<OnRoomMessagesCleared>() //
         .subscribe(params)
         .asyncMap((it) => it.toNullable())
-        .where((it) => it != null);
+        .transform(nonNullTransformer());
 
     yield* stream;
   }
 
-  Stream<void> onConnected(void Function() handler) async* {
+  Stream<void> onConnected() async* {
     await _authenticated;
     yield* __<OnConnected>().subscribe(noParams);
   }
@@ -417,7 +419,7 @@ class QiscusSDK {
   Stream<QMessage> onMessageDeleted() async* {
     await _authenticated;
     yield* __<OnMessageDeleted>()
-        .subscribe(TokenParams(token))
+        .subscribe(TokenParams(token!))
         .asyncMap((it) => it.toModel());
   }
 
@@ -439,7 +441,7 @@ class QiscusSDK {
 
   Stream<QMessage> onMessageReceived() async* {
     await _authenticated;
-    var param = TokenParams(token);
+    var param = TokenParams(token!);
 
     yield* __<OnMessageReceived>() //
         .subscribe(param)
@@ -489,8 +491,8 @@ class QiscusSDK {
   }
 
   Future<void> publishCustomEvent({
-    @required int roomId,
-    @required Map<String, dynamic> payload,
+    required int roomId,
+    required Map<String, dynamic> payload,
   }) async {
     await _authenticated.chain(__<CustomEventUseCase>()(CustomEvent(
       roomId: roomId,
@@ -499,29 +501,29 @@ class QiscusSDK {
   }
 
   Future<void> publishOnlinePresence({
-    @required bool isOnline,
+    required bool isOnline,
   }) async {
     await _authenticated.chain(__<PresenceUseCase>()(UserPresence(
-      userId: __<Storage>().userId,
+      userId: currentUser!.id,
       isOnline: isOnline,
       lastSeen: DateTime.now(),
     )));
   }
 
   void publishTyping({
-    @required int roomId,
-    bool isTyping,
+    required int roomId,
+    bool isTyping = true,
   }) {
     _authenticated.chain(__<TypingUseCase>()(UserTyping(
-      userId: __<Storage>().userId,
+      userId: currentUser!.id,
       roomId: roomId,
       isTyping: isTyping,
     )));
   }
 
   Future<bool> registerDeviceToken({
-    @required String token,
-    bool isDevelopment,
+    required String token,
+    bool isDevelopment = false,
   }) async {
     var useCase = __<RegisterDeviceTokenUseCase>();
     var params = DeviceTokenParams(token, isDevelopment);
@@ -529,8 +531,8 @@ class QiscusSDK {
   }
 
   Future<bool> removeDeviceToken({
-    @required String token,
-    bool isDevelopment,
+    required String token,
+    bool isDevelopment = false,
   }) {
     var useCase = __<UnregisterDeviceTokenUseCase>();
     var params = DeviceTokenParams(token, isDevelopment);
@@ -538,17 +540,16 @@ class QiscusSDK {
   }
 
   Future<List<String>> removeParticipants({
-    @required int roomId,
-    @required List<String> userIds,
-    @required void Function(List<String>, Exception) callback,
+    required int roomId,
+    required List<String> userIds,
   }) async {
     return _authenticated.chain(_room$$.removeParticipant(roomId, userIds));
   }
 
   void sendFileMessage({
-    @required QMessage message,
-    @required File file,
-    @required void Function(Exception, double, QMessage) callback,
+    required QMessage message,
+    required File file,
+    required void Function(Exception?, double?, QMessage?) callback,
   }) {
     upload(
       file: file,
@@ -558,8 +559,8 @@ class QiscusSDK {
           return callback(null, progress, null);
         }
         message.payload ??= <String, dynamic>{};
-        message.payload['url'] = url;
-        message.payload['size'] ??= await file.length();
+        message.payload?['url'] = url;
+        message.payload?['size'] ??= await file.length();
         message.text = '[file] $url [/file]';
         await sendMessage(message: message)
             .then((m) => callback(null, null, m));
@@ -568,11 +569,11 @@ class QiscusSDK {
   }
 
   Future<QMessage> sendMessage({
-    @required QMessage message,
+    required QMessage message,
   }) async {
     return _authenticated
         .chain(Future.sync(() {
-          message.sender = __<Storage>().currentUser?.toModel()?.asUser();
+          message.sender = storage.currentUser!.toModel().asUser();
           return message;
         }))
         .then((message) => __<SendMessageUseCase>()(MessageParams(message)))
@@ -613,17 +614,17 @@ class QiscusSDK {
   }
 
   Future<QAccount> setUser({
-    @required String userId,
-    @required String userKey,
-    String username,
-    String avatarUrl,
-    Map<String, dynamic> extras,
+    required String userId,
+    required String userKey,
+    String? username,
+    String? avatarUrl,
+    Map<String, dynamic>? extras,
   }) async {
-    if (userId != null && userId.isEmpty) {
+    if (userId.isEmpty) {
       throw ArgumentError.value(
           userId, 'userId', 'userId should not be empty string');
     }
-    if (userKey != null && userKey.isEmpty) {
+    if (userKey.isEmpty) {
       throw ArgumentError.value(
           userKey, 'userKey', 'userKey should not be empty string');
     }
@@ -637,12 +638,12 @@ class QiscusSDK {
       extras: extras,
     );
 
-    await authenticate(params)
+    return authenticate(params)
         .tap((_) => _connectMqtt())
         .then((it) => it.second.toModel());
   }
 
-  Future<QAccount> setUserWithIdentityToken({@required String token}) {
+  Future<QAccount> setUserWithIdentityToken({required String token}) {
     var authenticate = __<AuthenticateUserWithTokenUseCase>();
     var params = AuthenticateWithTokenParams(token);
 
@@ -652,10 +653,11 @@ class QiscusSDK {
   }
 
   void _connectMqtt() async {
+    await _authenticated;
     if (__<Storage>().isRealtimeEnabled) {
       await __<IRealtimeService>().connect();
     }
-    final params = TokenParams(token);
+    final params = TokenParams(token!);
     final onMessageReceived = __<OnMessageReceived>();
     final realtimeService = __<IRealtimeService>();
     final onMessageUpdated = __<OnMessageUpdated>();
@@ -663,7 +665,7 @@ class QiscusSDK {
     var stream = StreamGroup.merge<void>([
       onMessageReceived.subscribe(params).map((_) => null),
       onMessageUpdated.subscribe(params).map((_) => null),
-      realtimeService.subscribe(TopicBuilder.notification(token)).asStream(),
+      realtimeService.subscribe(TopicBuilder.notification(token!)).asStream(),
     ]);
 
     await stream.first;
@@ -695,7 +697,7 @@ class QiscusSDK {
   }
 
   Stream<Map<String, dynamic>> subscribeCustomEvent({
-    @required int roomId,
+    required int roomId,
   }) async* {
     await _authenticated;
     yield* __<CustomEventUseCase>()
@@ -703,51 +705,51 @@ class QiscusSDK {
         .asyncMap((it) => it.payload);
   }
 
-  void subscribeUserOnlinePresence(String userId) {
-    _authenticated
+  void subscribeUserOnlinePresence(String userId) async {
+    await _authenticated
         .chain(__<PresenceUseCase>().subscribe(UserPresence(userId: userId)))
-        .toCallback1((err) {
+        .catchError((Object? err) {
       if (err != null) {
-        __<Logger>().log('failed subscribing user online presence: $err');
+        _logger.log('failed subscribing user online presence: $err');
       }
     });
   }
 
-  void synchronize({String lastMessageId}) {
+  void synchronize({String? lastMessageId}) {
     _authenticated
-        .chain(__<IRealtimeService>().synchronize(int.parse(lastMessageId)))
-        .toCallback1((_) {});
+        .chain(__<IRealtimeService>().synchronize(int.tryParse(lastMessageId ?? '')))
+        .catchError((dynamic _) {});
   }
 
-  void synchronizeEvent({String lastEventId}) {
+  void synchronizeEvent({String? lastEventId}) {
     _authenticated
         .chain(__<IRealtimeService>().synchronizeEvent(lastEventId))
-        .toCallback1((_) {});
+        .catchError((dynamic _) {});
   }
 
-  Future<QUser> unblockUser({@required String userId}) {
+  Future<QUser> unblockUser({required String userId}) {
     return _authenticated
         .chain(__<UnblockUserUseCase>().call(UnblockUserParams(userId)))
         .then((u) => u.toModel());
   }
 
-  void unsubscribeCustomEvent({@required int roomId}) {
+  void unsubscribeCustomEvent({required int roomId}) {
     _authenticated
         .chain(__<CustomEventUseCase>().unsubscribe(RoomIdParams(roomId)))
-        .toCallback1((_) {});
+        .catchError((dynamic _) {});
   }
 
   void unsubscribeUserOnlinePresence(String userId) {
     _authenticated
         .chain(__<PresenceUseCase>().unsubscribe(UserPresence(userId: userId)))
-        .toCallback1((_) {});
+        .catchError((dynamic _) {});
   }
 
   Future<QChatRoom> updateChatRoom({
-    int roomId,
-    String name,
-    String avatarUrl,
-    Map<String, dynamic> extras,
+    required int roomId,
+    String? name,
+    String? avatarUrl,
+    Map<String, dynamic>? extras,
   }) {
     return _authenticated
         .chain(_room$$.updateRoom(
@@ -760,10 +762,9 @@ class QiscusSDK {
   }
 
   Future<QAccount> updateUser({
-    String name,
-    String avatarUrl,
-    Map<String, dynamic> extras,
-    @required void Function(QAccount, Exception) callback,
+    String? name,
+    String? avatarUrl,
+    Map<String, dynamic>? extras,
   }) {
     var useCase = __<UpdateUserUseCase>();
     var params = UpdateUserParams(
@@ -774,15 +775,15 @@ class QiscusSDK {
     return _authenticated.chain(useCase(params)).then((u) => u.toModel());
   }
 
-  Future<QMessage> updateMessage({@required QMessage message}) {
+  Future<QMessage> updateMessage({required QMessage message}) {
     var useCase = __<UpdateMessageUseCase>();
     var params = MessageParams(message);
     return _authenticated.chain(useCase(params)).then((it) => it.toModel());
   }
 
   void upload({
-    @required File file,
-    @required void Function(Exception, double, String) callback,
+    required File file,
+    required void Function(Exception?, double?, String?) callback,
   }) async {
     final uploadUrl = __<Storage>().uploadUrl;
     final dio = __<Dio>();
@@ -799,7 +800,7 @@ class QiscusSDK {
       },
     ).then((resp) {
       var json = resp.data;
-      var url = json['results']['file']['url'] as String;
+      var url = json!['results']['file']['url'] as String;
       callback(null, null, url);
     }).catchError((dynamic error) {
       callback(error as Exception, null, null);
@@ -807,13 +808,13 @@ class QiscusSDK {
   }
 
   Future<List<QMessage>> getFileList({
-    List<int> roomIds,
-    String fileType,
-    List<String> includeExtensions,
-    List<String> excludeExtensions,
-    String userId,
-    int page,
-    int limit,
+    List<int>? roomIds,
+    String? fileType,
+    List<String>? includeExtensions,
+    List<String>? excludeExtensions,
+    String? userId,
+    int? page,
+    int? limit,
   }) async {
     return _authenticated
         .chain(__<MessageRepository>().getFileList(
@@ -852,9 +853,9 @@ class QiscusSDK {
       'flutter-${DateTime.now().millisecondsSinceEpoch}';
 
   QMessage generateMessage({
-    @required int chatRoomId,
-    @required String text,
-    Map<String, dynamic> extras,
+    required int chatRoomId,
+    required String text,
+    Map<String, dynamic>? extras,
   }) {
     var id = Random.secure().nextInt(10000);
     return QMessage(
@@ -868,18 +869,18 @@ class QiscusSDK {
       id: id,
       payload: null,
       previousMessageId: 0,
-      sender: currentUser.asUser(),
+      sender: currentUser!.asUser(),
       status: QMessageStatus.sending,
       type: QMessageType.text,
     );
   }
 
   QMessage generateCustomMessage({
-    @required int chatRoomId,
-    @required String text,
-    @required String type,
-    Map<String, dynamic> extras,
-    @required Map<String, dynamic> payload,
+    required int chatRoomId,
+    required String text,
+    required String type,
+    Map<String, dynamic>? extras,
+    required Map<String, dynamic> payload,
   }) {
     var id = Random.secure().nextInt(10000);
     return QMessage(
@@ -896,20 +897,20 @@ class QiscusSDK {
       //
       id: id,
       previousMessageId: 0,
-      sender: currentUser.asUser(),
+      sender: currentUser!.asUser(),
       status: QMessageStatus.sending,
       type: QMessageType.custom,
     );
   }
 
   QMessage generateFileAttachmentMessage({
-    @required int chatRoomId,
-    @required String caption,
-    @required String url,
-    String filename,
+    required int chatRoomId,
+    required String caption,
+    required String url,
+    String? filename,
     String text = 'File attachment',
-    int size,
-    Map<String, dynamic> extras,
+    int? size,
+    Map<String, dynamic>? extras,
   }) {
     var id = Random.secure().nextInt(10000);
     return QMessage(
@@ -928,7 +929,7 @@ class QiscusSDK {
       //
       id: id,
       previousMessageId: 0,
-      sender: currentUser.asUser(),
+      sender: currentUser!.asUser(),
       status: QMessageStatus.sending,
       type: QMessageType.attachment,
     );
@@ -944,22 +945,22 @@ class QDeviceToken {
 
 class QUserTyping with EquatableMixin {
   const QUserTyping({this.userId, this.roomId, this.isTyping});
-  final String userId;
-  final bool isTyping;
-  final int roomId;
+  final String? userId;
+  final bool? isTyping;
+  final int? roomId;
 
   @override
-  List<Object> get props => [userId, isTyping, roomId];
+  List<Object?> get props => [userId, isTyping, roomId];
 }
 
 class QUserPresence with EquatableMixin {
   const QUserPresence({this.userId, this.lastSeen, this.isOnline});
-  final String userId;
-  final DateTime lastSeen;
-  final bool isOnline;
+  final String? userId;
+  final DateTime? lastSeen;
+  final bool? isOnline;
 
   @override
-  List<Object> get props => [userId, lastSeen, isOnline];
+  List<Object?> get props => [userId, lastSeen, isOnline];
 }
 
 class QChatRoomWithMessages with EquatableMixin {
@@ -969,5 +970,5 @@ class QChatRoomWithMessages with EquatableMixin {
   final List<QMessage> messages;
 
   @override
-  List<Object> get props => [room, messages];
+  List<Object?> get props => [room, messages];
 }
