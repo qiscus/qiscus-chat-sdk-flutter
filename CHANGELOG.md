@@ -3,7 +3,7 @@
 - fix error on appconfig failing `setup` process
 - fix not sending ajax request after updating to dio 4.0
 - [internal] support for generating `AppConfig` from `Storage`
-- updating some dependencies to latest version and removing least used dependencies
+- updating some dependencies to the latest version and removing the least used dependencies
   - mqtt_client: ^6.0.0 -> ^9.4.2
   - dio: ^3.0.8 -> ^4.0.0
   - equatable: ^1.1.1 -> ^2.0.3

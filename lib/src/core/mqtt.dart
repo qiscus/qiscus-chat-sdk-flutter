@@ -1,5 +1,6 @@
 part of qiscus_chat_sdk.core;
 
+
 MqttClient getMqttClient(Storage storage) {
   final clientId = getClientId();
   final connectionMessage = getConnectionMessage(clientId, storage.userId!);

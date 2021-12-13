@@ -1,5 +1,4 @@
 
-
 class QUser {
   const QUser({
     required this.id,
@@ -15,7 +14,7 @@ class QUser {
 }
 
 class QAccount extends QUser {
-  const QAccount({
+  QAccount({
     required String id,
     required String name,
     String? avatarUrl,
@@ -24,8 +23,8 @@ class QAccount extends QUser {
     this.lastMessageId,
   }) : super(id: id, name: name, avatarUrl: avatarUrl, extras: extras);
 
-  final String? lastEventId;
-  final String? lastMessageId;
+  int? lastEventId;
+  int? lastMessageId;
 }
 
 class QParticipant extends QUser {
@@ -50,15 +49,25 @@ class QDeviceToken {
 }
 
 class QUserTyping {
-  const QUserTyping({required this.userId, this.roomId, this.isTyping});
+  const QUserTyping({
+    required this.userId,
+    required this.roomId,
+    required this.isTyping,
+  });
   final String userId;
-  final bool? isTyping;
-  final int? roomId;
+  final bool isTyping;
+  final int roomId;
 }
 
 class QUserPresence {
-  const QUserPresence({required this.userId, this.lastSeen, this.isOnline});
+  const QUserPresence({
+    required this.userId,
+    required this.lastSeen,
+    required this.isOnline,
+  });
   final String userId;
-  final DateTime? lastSeen;
-  final bool? isOnline;
+  final DateTime lastSeen;
+  final bool isOnline;
 }
+
+

@@ -7,7 +7,6 @@ Option<T> optionFromJson<T extends Object>(T json) {
   return Option<T>.of(json);
 }
 
-@immutable
 class AppConfig {
   final Option<String> baseUrl;
   final Option<String> brokerLbUrl;
@@ -52,18 +51,24 @@ class AppConfig {
     );
   }
 
-  void hydrateStorage(Storage s) {
-    baseUrl.fold(() {}, (it) => s.baseUrl = it);
-    brokerLbUrl.fold(() {}, (it) => s.brokerLbUrl = it);
-    brokerUrl.fold(() {}, (it) => s.brokerUrl = it);
-    enableEventReport.fold(() {}, (it) => s.enableEventReport = it);
-    enableRealtime.fold(() {}, (it) => s.isRealtimeEnabled = it);
-    enableRealtimeCheck.fold(() {}, (it) => s.isRealtimeCheckEnabled = it);
-    syncInterval.fold(() {}, (it) => s.syncInterval = it.milliseconds);
-    syncOnConnect.fold(
-      () {},
-      (it) => s.syncIntervalWhenConnected = it.milliseconds,
-    );
-    extras.fold(() {}, (it) => s.configExtras = it);
+  State<Storage, void> hydrate() {
+    return State<Storage, void>((s) {
+      baseUrl.match((it) => s.baseUrl = it, () {});
+      brokerLbUrl.match((it) => s.brokerLbUrl = it, () {});
+      brokerUrl.match((it) => s.brokerUrl = it, () {});
+      enableEventReport.match((it) => s.enableEventReport = it, () {});
+      enableRealtime.match((it) => s.isRealtimeEnabled = it, () {});
+      enableRealtimeCheck.match((it) => s.isRealtimeCheckEnabled = it, () {});
+      syncInterval.match((it) => s.syncInterval = it.milliseconds, () {});
+      syncOnConnect.match(
+        (it) => s.syncIntervalWhenConnected = it.milliseconds,
+        () {},
+      );
+      extras.match((it) => s.configExtras = it, () {});
+
+      return Tuple2(null, s);
+    });
   }
 }
+
+
