@@ -7,12 +7,12 @@ QParticipant participantFromJson(Json json) {
     id: json['email'] as String,
     name: (json['username'] as String),
     avatarUrl: Option.fromNullable(json['avatar_url'] as String).toNullable(),
-    lastReceivedMessageId: Option.fromNullable(
-      json['last_received_comment_id'] as String,
-    ).map((it) => int.tryParse(it)).toNullable(),
-    lastReadMessageId: Option.of(json['last_read_comment_id'] as String)
-        .map((it) => int.tryParse(it))
-        .toNullable(),
+    lastReceivedMessageId:
+        Option.fromNullable(json['last_comment_received_id'] as int)
+            .toNullable(),
+    lastReadMessageId:
+        Option.fromNullable(json['last_comment_read_id'] as int)
+            .toNullable(),
     extras: Option.of(json['extras'] as Object) //
         .flatMap(decodeJson)
         .toNullable(),

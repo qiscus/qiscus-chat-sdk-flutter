@@ -4,12 +4,17 @@ part of qiscus_chat_sdk.core;
 String dio2curl(RequestOptions requestOption) {
   var curl = '';
 
+  var query = requestOption
+    .queryParameters
+    .entries
+    .fold<String>('', (res, params) => res + '${params.key}=${params.value}&');
+
   if (requestOption.path.startsWith('http')) {
-    curl += 'curl --request ${requestOption.method} \'${requestOption.path}\'';
+    curl += 'curl --request ${requestOption.method} \'${requestOption.path}$query\'';
   } else {
     // Add PATH + REQUEST_METHOD
     curl +=
-        'curl --request ${requestOption.method} \'${requestOption.baseUrl}${requestOption.path}\'';
+        'curl --request ${requestOption.method} \'${requestOption.baseUrl}${requestOption.path}?$query\'';
   }
 
   // Include headers

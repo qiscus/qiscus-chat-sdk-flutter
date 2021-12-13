@@ -15,14 +15,13 @@ class QMqttMessage {
 }
 
 StreamTransformer<MqttUpdatesData, QMqttMessage> mqttExpandTransformer =
-    StreamTransformer.fromBind((source) async* {
-  var stream = source.expand((it) => it);
-  await for (var data in stream) {
+StreamTransformer.fromHandlers(handleData: (source, sink) {
+  for (var data in source) {
     var payload = data.payload as MqttPublishMessage;
     var message = utf8.decode(payload.payload.message);
     var topic = data.topic;
 
-    yield QMqttMessage(topic, message);
+    sink.add(QMqttMessage(topic, message));
   }
 });
 
@@ -40,14 +39,16 @@ Reader<MqttClient, IO<MqttUpdates>> mqttUpdates() {
   return Reader((mqtt) {
     return mqttConnectionState() //
         .run(mqtt)
-        .map((it) => _restartSubscription(it, () => mqtt.updates!));
+        // .map((it) => _restartSubscription(it, () => mqtt.updates!))
+        .map((_) => mqtt.updates!)
+        //
+        ;
   });
 }
 
 Reader<MqttClient, IO<Stream<QMqttMessage>>> mqttForTopic(
   String topic,
 ) {
-
   return Reader((mqtt) {
     var connected$ = mqttConnectionState().run(mqtt);
     return connected$.map((it) {
@@ -63,6 +64,7 @@ Reader<MqttClient, IOEither<String, Unit>> mqttSubscribeTopic(
 ) {
   return Reader((mqtt) {
     return IOEither.tryCatch(() {
+      print('subscribe mqtt:: $topic');
       mqtt.subscribe(topic, MqttQos.atLeastOnce);
       return unit;
     }, (e, _) => e.toString());

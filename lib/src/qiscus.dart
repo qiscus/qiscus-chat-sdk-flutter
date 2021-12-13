@@ -9,7 +9,6 @@ import 'package:async/async.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:get_it/get_it.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:qiscus_chat_sdk/src/impls/message/on-message-deleted-impl.dart';
 import 'package:qiscus_chat_sdk/src/impls/message/on-message-delivered-impl.dart';
@@ -20,12 +19,9 @@ import 'package:qiscus_chat_sdk/src/impls/user/on-user-typing-impl.dart';
 
 import 'app_config/app_config.dart';
 import 'core.dart';
-import 'custom_event/custom_event.dart';
-import 'domain/custom-event/custom-event-model.dart';
 import 'domain/message/message-model.dart';
 import 'domain/room/room-model.dart';
 import 'domain/user/user-model.dart';
-import 'impls/custom-event-impl.dart';
 import 'impls/message/delete-messages-impl.dart';
 import 'impls/message/get-message-impl.dart';
 import 'impls/message/on-message-read-impl.dart';
@@ -62,17 +58,12 @@ import 'impls/user/register-device-token-impl.dart';
 import 'impls/user/set-user-impl.dart';
 import 'impls/user/unblock-user-impl.dart';
 import 'impls/user/update-user-impl.dart';
-import 'realtime/realtime.dart';
-
-part 'injector.dart';
 
 typedef StateTransformer<T>
     = StreamTransformer<QMqttMessage, State<Iterable<T>, T>>;
 
 class QiscusSDK {
   static final instance = QiscusSDK();
-
-  factory QiscusSDK() => QiscusSDK._internal();
 
   static Future<QiscusSDK> withAppId(String appId) async {
     var sdk = QiscusSDK();
@@ -101,6 +92,8 @@ class QiscusSDK {
   }
 
   var _storage = Storage();
+
+  Tuple2<MqttClient, Storage> get _deps => Tuple2(_mqtt, _storage);
   late final Logger _logger = Logger(_storage);
   late final Dio _dio = getDio.run(Tuple2(_storage, _logger));
   late final MqttClient _mqtt = getMqttClient(_storage);
@@ -122,13 +115,14 @@ class QiscusSDK {
   late final _mqttUpdates = mqttUpdates()
       .run(_mqtt)
       .run()
+      .asBroadcastStream()
       .transform(mqttExpandTransformer)
       .tap((data) => print('QiscusSDK:mqtt -> ${data.topic} ${data.payload}'));
 
   late final StreamTransformer<Unit, bool> _authenticatedTransformer =
-      StreamTransformer.fromBind((_) async* {
-    var isLoggedIn = await waitTillAuthenticatedImpl().run(_storage).run();
-    yield isLoggedIn;
+      StreamTransformer.fromHandlers(handleData: (_, sink) async {
+    var isLoggedIn = await waitTillAuthenticatedImpl.run(_deps).run();
+    sink.add(isLoggedIn);
   });
 
   Duration _interval() {
@@ -173,25 +167,14 @@ class QiscusSDK {
 
   late final Stream<QMessage> _messageReceived$ = StreamGroup.merge([
     _synchronize(),
-    _mqttUpdates
-        .transform(onMessageReceivedTransformerImpl.run(_storage.token!))
-        .asyncMap((it) async {
-          var data = it.run(_storage.messages);
-
-          var message = await _triggerHook(
-            QInterceptor.messageBeforeReceived,
-            data.first,
-          );
-
-          return Tuple2(message, data.second);
-        })
-        .tap((it) => _storage.messages = it.second.toSet())
-        .map((it) => it.first),
-  ]);
+    _mqttUpdates.transform(mqttMessageReceivedTransformer),
+  ])
+      .asyncMap((it) => _triggerHook(QInterceptor.messageBeforeReceived, it))
+      .tap((message) => _storage.messages.add(message));
 
   late final Stream<QMessage> _messageRead$ = StreamGroup.merge([
     _synchronizeEvent().transform(syncMessageReadTransformerImpl),
-    _mqttUpdates.transform(messageReadTransformerImpl),
+    _mqttUpdates.transform(mqttMessageReadTransformerImpl),
   ])
       .map((it) => it.run(_storage.messages))
       .tap((it) => _storage.messages = it.second.toSet())
@@ -200,7 +183,7 @@ class QiscusSDK {
 
   late final Stream<QMessage> _messageDelivered$ = StreamGroup.merge([
     _synchronizeEvent().transform(syncMessageDeliveredTransformerImpl),
-    _mqttUpdates.transform(messageDeliveredTransformerImpl),
+    _mqttUpdates.transform(mqttMessageDeliveredTransformerImpl),
   ])
       .map((it) => it.run(_storage.messages))
       .tap((it) => _storage.messages = it.second.toSet())
@@ -208,19 +191,13 @@ class QiscusSDK {
       .transform(nonNullTransformer());
 
   late final Stream<QMessage> _messageDeleted$ = StreamGroup.merge([
-    _synchronizeEvent()
-        .transform(syncMessageDeletedTransformerImpl)
-        .map((state) => state.run(_storage.messages))
-        .tap((data) => _storage.messages = data.second.toSet())
-        .map((data) => data.first)
-        .transform(nonNullTransformer()),
-    _mqttUpdates
-        .transform(mqttMessageDeletedTransformerImpl)
-        .map((state) => state.run(_storage.messages))
-        .tap((it) => _storage.messages = it.second.toSet())
-        .map((it) => it.first)
-        .transform(nonNullTransformer()),
-  ]);
+    _synchronizeEvent().transform(syncMessageDeletedTransformerImpl),
+    _mqttUpdates.transform(mqttMessageDeletedTransformerImpl)
+  ])
+      .map((state) => state.run(_storage.messages))
+      .tap((it) => _storage.messages = it.second.toSet())
+      .map((it) => it.first)
+      .transform(nonNullTransformer());
   late final Stream<QMessage> _messageUpdated$ = _mqttUpdates
       .transform(mqttMessageUpdatedTransformerImpl)
       .map((state) => state.run(_storage.messages))
@@ -230,8 +207,9 @@ class QiscusSDK {
       _mqttUpdates.transform(mqttUserTypingTransformerImpl);
   late final Stream<QUserPresence> _userPresence$ =
       _mqttUpdates.transform(mqttUserPresenceTransformerImpl);
-  late final Stream<QCustomEvent> _customEventReceived$ =
-      _mqttUpdates.transform(mqttCustomEventTransformerImpl);
+
+  // late final Stream<QCustomEvent> _customEventReceived$ =
+  //     _mqttUpdates.transform(mqttCustomEventTransformerImpl);
   late final Stream<int> _roomCleared$ = StreamGroup.merge([
     _synchronizeEvent().transform(syncRoomClearedTransformerImpl),
     _mqttUpdates.transform(mqttRoomClearedTransformerImpl),
@@ -262,14 +240,14 @@ class QiscusSDK {
     required int roomId,
     required List<String> userIds,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = addParticipantsImpl(roomId, userIds).run(_dio);
 
     return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
   }
 
   Future<QUser> blockUser({required String userId}) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = blockUserImpl(userId).run(_dio);
 
     return fromTask(t1)(t2).runOrThrow();
@@ -279,7 +257,7 @@ class QiscusSDK {
     required String userId,
     Map<String, dynamic>? extras,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = chatUserImpl(userId, extras).run(_dio);
 
     return fromTask(t1)(t2).runOrThrow();
@@ -288,14 +266,14 @@ class QiscusSDK {
   Future<void> clearMessagesByChatRoomId({
     required List<String> roomUniqueIds,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = clearMessagesImpl(roomUniqueIds).run(_dio);
 
     await fromTask(t1)(t2).runOrThrow();
   }
 
   Future<void> clearUser() async {
-    await waitTillAuthenticatedImpl().run(_storage).run();
+    await waitTillAuthenticatedImpl.run(_deps).run();
     _storage.clear();
     _mqtt.disconnect();
   }
@@ -306,7 +284,7 @@ class QiscusSDK {
     String? avatarUrl,
     Map<String, dynamic>? extras,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = createChannelImpl(
       uniqueId,
       name: name,
@@ -323,7 +301,7 @@ class QiscusSDK {
     String? avatarUrl,
     Map<String, dynamic>? extras,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = createGroupChatImpl(
       name,
       userIds,
@@ -337,7 +315,7 @@ class QiscusSDK {
   Future<List<QMessage>> deleteMessages({
     required List<String> messageUniqueIds,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = deleteMessagesImpl(messageUniqueIds).run(_dio);
 
     return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
@@ -358,7 +336,7 @@ class QiscusSDK {
     int? limit,
     int? page,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getAllChatRoomsImpl(
       showParticipant: showParticipant,
       showRemoved: showRemoved,
@@ -374,7 +352,7 @@ class QiscusSDK {
     int? page,
     int? limit,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getBlockedUsersImpl(page: page, limit: limit).run(_dio);
 
     return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
@@ -383,7 +361,7 @@ class QiscusSDK {
   Future<QChatRoom> getChannel({
     required String uniqueId,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getChannelImpl(uniqueId).run(_dio);
 
     return fromTask(t1)(t2).runOrThrow();
@@ -396,7 +374,7 @@ class QiscusSDK {
     bool? showRemoved,
     bool? showParticipants,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getChatRoomsImpl(
       roomIds: roomIds,
       uniqueIds: uniqueIds,
@@ -411,7 +389,7 @@ class QiscusSDK {
   Future<QChatRoomWithMessages> getChatRoomWithMessages({
     required int roomId,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getRoomWithMessagesImpl(roomId).run(_dio);
 
     return fromTask(t1)(t2)
@@ -428,7 +406,7 @@ class QiscusSDK {
     required int messageId,
     int? limit,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getNextMessagesImpl(roomId, messageId, limit: limit).run(_dio);
 
     return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
@@ -440,7 +418,7 @@ class QiscusSDK {
     int? limit,
     String? sorting,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getParticipantsImpl(
       roomUniqueId,
       page: page,
@@ -456,7 +434,7 @@ class QiscusSDK {
     required int messageId,
     int? limit,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getPreviousMessagesImpl(roomId, messageId, limit: limit).run(_dio);
 
     return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
@@ -479,14 +457,14 @@ class QiscusSDK {
   }
 
   Future<int> getTotalUnreadCount() async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getTotalUnreadImpl().run(_dio);
 
     return fromTask(t1)(t2).runOrThrow();
   }
 
   Future<QAccount> getUserData() async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getUserDataImpl().run(_dio);
     return fromTask(t1)(t2).map((s) {
       var res = s.run(_storage);
@@ -500,16 +478,14 @@ class QiscusSDK {
     int? page,
     int? limit,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getUsersImpl(
       query: searchUsername,
       page: page,
       limit: limit,
     ).run(_dio);
 
-    return fromTask(t1)(t2) //
-        .map((it) => it.toList())
-        .runOrThrow();
+    return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
   }
 
   bool hasSetupUser() {
@@ -527,7 +503,7 @@ class QiscusSDK {
     required int roomId,
     required int messageId,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = updateMessageStatusImpl(
       roomId,
       messageId,
@@ -541,7 +517,7 @@ class QiscusSDK {
     required int roomId,
     required int messageId,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = updateMessageStatusImpl(
       roomId,
       messageId,
@@ -551,7 +527,7 @@ class QiscusSDK {
     await fromTask(t1)(t2).runOrThrow();
   }
 
-  Stream<int> onChatRoomCleared(void Function(int) handler) async* {
+  Stream<int> onChatRoomCleared() async* {
     yield* _roomCleared$;
   }
 
@@ -599,7 +575,7 @@ class QiscusSDK {
     required int roomId,
     required Map<String, dynamic> payload,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = publishCustomEventImpl(roomId, payload).run(_mqtt);
 
     await fromTask(t1)(t2).runOrThrow();
@@ -608,10 +584,9 @@ class QiscusSDK {
   Future<void> publishOnlinePresence({
     required bool isOnline,
   }) async {
-    waitTillAuthenticatedImpl()
-        .local((Tuple2<MqttClient, Storage> r) => r.second)
+    waitTillAuthenticatedImpl
         .call(publishOnlinePresenceImpl(isOnline))
-        .run(Tuple2(_mqtt, _storage))
+        .run(_deps)
         .runOrThrow();
   }
 
@@ -619,15 +594,15 @@ class QiscusSDK {
     required int roomId,
     bool? isTyping = true,
   }) async {
-    await waitTillAuthenticatedImpl().run(_storage).run();
+    await waitTillAuthenticatedImpl.run(_deps).run();
   }
 
   Future<bool> registerDeviceToken({
     required String token,
     bool? isDevelopment,
   }) async {
-    return waitTillAuthenticatedImpl()
-        .local<Dio>((_) => _storage)
+    return waitTillAuthenticatedImpl
+        .local<Dio>((_) => _deps)
         .call(registerDeviceTokenImpl(token, isDevelopment))
         .run(_dio)
         .runOrThrow();
@@ -637,8 +612,8 @@ class QiscusSDK {
     required String token,
     bool? isDevelopment,
   }) {
-    return waitTillAuthenticatedImpl()
-        .local((Dio _) => _storage)
+    return waitTillAuthenticatedImpl
+        .local((Dio _) => _deps)
         .call(unregisterDeviceTokenImpl(token, isDevelopment))
         .run(_dio)
         .runOrThrow();
@@ -648,8 +623,8 @@ class QiscusSDK {
     required int roomId,
     required List<String> userIds,
   }) async {
-    return waitTillAuthenticatedImpl()
-        .local((Dio _) => _storage)
+    return waitTillAuthenticatedImpl
+        .local((Dio _) => _deps)
         .call(removeParticipantImpl(roomId: roomId, userIds: userIds))
         .run(_dio)
         .map((it) => it.toList())
@@ -681,7 +656,7 @@ class QiscusSDK {
   Future<QMessage> sendMessage({
     required QMessage message,
   }) async {
-    var t1 = waitTillAuthenticatedImpl().run(_storage);
+    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = tryCatch(
       () => _triggerHook(QInterceptor.messageBeforeSent, message),
     );
@@ -722,7 +697,11 @@ class QiscusSDK {
     _storage.syncInterval = syncInterval.milliseconds;
     _storage.syncIntervalWhenConnected = syncIntervalWhenConnected.milliseconds;
 
-    await appConfigUseCase.run(_dio).runOrThrow();
+    await appConfigUseCase
+        .run(_dio)
+        .map((s) => s.run(_storage))
+        .map((it) => _storage = it.second)
+        .runOrThrow();
   }
 
   Future<QAccount> setUser({
@@ -778,37 +757,46 @@ class QiscusSDK {
   }
 
   Future<void> _connectMqtt() async {
+    print('connecting to mqtt');
     if (_storage.isRealtimeEnabled) {
       await _mqtt.connect();
     }
 
+    _mqtt.onConnected = () => print('::mqtt connected');
+    _mqtt.onSubscribed = (topic) => print('::mqtt subscribe $topic');
+    _mqtt.onSubscribeFail = (topic) => print('::mqtt sub fail $topic');
+    _mqtt.onDisconnected = () => print('::mqtt disconnected');
+    _mqtt.onUnsubscribed = (topic) => print('::mqtt unsub $topic');
+
     var token = _storage.token!;
-    await mqttSubscribeTopic(TopicBuilder.messageNew(token))
-        .call(mqttSubscribeTopic(TopicBuilder.notification(token)))
-        .call(mqttSubscribeTopic(TopicBuilder.messageUpdated(token)))
-        .run(_mqtt)
-        .toTask()
-        .runOrThrow();
+    var t1 = mqttSubscribeTopic(TopicBuilder.messageNew(token)).run(_mqtt);
+    var t2 = mqttSubscribeTopic(TopicBuilder.messageUpdated(token)).run(_mqtt);
+    var t3 = mqttSubscribeTopic(TopicBuilder.notification(token)).run(_mqtt);
+
+    t1(t2(t3)).runOrThrow();
   }
 
   void subscribeChatRoom(QChatRoom room) {
     var roomId = room.id.toString();
-    waitTillAuthenticatedImpl()
-        .local((MqttClient _) => _storage)
-        .call(mqttSubscribeTopic(TopicBuilder.messageRead(roomId)))
-        .call(mqttSubscribeTopic(TopicBuilder.messageDelivered(roomId)))
-        .call(mqttSubscribeTopic(TopicBuilder.typing(roomId, '+')))
+    // var state = _mqtt.connectionStatus?.state.toString();
+    var subs1 = mqttSubscribeTopic(TopicBuilder.messageRead(roomId));
+    var subs2 = mqttSubscribeTopic(TopicBuilder.messageDelivered(roomId));
+    var subs3 = mqttSubscribeTopic(TopicBuilder.typing(roomId, '+'));
+
+    waitTillAuthenticatedImpl
+        .local((MqttClient _) => _deps)
+        .call(subs1(subs2(subs3)))
         .run(_mqtt)
         .run();
   }
 
   void unsubscribeChatRoom(QChatRoom room) {
     var roomId = room.id.toString();
-    waitTillAuthenticatedImpl()
-        .local<MqttClient>((_) => _storage)
-        .call(mqttUnsubscribeTopic(TopicBuilder.messageRead(roomId)))
-        .call(mqttUnsubscribeTopic(TopicBuilder.messageDelivered(roomId)))
-        .call(mqttUnsubscribeTopic(TopicBuilder.typing(roomId, '+')))
+    waitTillAuthenticatedImpl
+        .local<MqttClient>((_) => _deps)
+        .call(mqttUnsubscribeTopic(TopicBuilder.messageRead(roomId)).call(
+            mqttUnsubscribeTopic(TopicBuilder.messageDelivered(roomId))
+                .call(mqttUnsubscribeTopic(TopicBuilder.typing(roomId, '+')))))
         .run(_mqtt)
         .run();
   }
@@ -817,10 +805,9 @@ class QiscusSDK {
     required int roomId,
   }) async* {
     var topic = TopicBuilder.customEvent(roomId);
-    var stream = waitTillAuthenticatedImpl()
-        .local<MqttClient>((_) => _storage)
-        .call(mqttSubscribeTopic(topic))
-        .call(mqttForTopic(topic))
+    var stream = waitTillAuthenticatedImpl
+        .local<MqttClient>((_) => _deps)
+        .call(mqttSubscribeTopic(topic).call(mqttForTopic(topic)))
         .run(_mqtt)
         .run();
 
@@ -831,48 +818,48 @@ class QiscusSDK {
 
   void unsubscribeCustomEvent({required int roomId}) {
     var topic = TopicBuilder.customEvent(roomId);
-    waitTillAuthenticatedImpl()
-        .local<MqttClient>((_) => _storage)
+    waitTillAuthenticatedImpl
+        .local<MqttClient>((_) => _deps)
         .call(mqttUnsubscribeTopic(topic))
         .run(_mqtt)
         .run();
   }
 
   void subscribeUserOnlinePresence(String userId) {
-    waitTillAuthenticatedImpl()
-        .local<MqttClient>((_) => _storage)
+    waitTillAuthenticatedImpl
+        .local<MqttClient>((_) => _deps)
         .call(mqttSubscribeTopic(TopicBuilder.presence(userId)))
         .run(_mqtt)
         .runOrThrow();
   }
 
   void unsubscribeUserOnlinePresence(String userId) {
-    waitTillAuthenticatedImpl()
-        .local<MqttClient>((_) => _storage)
+    waitTillAuthenticatedImpl
+        .local<MqttClient>((_) => _deps)
         .call(mqttUnsubscribeTopic(TopicBuilder.presence(userId)))
         .run(_mqtt)
         .run();
   }
 
   void synchronize({String? lastMessageId}) async {
-    await waitTillAuthenticatedImpl()
-        .local<Dio>((_) => _storage)
+    await waitTillAuthenticatedImpl
+        .local<Dio>((_) => _deps)
         .call(synchronizeImpl(lastMessageId))
         .run(_dio)
         .run();
   }
 
   void synchronizeEvent({String? lastEventId}) async {
-    await waitTillAuthenticatedImpl()
-        .local<Dio>((_) => _storage)
+    await waitTillAuthenticatedImpl
+        .local<Dio>((_) => _deps)
         .call(synchronizeEventImpl(int.tryParse(lastEventId ?? '')))
         .run(_dio)
         .run();
   }
 
   Future<QUser> unblockUser({required String userId}) {
-    return waitTillAuthenticatedImpl()
-        .local<Dio>((_) => _storage)
+    return waitTillAuthenticatedImpl
+        .local<Dio>((_) => _deps)
         .call(unblockUserImpl(userId))
         .run(_dio)
         .runOrThrow();
@@ -884,8 +871,8 @@ class QiscusSDK {
     String? avatarUrl,
     Map<String, dynamic>? extras,
   }) {
-    return waitTillAuthenticatedImpl()
-        .local<Dio>((_) => _storage)
+    return waitTillAuthenticatedImpl
+        .local<Dio>((_) => _deps)
         .call(updateChatRoomImpl(
           roomId: roomId,
           name: name,
@@ -905,8 +892,8 @@ class QiscusSDK {
     String? avatarUrl,
     Map<String, dynamic>? extras,
   }) {
-    return waitTillAuthenticatedImpl()
-        .local<Dio>((_) => _storage)
+    return waitTillAuthenticatedImpl
+        .local<Dio>((_) => _deps)
         .call(updateUserImpl(name: name, avatarUrl: avatarUrl, extras: extras))
         .run(_dio)
         .map((state) {
@@ -917,8 +904,8 @@ class QiscusSDK {
   }
 
   Future<QMessage> updateMessage({required QMessage message}) {
-    return waitTillAuthenticatedImpl()
-        .local<Dio>((_) => _storage)
+    return waitTillAuthenticatedImpl
+        .local<Dio>((_) => _deps)
         .call(updateMessageImpl(message))
         .run(_dio)
         .map((state) {
@@ -962,8 +949,8 @@ class QiscusSDK {
     int? page,
     int? limit,
   }) async {
-    return waitTillAuthenticatedImpl()
-        .local<Dio>((_) => _storage)
+    return waitTillAuthenticatedImpl
+        .local<Dio>((_) => _deps)
         .call(getFileListImpl(
           roomIds: roomIds,
           fileType: fileType,
@@ -1127,12 +1114,6 @@ class QChatRoomWithMessages with EquatableMixin {
 
   @override
   List<Object> get props => [room, messages];
-}
-
-extension _Task<L extends String, R> on Task<Either<L, R>> {
-  Future<R> runOrThrow() async {
-    return run().then((it) => it.toThrow());
-  }
 }
 
 extension _TaskEither<L extends String, R> on TaskEither<L, R> {

@@ -15,4 +15,5 @@ RTE<AppConfig> getAppConfig = Reader((dio) {
   });
 });
 
-RTE<State<Storage, void>> appConfigUseCase = getAppConfig.map((task) => task.map((config) => config.hydrate()));
+RTE<State<Storage, void>> appConfigUseCase = getAppConfig
+.map((task) => task.map((config) => config.hydrate()));

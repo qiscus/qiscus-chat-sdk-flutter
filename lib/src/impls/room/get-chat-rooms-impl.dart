@@ -24,6 +24,9 @@ ReaderTaskEither<Dio, String, Iterable<QChatRoom>> getChatRoomsImpl({
       var req = GetRoomInfoRequest(
         roomIds: roomIds?.toList(),
         uniqueIds: uniqueIds?.toList(),
+        page: page,
+        withParticipants: showParticipants,
+        withRemoved: showRemoved,
       );
 
       return req(dio);

@@ -18,7 +18,7 @@ QMessage messageFromJson(Json json) {
         return QMessageStatus.sent;
     }
   }).getOrElse(() => QMessageStatus.sent);
-  var type = Option.of(json['type'] as String).map((type) {
+  var type = Option.of(json['type'] as String?).map((type) {
     switch (type) {
       case 'custom':
         return QMessageType.custom;

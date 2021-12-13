@@ -1,6 +1,6 @@
 part of qiscus_chat_sdk.core;
 
-const defaultBaseUrl = 'https://api.qiscus.com';
+const defaultBaseUrl = 'https://api3.qiscus.com';
 const defaultUploadUrl = '$defaultBaseUrl/api/v2/sdk/upload';
 const defaultBrokerUrl = 'realtime-bali.qiscus.com';
 const defaultBrokerLbUrl = 'https://realtime-lb.qiscus.com';

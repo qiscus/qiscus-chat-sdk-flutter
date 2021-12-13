@@ -6,10 +6,10 @@ ReaderTaskEither<Dio, String, Unit> clearMessagesImpl(
   List<String> roomUniqueIds,
 ) {
   return Reader((Dio dio) {
-    return TaskEither.tryCatch(() async {
+    return tryCatch(() async {
       var req = ClearMessagesRequest(roomUniqueIds);
       return req(dio).then((_) => unit);
-    }, (e, _) => e.toString());
+    });
   });
 }
 

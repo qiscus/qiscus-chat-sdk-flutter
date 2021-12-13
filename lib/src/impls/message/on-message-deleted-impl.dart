@@ -2,73 +2,69 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:fpdart/fpdart.dart';
-import 'package:mqtt_client/mqtt_client.dart' hide MessageReceived;
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/message/message-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/mqtt-impls.dart';
 import 'package:qiscus_chat_sdk/src/impls/sync.dart';
 
-
 final mqttMessageDeletedTransformerImpl = StreamTransformer<QMqttMessage,
-        State<Iterable<QMessage>, QMessage?>>.fromBind(
-    (Stream<QMqttMessage> stream) => stream
-        .transform(_mqttMessageDeletedTransformerImpl)
-        .transform(_eventReceiveProcess));
+State<Iterable<QMessage>, QMessage?>>.fromBind((stream) {
+  return stream
+  .where((it) => reNotification.hasMatch(it.topic))
+      .transform(_mqttMessageDeletedTransformerImpl)
+      .transform(_eventReceiveProcess);
+});
 
 StreamTransformer<QMessageDeletedEvent, State<Iterable<QMessage>, QMessage?>>
-    _eventReceiveProcess = StreamTransformer.fromBind(
-  (stream) async* {
-    await for (var data in stream) {
-      yield State((Iterable<QMessage> messages) {
-        var message =
-            messages.firstWhere((it) => it.uniqueId == data.messageUniqueId);
-        var _messages =
-            messages.where((it) => it.uniqueId != data.messageUniqueId);
-        return Tuple2(message, _messages);
-      });
-    }
+_eventReceiveProcess = StreamTransformer.fromHandlers(
+  handleData: (data, sink) {
+    sink.add(State((Iterable<QMessage> messages) {
+      var message =
+          messages.firstWhere((it) => it.uniqueId == data.messageUniqueId);
+      var _messages =
+          messages.where((it) => it.uniqueId != data.messageUniqueId);
+      return Tuple2(message, _messages);
+    }));
   },
 );
 
 var _syncEventReceived =
-    StreamTransformer<QRealtimeEvent, QMessageDeletedEvent>.fromBind(
-  (stream) async* {
-    await for (var event in stream) {
-      yield* event.fold(
-        messageDeleted: (_) => Stream.empty(),
-        messageDelivered: (e) =>
-            Stream.value(QMessageDeletedEvent(e.messageId, e.messageUniqueId)),
-        roomCleared: (_) => Stream.empty(),
-        unknown: (_) => Stream.empty(),
-        messageRead: (_) => Stream.empty(),
-      );
-    }
+    StreamTransformer<QRealtimeEvent, QMessageDeletedEvent>.fromHandlers(
+  handleData: (event, sink) {
+    event.flow(
+      messageDeleted: (_) {},
+      messageDelivered: (e) {
+        sink.add(QMessageDeletedEvent(e.messageId, e.messageUniqueId));
+      },
+      roomCleared: (_) {},
+      unknown: (_) {},
+      messageRead: (_) {},
+    );
   },
 );
-var syncMessageDeletedTransformerImpl = StreamTransformer<QRealtimeEvent,
-    State<Iterable<QMessage>, QMessage?>>.fromBind((stream) {
+var syncMessageDeletedTransformerImpl =
+StreamTransformer<QRealtimeEvent, State<Iterable<QMessage>, QMessage?>>.fromBind((stream) {
   return stream //
       .transform(_syncEventReceived)
       .transform(_eventReceiveProcess);
 });
 
 final _mqttMessageDeletedTransformerImpl =
-    StreamTransformer<QMqttMessage, QMessageDeletedEvent>.fromBind(
-  (stream) async* {
-    await for (var data in stream) {
-      var json = jsonDecode(data.payload) as Map<String, dynamic>;
-      var actionType = json['action_topic'] as String;
-      var payload = json['payload'] as Map<String, dynamic>;
+StreamTransformer<QMqttMessage, QMessageDeletedEvent>.fromHandlers(
+  handleData: (data, sink) {
 
-      if (actionType == 'delete_message') {
-        var mPayload = (payload['data']['deleted_messages'] as List)
-            .cast<Map<String, dynamic>>();
-        for (var m in mPayload) {
-          var roomId = int.parse(m['room_id'] as String);
-          var uniqueIds = (m['message_unique_ids'] as List).cast<String>();
-          for (var uniqueId in uniqueIds) {
-            yield QMessageDeletedEvent(roomId, uniqueId);
-          }
+    var json = jsonDecode(data.payload) as Map<String, dynamic>;
+    var actionType = json['action_topic'] as String;
+    var payload = json['payload'] as Map<String, dynamic>;
+
+    if (actionType == 'delete_message') {
+      var mPayload = (payload['data']['deleted_messages'] as List)
+          .cast<Map<String, dynamic>>();
+      for (var m in mPayload) {
+        var roomId = int.parse(m['room_id'] as String);
+        var uniqueIds = (m['message_unique_ids'] as List).cast<String>();
+        for (var uniqueId in uniqueIds) {
+          sink.add(QMessageDeletedEvent(roomId, uniqueId));
         }
       }
     }
