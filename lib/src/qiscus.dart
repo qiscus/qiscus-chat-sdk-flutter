@@ -30,7 +30,6 @@ import 'impls/message/send-message-impl.dart';
 import 'impls/message/update-message-impl.dart';
 import 'impls/message/update-message-status-impl.dart';
 import 'impls/mqtt-impls.dart';
-import 'impls/non-null-stream-transformer.dart';
 import 'impls/room/add-participants.dart';
 import 'impls/room/chat-user-impl.dart';
 import 'impls/room/clear-messages-impl.dart';

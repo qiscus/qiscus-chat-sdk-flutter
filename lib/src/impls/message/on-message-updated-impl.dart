@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:fpdart/fpdart.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/message/message-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/message/message-from-json-impl.dart';
 import 'package:qiscus_chat_sdk/src/impls/mqtt-impls.dart';
-import 'package:qiscus_chat_sdk/src/impls/sync.dart';
 
 final StreamTransformer<QMqttMessage, State<Iterable<QMessage>, QMessage>>
 mqttMessageUpdatedTransformerImpl =
