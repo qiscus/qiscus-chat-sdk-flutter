@@ -1,3 +1,7 @@
+# 1.0.19
+
+- fix not listening to some events when 2 or more qiscus sdk are initialized
+
 # 1.0.18
 
 - fix error on appconfig failing `setup` process
