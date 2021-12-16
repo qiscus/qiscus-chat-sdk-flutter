@@ -28,32 +28,13 @@ class MqttServiceImpl implements IRealtimeService {
   final List<String> _unsubscriptionBuffer = [];
   bool _isForceClosed = false;
 
-  MqttServiceImpl(this._getClient, this._s, this._logger, this._dio) {
-    _mqtt.onConnected = () {
-      log('@mqtt connected to ${_mqtt.server}:${_mqtt.port}');
-    };
-    _mqtt.onDisconnected = () {
-      log('@mqtt.disconnected(${_mqtt.connectionStatus})');
-      _onDisconnected(_mqtt.connectionStatus);
-    };
-    _mqtt.onSubscribed = (topic) {
-      _subscriptions.update(topic, (it) => it + 1, ifAbsent: () => 1);
-      log('@mqtt.subscribed($topic)');
-    };
-    _mqtt.onUnsubscribed = (topic) {
-      _subscriptions.update(topic, (it) => it - 1, ifAbsent: () => 0);
-      _subscriptions.removeWhere((it, count) => it == topic && count <= 0);
-      log('@mqtt-unsubscribed($topic)');
-    };
-    _mqtt.onSubscribeFail = (topic) {
-      log('@mqtt.subscribe-fail($topic)');
-    };
-  }
+  MqttServiceImpl(this._getClient, this._s, this._logger, this._dio);
 
   @override
   bool get isConnected {
-    var mqttConnected = _mqtt?.connectionStatus?.state == MqttConnectionState.connected ??
-        false;
+    var mqttConnected =
+        _mqtt?.connectionStatus?.state == MqttConnectionState.connected ??
+            false;
 
     return mqttConnected || _isForceClosed;
   }
@@ -82,6 +63,26 @@ class MqttServiceImpl implements IRealtimeService {
       log('connecting to mqtt (${_mqtt.server})');
       var status = await _mqtt.connect();
       log('connected to mqtt: $status');
+
+      _mqtt.onConnected = () {
+        log('@mqtt connected to ${_mqtt.server}:${_mqtt.port}');
+      };
+      _mqtt.onDisconnected = () {
+        log('@mqtt.disconnected(${_mqtt.connectionStatus})');
+        _onDisconnected(_mqtt.connectionStatus);
+      };
+      _mqtt.onSubscribed = (topic) {
+        _subscriptions.update(topic, (it) => it + 1, ifAbsent: () => 1);
+        log('@mqtt.subscribed($topic)');
+      };
+      _mqtt.onUnsubscribed = (topic) {
+        _subscriptions.update(topic, (it) => it - 1, ifAbsent: () => 0);
+        _subscriptions.removeWhere((it, count) => it == topic && count <= 0);
+        log('@mqtt-unsubscribed($topic)');
+      };
+      _mqtt.onSubscribeFail = (topic) {
+        log('@mqtt.subscribe-fail($topic)');
+      };
     } on NoConnectionException catch (error) {
       log('got mqtt error while connecting: $error');
       log('-> server: ${_mqtt.server}');
@@ -115,7 +116,7 @@ class MqttServiceImpl implements IRealtimeService {
     _mqtt.disconnect();
   }
 
-  void log(String str) => _logger.log('MqttServiceImpl::- $str');
+  void log(String str) => _logger.log(str);
 
   @override
   Stream<bool> onConnected() async* {

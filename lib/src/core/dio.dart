@@ -22,7 +22,7 @@ Dio getDio(Storage storage, Logger logger) {
   );
   var curl = InterceptorsWrapper(
     onRequest: (request, handler) {
-      logger.log('QiscusSDK ->: ${dio2curl(request)}');
+      logger.log(dio2curl(request));
       return handler.next(request);
     },
   );

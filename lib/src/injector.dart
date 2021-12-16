@@ -1,116 +1,88 @@
 part of qiscus_chat_sdk;
 
-
 class Injector {
   final c = GetIt.asNewInstance();
 
-  void singleton<T>(T Function() inst, [String name]) {
-    c.registerLazySingleton<T>(inst, instanceName: name);
-  }
-
-  void factory_<T>(T Function() inst, [String name]) {
-    c.registerFactory(inst, instanceName: name);
-  }
-
-  T resolve<T>([String name]) {
+  T get<T>([String name]) {
     return c.get<T>(instanceName: name);
   }
 
-  T get<T>([String name]) {
-    return resolve<T>(name);
-  }
-
   void setup() {
-    c.allowReassignment = true;
+    // c.allowReassignment = true;
     _configure();
   }
 
-  void configureCore() {
-    // core
-    singleton(() => Storage());
-    factory_(() => Logger(resolve()));
-  }
-
   void _configure() {
-    singleton<Dio>(() => getDio(resolve(), resolve()));
-    factory_<MqttClient>(() => getMqttClient(resolve()));
-    singleton(() => AppConfigRepository(dio: resolve()));
-    singleton(() => AppConfigUseCase(resolve(), resolve()));
+    c.registerLazySingleton(() => Storage());
+    c.registerLazySingleton(() => Logger(c.get()));
+    c.registerLazySingleton(() => getDio(c.get(), c.get()));
+    c.registerLazySingleton(() => getMqttClient(c.get()));
+    c.registerLazySingleton(() => AppConfigRepository(dio: c.get()));
+    c.registerLazySingleton(() => AppConfigUseCase(c.get(), c.get()));
 
     // realtime
-    singleton(() => MqttServiceImpl(
-          () => resolve(),
-          resolve(),
-          resolve(),
-          resolve(),
+    c.registerLazySingleton(() => MqttServiceImpl(
+          () => c.get(),
+          c.get(),
+          c.get(),
+          c.get(),
         ));
-    singleton(() => Interval(
-          resolve(),
-          resolve<MqttServiceImpl>(),
+    c.registerLazySingleton(() => Interval(
+          c.get(),
+          c.get<MqttServiceImpl>(),
         ));
-    singleton(() => SyncServiceImpl(
-          storage: resolve(),
-          interval: resolve(),
-          logger: resolve(),
-          dio: resolve(),
+    c.registerLazySingleton(() => SyncServiceImpl(
+          storage: c.get(),
+          interval: c.get(),
+          logger: c.get(),
+          dio: c.get(),
         ));
-    singleton<IRealtimeService>(() => RealtimeServiceImpl(
-          resolve<MqttServiceImpl>(),
-          resolve<SyncServiceImpl>(),
-        ));
-    singleton(() => OnConnected(resolve()));
-    singleton(() => OnDisconnected(resolve()));
-    singleton(() => OnReconnecting(resolve()));
+    c.registerSingleton<IRealtimeService>(RealtimeServiceImpl(
+      c.get<MqttServiceImpl>(),
+      c.get<SyncServiceImpl>(),
+    ));
+    c.registerLazySingleton(() => OnConnected(c.get()));
+    c.registerLazySingleton(() => OnDisconnected(c.get()));
+    c.registerLazySingleton(() => OnReconnecting(c.get()));
 
     // room
-    factory_<IRoomRepository>(() => RoomRepositoryImpl(
-          dio: resolve(),
-          storage: resolve(),
-        ));
-    factory_(() => OnRoomMessagesCleared(resolve()));
+    c.registerSingleton<IRoomRepository>(RoomRepositoryImpl(
+      dio: c.get(),
+      storage: c.get(),
+    ));
+    c.registerLazySingleton(() => OnRoomMessagesCleared(c.get()));
 
     // user
-    singleton<IUserRepository>(() => UserRepositoryImpl(resolve()));
-    factory_(() => AuthenticateUserUseCase(
-          resolve<IUserRepository>(),
-          resolve(),
-        ));
-    factory_(() => AuthenticateUserWithTokenUseCase(
-          resolve<IUserRepository>(),
-          resolve(),
-        ));
-    factory_(() => BlockUserUseCase(resolve()));
-    factory_(() => UnblockUserUseCase(resolve()));
-    factory_(() => GetBlockedUserUseCase(resolve()));
-    factory_(() => GetNonceUseCase(resolve()));
-    factory_(() => GetUserDataUseCase(resolve()));
-    factory_(() => GetUsersUseCase(resolve()));
-    factory_(() => RegisterDeviceTokenUseCase(resolve()));
-    factory_(() => UnregisterDeviceTokenUseCase(resolve()));
-    factory_(() => UpdateUserUseCase(
-          resolve(),
-          resolve(),
-        ));
-    singleton(() => TypingUseCase(resolve()));
-    singleton(() => PresenceUseCase(resolve()));
+    c.registerSingleton<IUserRepository>(UserRepositoryImpl(c.get()));
+    c.registerLazySingleton(() => AuthenticateUserUseCase(c.get(), c.get()));
+    c.registerLazySingleton(
+        () => AuthenticateUserWithTokenUseCase(c.get(), c.get()));
+    c.registerLazySingleton(() => BlockUserUseCase(c.get()));
+    c.registerLazySingleton(() => UnblockUserUseCase(c.get()));
+    c.registerLazySingleton(() => GetBlockedUserUseCase(c.get()));
+    c.registerLazySingleton(() => GetNonceUseCase(c.get()));
+    c.registerLazySingleton(() => GetUserDataUseCase(c.get()));
+    c.registerLazySingleton(() => GetUsersUseCase(c.get()));
+    c.registerLazySingleton(() => RegisterDeviceTokenUseCase(c.get()));
+    c.registerLazySingleton(() => UnregisterDeviceTokenUseCase(c.get()));
+    c.registerLazySingleton(() => UpdateUserUseCase(c.get(), c.get()));
+    c.registerLazySingleton(() => TypingUseCase(c.get()));
 
     // message
-    singleton<MessageRepository>(() => MessageRepositoryImpl(resolve()));
-    factory_(() => DeleteMessageUseCase(resolve()));
-    factory_(() => GetMessageListUseCase(resolve()));
-    factory_(() => SendMessageUseCase(resolve()));
-    factory_(() => UpdateMessageStatusUseCase(resolve()));
-    factory_(() => UpdateMessageUseCase(resolve()));
-    singleton(() => OnMessageReceived(
-          resolve(),
-          resolve<UpdateMessageStatusUseCase>(),
-        ));
-    singleton(() => OnMessageDelivered(resolve()));
-    singleton(() => OnMessageRead(resolve()));
-    singleton(() => OnMessageDeleted(resolve()));
-    singleton(() => OnMessageUpdated(resolve()));
+    c.registerSingleton<MessageRepository>(MessageRepositoryImpl(c.get()));
+    c.registerFactory(() => DeleteMessageUseCase(c.get()));
+    c.registerFactory(() => GetMessageListUseCase(c.get()));
+    c.registerFactory(() => SendMessageUseCase(c.get()));
+    c.registerFactory(() => UpdateMessageStatusUseCase(c.get()));
+    c.registerFactory(() => UpdateMessageUseCase(c.get()));
+    c.registerLazySingleton(() => PresenceUseCase(c.get()));
+    c.registerLazySingleton(() => OnMessageReceived(c.get(), c.get()));
+    c.registerLazySingleton(() => OnMessageDelivered(c.get()));
+    c.registerLazySingleton(() => OnMessageRead(c.get()));
+    c.registerLazySingleton(() => OnMessageDeleted(c.get()));
+    c.registerLazySingleton(() => OnMessageUpdated(c.get()));
 
     // custom event
-    singleton(() => CustomEventUseCase(resolve()));
+    c.registerLazySingleton(() => CustomEventUseCase(c.get()));
   }
 }

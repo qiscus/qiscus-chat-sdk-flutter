@@ -26,13 +26,9 @@ class RoomUniqueIdsParams extends Equatable {
 
 class OnMessageDeleted
     with SubscriptionMixin<IRealtimeService, TokenParams, Message> {
-  OnMessageDeleted._(this._service);
+  OnMessageDeleted(this._service);
 
   final IRealtimeService _service;
-
-  factory OnMessageDeleted(IRealtimeService s) =>
-      _instance ??= OnMessageDeleted._(s);
-  static OnMessageDeleted _instance;
 
   @override
   Stream<Message> mapStream(_) => repository //
@@ -49,12 +45,9 @@ class OnMessageDeleted
 
 class OnMessageRead
     with SubscriptionMixin<IRealtimeService, RoomIdParams, Message> {
-  OnMessageRead._(this._service);
+  OnMessageRead(this._service);
 
   final IRealtimeService _service;
-
-  factory OnMessageRead(IRealtimeService s) => _instance ??= OnMessageRead._(s);
-  static OnMessageRead _instance;
 
   @override
   Stream<Message> mapStream(RoomIdParams p) {
@@ -84,7 +77,7 @@ class TokenParams with EquatableMixin {
 
 class OnMessageReceived
     with SubscriptionMixin<IRealtimeService, TokenParams, Message> {
-  OnMessageReceived._(this._service, this._updateMessageStatus) {
+  OnMessageReceived(this._service, this._updateMessageStatus) {
     _receiveMessage = StreamTransformer.fromHandlers(
       handleData: (message, sink) async {
         sink.add(message);
@@ -106,15 +99,6 @@ class OnMessageReceived
   final UpdateMessageStatusUseCase _updateMessageStatus;
   StreamTransformer<Message, Message> _receiveMessage;
 
-  factory OnMessageReceived(
-    IRealtimeService s,
-    UpdateMessageStatusUseCase us,
-  ) {
-    return _instance ??= OnMessageReceived._(s, us);
-  }
-
-  static OnMessageReceived _instance;
-
   @override
   Stream<Message> mapStream(p) => repository //
       .subscribeMessageReceived()
@@ -131,14 +115,10 @@ class OnMessageReceived
 
 class OnMessageUpdated
     with SubscriptionMixin<IRealtimeService, TokenParams, Message> {
-  OnMessageUpdated._(this.repository);
+  OnMessageUpdated(this.repository);
 
-  static OnMessageUpdated _instance;
   @override
   final IRealtimeService repository;
-
-  factory OnMessageUpdated(IRealtimeService s) =>
-      _instance ??= OnMessageUpdated._(s);
 
   @override
   Stream<Message> mapStream(p) => repository.subscribeMessageUpdated();
@@ -151,13 +131,9 @@ class OnMessageUpdated
 
 class OnMessageDelivered
     with SubscriptionMixin<IRealtimeService, RoomIdParams, Message> {
-  OnMessageDelivered._(this._service);
+  OnMessageDelivered(this._service);
 
   final IRealtimeService _service;
-
-  factory OnMessageDelivered(IRealtimeService s) =>
-      _instance ??= OnMessageDelivered._(s);
-  static OnMessageDelivered _instance;
 
   @override
   Stream<Message> mapStream(RoomIdParams p) {

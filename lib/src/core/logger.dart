@@ -13,12 +13,13 @@ class Logger {
 
   QLogLevel get level => storage.logLevel;
   bool get enabled => storage.debugEnabled;
+  String get _appId => storage.appId;
 
   void log(String str) {
-    if (enabled) print(str);
+    if (enabled) print('QiscusSDK[$_appId] -- $str');
   }
 
   void debug(dynamic data) {
-    if (enabled) print(data);
+    if (enabled) print('QiscusSDK[$_appId] -- $data');
   }
 }

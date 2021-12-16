@@ -6,18 +6,17 @@ import 'dart:math';
 
 import 'package:async/async.dart';
 import 'package:dio/dio.dart';
-import 'package:get_it/get_it.dart';
 import 'package:flutter/widgets.dart' hide Interval, Notification;
-import 'package:mqtt_client/mqtt_client.dart';
+import 'package:get_it/get_it.dart';
 
-import 'core.dart';
 import 'app_config/app_config.dart';
+import 'core.dart';
 import 'custom_event/custom_event.dart';
 import 'message/message.dart';
 import 'realtime/realtime.dart';
 import 'room/room.dart';
-import 'user/user.dart';
 import 'type_utils.dart';
+import 'user/user.dart';
 
 part 'injector.dart';
 
@@ -94,7 +93,6 @@ class QiscusSDK {
   }
 
   QiscusSDK._internal() {
-    _injector.configureCore();
     _injector.setup();
   }
 
@@ -107,7 +105,9 @@ class QiscusSDK {
   IRoomRepository get _room$$ => __<IRoomRepository>();
   Storage get storage => __<Storage>();
 
-  void addHttpInterceptors(RequestOptions Function(RequestOptions, RequestInterceptorHandler) onRequest) {
+  void addHttpInterceptors(
+      RequestOptions Function(RequestOptions, RequestInterceptorHandler)
+          onRequest) {
     __<Dio>().interceptors.add(InterceptorsWrapper(
           onRequest: onRequest,
         ));
@@ -945,6 +945,7 @@ class QiscusSDK {
       callback(false);
     }
   }
+
   void openRealtimeConnection(void Function(bool) callback) async {
     try {
       await _authenticated;

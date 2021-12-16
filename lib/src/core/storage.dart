@@ -29,7 +29,7 @@ class Storage {
   var accSyncInterval = defaultAccInterval.milliseconds;
   var debugEnabled = false;
   var brokerLbEnabled = true;
-  String get userId => currentUser.id;
+  String get userId => currentUser?.id;
   var lastMessageId = 0;
   var lastEventId = 0;
   var enableEventReport = false;

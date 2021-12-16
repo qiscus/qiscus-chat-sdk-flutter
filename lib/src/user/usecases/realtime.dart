@@ -2,11 +2,7 @@ part of qiscus_chat_sdk.usecase.user;
 
 class TypingUseCase extends UseCase<IRealtimeService, void, UserTyping>
     with SubscriptionMixin<IRealtimeService, UserTyping, UserTyping> {
-  TypingUseCase._(IRealtimeService repository) : super(repository);
-
-  factory TypingUseCase(IRealtimeService repo) =>
-      _instance ??= TypingUseCase._(repo);
-  static TypingUseCase _instance;
+  TypingUseCase(IRealtimeService repository) : super(repository);
 
   @override
   Future<void> call(UserTyping params) {
@@ -35,11 +31,7 @@ class TypingUseCase extends UseCase<IRealtimeService, void, UserTyping>
 @immutable
 class PresenceUseCase extends UseCase<IRealtimeService, void, UserPresence>
     with SubscriptionMixin<IRealtimeService, UserPresence, UserPresence> {
-  PresenceUseCase._(IRealtimeService service) : super(service);
-  static PresenceUseCase _instance;
-
-  factory PresenceUseCase(IRealtimeService service) =>
-      _instance ??= PresenceUseCase._(service);
+  PresenceUseCase(IRealtimeService service) : super(service);
 
   @override
   Future<void> call(UserPresence params) {

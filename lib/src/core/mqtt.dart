@@ -1,7 +1,7 @@
 part of qiscus_chat_sdk.core;
 
 MqttClient getMqttClient(Storage storage) {
-  final clientId = getClientId();
+  final clientId = getClientId(storage.appId);
   final connectionMessage = getConnectionMessage(clientId, storage?.userId);
   final brokerUrl = storage.brokerUrl;
 
@@ -16,9 +16,9 @@ MqttClient getMqttClient(Storage storage) {
       ;
 }
 
-String getClientId([int millis]) {
+String getClientId(String appId, [int millis]) {
   var _millis = millis ?? DateTime.now().millisecondsSinceEpoch;
-  return 'flutter-sdk-$_millis';
+  return 'flutter-[$appId]-$_millis';
 }
 
 MqttConnectMessage getConnectionMessage(String clientId, String userId) {

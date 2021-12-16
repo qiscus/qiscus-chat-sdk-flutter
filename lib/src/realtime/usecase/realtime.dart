@@ -1,11 +1,7 @@
 part of qiscus_chat_sdk.usecase.realtime;
 
 class OnConnected with SubscriptionMixin<IRealtimeService, NoParams, void> {
-  OnConnected._(this._repo);
-
-  factory OnConnected(IRealtimeService repo) =>
-      _instance ??= OnConnected._(repo);
-  static OnConnected _instance;
+  OnConnected(this._repo);
   final IRealtimeService _repo;
 
   @override
@@ -19,12 +15,8 @@ class OnConnected with SubscriptionMixin<IRealtimeService, NoParams, void> {
 }
 
 class OnDisconnected with SubscriptionMixin<IRealtimeService, NoParams, void> {
-  OnDisconnected._(this._repo);
+  OnDisconnected(this._repo);
   final IRealtimeService _repo;
-
-  factory OnDisconnected(IRealtimeService repo) =>
-      _instance ??= OnDisconnected._(repo);
-  static OnDisconnected _instance;
 
   @override
   IRealtimeService get repository => _repo;
@@ -37,13 +29,9 @@ class OnDisconnected with SubscriptionMixin<IRealtimeService, NoParams, void> {
 }
 
 class OnReconnecting with SubscriptionMixin<IRealtimeService, NoParams, void> {
-  OnReconnecting._(this._repo);
+  OnReconnecting(this._repo);
 
   final IRealtimeService _repo;
-
-  factory OnReconnecting(IRealtimeService repo) =>
-      _instance ??= OnReconnecting._(repo);
-  static OnReconnecting _instance;
 
   @override
   IRealtimeService get repository => _repo;

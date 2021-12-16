@@ -2,10 +2,7 @@ part of qiscus_chat_sdk.usecase.room;
 
 class OnRoomMessagesCleared
     with SubscriptionMixin<IRealtimeService, TokenParams, Option<int>> {
-  OnRoomMessagesCleared._(this._service);
-  factory OnRoomMessagesCleared(IRealtimeService s) =>
-      _instance ??= OnRoomMessagesCleared._(s);
-  static OnRoomMessagesCleared _instance;
+  OnRoomMessagesCleared(this._service);
   final IRealtimeService _service;
 
   @override
