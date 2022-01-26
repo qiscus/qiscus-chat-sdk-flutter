@@ -1,3 +1,8 @@
+# 1.0.20
+
+- improve mqtt connection
+- add roomType to method `getAllChatRooms`
+
 # 1.0.19
 
 - fix not listening to some events when 2 or more qiscus sdk are initialized
