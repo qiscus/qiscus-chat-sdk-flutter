@@ -31,6 +31,7 @@ abstract class IRoomRepository {
     bool withRemovedRoom,
     int limit,
     int page,
+    QRoomType roomType,
   });
 
   Future<ChatRoom> getOrCreateChannel({

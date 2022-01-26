@@ -247,6 +247,7 @@ class QiscusSDK {
     bool showEmpty,
     int limit,
     int page,
+    QRoomType roomType,
     @required void Function(List<QChatRoom>, Exception) callback,
   }) {
     Future.sync(() async {
@@ -257,6 +258,7 @@ class QiscusSDK {
         withEmptyRoom: showEmpty,
         limit: limit,
         page: page,
+        roomType: roomType,
       );
       return res.map((r) => r.toModel()).toList();
     }).toCallback2(callback);

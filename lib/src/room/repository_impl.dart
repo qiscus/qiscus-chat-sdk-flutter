@@ -83,6 +83,7 @@ class RoomRepositoryImpl implements IRoomRepository {
     bool withRemovedRoom,
     int limit,
     int page,
+    QRoomType roomType,
   }) async {
     await storage.authenticated$;
     var request = GetAllRoomRequest(
@@ -91,6 +92,7 @@ class RoomRepositoryImpl implements IRoomRepository {
       withRemovedRoom: withRemovedRoom,
       limit: limit,
       page: page,
+      roomType: roomType,
     );
 
     return dio.sendApiRequest(request).then(request.format);

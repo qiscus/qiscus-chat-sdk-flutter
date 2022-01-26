@@ -231,6 +231,7 @@ extension XQiscusSDK on QiscusSDK {
     bool showEmpty,
     int limit,
     int page,
+    QRoomType roomType,
   }) async {
     return futurify2((cb) {
       getAllChatRooms(
@@ -240,6 +241,7 @@ extension XQiscusSDK on QiscusSDK {
         showEmpty: showEmpty,
         limit: limit,
         page: page,
+        roomType: roomType,
       );
     });
   }

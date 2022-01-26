@@ -163,6 +163,7 @@ class GetAllRoomRequest extends IApiRequest<List<ChatRoom>> {
     this.withRemovedRoom,
     this.limit,
     this.page,
+    this.roomType,
   });
 
   final bool withParticipants;
@@ -170,6 +171,7 @@ class GetAllRoomRequest extends IApiRequest<List<ChatRoom>> {
   final bool withRemovedRoom;
   final int limit;
   final int page;
+  final QRoomType roomType;
 
   @override
   String get url => 'user_rooms';
@@ -182,6 +184,7 @@ class GetAllRoomRequest extends IApiRequest<List<ChatRoom>> {
         'show_participants': withParticipants,
         'show_empty': withEmptyRoom,
         'show_removed': withRemovedRoom,
+        'room_type': roomType?.toApiString,
         'limit': limit,
         'page': page,
       };
@@ -367,5 +370,19 @@ class UpdateRoomRequest extends IApiRequest<ChatRoom> {
   @override
   ChatRoom format(Map<String, dynamic> json) {
     return ChatRoom.fromJson(json['results']['room'] as Map<String, dynamic>);
+  }
+}
+
+extension on QRoomType {
+  String get toApiString {
+    switch (this) {
+      case QRoomType.group:
+        return 'group';
+      case QRoomType.channel:
+        return 'public_channel';
+      case QRoomType.single:
+      default:
+        return 'single';
+    }
   }
 }
