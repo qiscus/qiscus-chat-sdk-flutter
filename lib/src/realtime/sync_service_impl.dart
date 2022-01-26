@@ -30,7 +30,8 @@ class SyncServiceImpl implements IRealtimeService {
       .tap((_) => log('QiscusSyncAdapter: synchronize-event'))
       .map((data) => data.second)
       .expand((it) => it)
-      .asBroadcastStream();
+      .asBroadcastStream()
+      .handleError((dynamic _) {});
 
   Stream<Message> get _sync$ => _interval$
       .map((_) => dio(SynchronizeRequest(lastMessageId: _messageId)).asStream())
@@ -39,7 +40,8 @@ class SyncServiceImpl implements IRealtimeService {
       .tap((_) => log('QiscusSyncAdapter: synchronize'))
       .map((it) => it.second)
       .expand((it) => it)
-      .asBroadcastStream();
+      .asBroadcastStream()
+      .handleError((dynamic _) {});
 
   Stream<MessageReadEvent> get _messageRead$ => _syncEvent$ //
       .where((event) => event is MessageReadEvent)

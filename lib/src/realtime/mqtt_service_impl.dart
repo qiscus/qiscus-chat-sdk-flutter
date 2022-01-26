@@ -30,6 +30,13 @@ class MqttServiceImpl implements IRealtimeService {
 
   MqttServiceImpl(this._getClient, this._s, this._logger, this._dio);
 
+  Stream<MqttConnectionState> mqttConnectionState() {
+    return Stream.periodic(
+      const Duration(milliseconds: 300),
+      (_) => _mqtt.connectionStatus.state,
+    ).distinct();
+  }
+
   @override
   bool get isConnected {
     var mqttConnected =
@@ -44,12 +51,16 @@ class MqttServiceImpl implements IRealtimeService {
     return Stream.periodic(timer, (_) => isConnected).distinct();
   }
 
+  Stream<bool> get _connectedState => mqttConnectionState()
+      .map((state) => state == MqttConnectionState.connected);
+  Stream<bool> get _connectingState => mqttConnectionState()
+      .map((state) => state == MqttConnectionState.connecting);
+  Stream<bool> get _disconnectedState => mqttConnectionState()
+      .map((state) => state == MqttConnectionState.disconnected);
+
   Future<bool> get _isConnected {
     if (_s.isRealtimeEnabled) {
-      var timer = const Duration(milliseconds: 10);
-      return Stream.periodic(timer, (_) => _mqtt.isConnected)
-          .distinct()
-          .firstWhere((it) => it == true);
+      return _connectedState.firstWhere((it) => it);
     } else {
       return Future<bool>.value(false);
     }
@@ -57,20 +68,41 @@ class MqttServiceImpl implements IRealtimeService {
 
   MqttClient get _mqtt => __mqtt ??= _getClient();
 
+  StreamSubscription _connectedStateSubscription;
+  StreamSubscription _disconnectedStateSubscription;
+  StreamSubscription _connectingStateSubscription;
+
   @override
   Future<void> connect() async {
+    await _connectedStateSubscription?.cancel();
+    await _disconnectedStateSubscription?.cancel();
+    await _connectingStateSubscription?.cancel();
+
     try {
       log('connecting to mqtt (${_mqtt.server})');
       var status = await _mqtt.connect();
       log('connected to mqtt: $status');
 
-      _mqtt.onConnected = () {
-        log('@mqtt connected to ${_mqtt.server}:${_mqtt.port}');
-      };
-      _mqtt.onDisconnected = () {
+      // ignore: unawaited_futures
+      _connectedStateSubscription = _connectedState.where((it) => it).listen((_) {
+        // print('QiscusSDK::MqttServiceImpl::onConnected => ${_mqtt.server}');
+        log('@mqtt.connected(${_mqtt.server}:${_mqtt.port})');
+      });
+
+      // ignore: unawaited_futures
+      _disconnectedStateSubscription = _disconnectedState.where((it) => it).listen((_) {
+        // print('QiscusSDK::MqttServiceImpl::onDisconnected => ${_mqtt.connectionStatus}');
         log('@mqtt.disconnected(${_mqtt.connectionStatus})');
         _onDisconnected(_mqtt.connectionStatus);
-      };
+      });
+
+      // ignore: unawaited_futures
+      _connectingStateSubscription = _connectingState.where((it) => it).listen((_) {
+        // print('QiscusSDK::MqttServiceImpl::onConnecting => ${_mqtt.connectionStatus}');
+        log('@mqtt.connecting(${_mqtt.connectionStatus})');
+        // _onConnecting(_mqtt.connectionStatus);
+      });
+
       _mqtt.onSubscribed = (topic) {
         _subscriptions.update(topic, (it) => it + 1, ifAbsent: () => 1);
         log('@mqtt.subscribed($topic)');
@@ -104,7 +136,11 @@ class MqttServiceImpl implements IRealtimeService {
 
   @override
   Future<void> end() async {
+    await _connectedStateSubscription?.cancel();
+    await _disconnectedStateSubscription?.cancel();
+    await _connectingStateSubscription?.cancel();
     await _logSubscription?.cancel();
+
     for (var subs in _subscriptions.entries) {
       var status = _mqtt.getSubscriptionsStatus(subs.key);
       if (status == MqttSubscriptionStatus.active) {
