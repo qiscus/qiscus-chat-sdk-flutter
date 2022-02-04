@@ -1,3 +1,8 @@
+# 1.0.21
+
+- introducing new entity called QChannel
+- add method to get list of channels `getChannelList`
+
 # 1.0.20
 
 - improve mqtt connection
