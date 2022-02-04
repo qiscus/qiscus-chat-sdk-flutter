@@ -373,6 +373,33 @@ class UpdateRoomRequest extends IApiRequest<ChatRoom> {
   }
 }
 
+class GetChannelListRequest extends IApiRequest<Iterable<QChannel>> {
+  GetChannelListRequest({this.page, this.limit});
+  int page;
+  int limit;
+
+  @override
+  Iterable<QChannel> format(Map<String, dynamic> json) {
+    var rooms = (json['results']['channels'] as List) //
+        .cast<Map<String, dynamic>>();
+    return rooms.map((json) => QChannel(
+      id: json['id'] as int,
+      name: json['name'] as String,
+      avatarUrl: json['avatar_url'] as String,
+      uniqueId: json['unique_id'] as String,
+      isJoined: json['is_joined'] as bool,
+      extras: json['extras'] as Map<String, dynamic>,
+      createdAt: DateTime.tryParse(json['created_at'] as String),
+    ));
+  }
+
+  @override
+  IRequestMethod get method => IRequestMethod.get;
+
+  @override
+  String get url => 'channels';
+}
+
 extension on QRoomType {
   String get toApiString {
     switch (this) {

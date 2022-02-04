@@ -290,6 +290,17 @@ class QiscusSDK {
     }).toCallback2(callback);
   }
 
+  void getChannelList({
+    int page,
+    int limit,
+    @required void Function(List<QChannel>, Exception) callback,
+  }) {
+    _authenticated
+      .chain(_room$$.getChannelList(page: page, limit: limit))
+      .then((it) => it.toList())
+      .toCallback2(callback);
+  }
+
   void getChatRooms({
     List<int> roomIds,
     List<String> uniqueIds,

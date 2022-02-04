@@ -40,6 +40,7 @@ abstract class IRoomRepository {
     String avatarUrl,
     Map<String, dynamic> options,
   });
+  Future<Iterable<QChannel>> getChannelList({int page, int limit});
 
   Future<ChatRoom> createGroup({
     @required String name,

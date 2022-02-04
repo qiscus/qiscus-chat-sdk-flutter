@@ -268,6 +268,9 @@ extension XQiscusSDK on QiscusSDK {
   }) async {
     return futurify2((cb) => getChannel(uniqueId: uniqueId, callback: cb));
   }
+  Future<List<QChannel>> getChannelList$({int page, int limit}) async {
+    return futurify2((cb) => getChannelList(callback: cb, page: page, limit: limit));
+  }
 
   Future<List<QChatRoom>> getChatRooms$({
     List<int> roomIds,

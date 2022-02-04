@@ -141,3 +141,23 @@ enum QRoomType {
   group,
   channel,
 }
+
+class QChannel {
+  QChannel({
+    this.avatarUrl,
+    this.name,
+    this.uniqueId,
+    this.id,
+    this.createdAt,
+    this.extras,
+    this.isJoined,
+  });
+
+  String avatarUrl;
+  String name;
+  String uniqueId;
+  int id;
+  DateTime createdAt;
+  Map<String, dynamic> extras;
+  bool isJoined;
+}

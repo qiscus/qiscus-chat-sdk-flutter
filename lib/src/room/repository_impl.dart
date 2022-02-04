@@ -116,6 +116,13 @@ class RoomRepositoryImpl implements IRoomRepository {
   }
 
   @override
+  Future<Iterable<QChannel>> getChannelList({int page, int limit}) async {
+    await storage.authenticated$;
+    var request = GetChannelListRequest(page: page, limit: limit);
+    return dio.sendApiRequest(request).then(request.format);
+  }
+
+  @override
   Future<ChatRoom> createGroup({
     String name,
     List<String> userIds,
