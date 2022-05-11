@@ -16,6 +16,7 @@ import 'package:qiscus_chat_sdk/src/impls/message/on-message-updated-impl.dart';
 import 'package:qiscus_chat_sdk/src/impls/room/on-room-cleared.dart';
 import 'package:qiscus_chat_sdk/src/impls/user/on-user-presence-impl.dart';
 import 'package:qiscus_chat_sdk/src/impls/user/on-user-typing-impl.dart';
+import 'package:riverpod/riverpod.dart';
 
 import 'app_config/app_config.dart';
 import 'core.dart';
@@ -63,6 +64,7 @@ typedef StateTransformer<T>
 
 class QiscusSDK {
   static final instance = QiscusSDK();
+  final container = ProviderContainer();
 
   static Future<QiscusSDK> withAppId(String appId) async {
     var sdk = QiscusSDK();
@@ -115,8 +117,7 @@ class QiscusSDK {
       .run(_mqtt)
       .run()
       .asBroadcastStream()
-      .transform(mqttExpandTransformer)
-      .tap((data) => print('QiscusSDK:mqtt -> ${data.topic} ${data.payload}'));
+      .transform(mqttExpandTransformer);
 
   late final StreamTransformer<Unit, bool> _authenticatedTransformer =
       StreamTransformer.fromHandlers(handleData: (_, sink) async {
@@ -445,7 +446,23 @@ class QiscusSDK {
       (match) => match.input //
           .replaceAll(
             match.group(1)!,
-            r'/upload/w_320,h_320,c_limit,e_blur:300/',
+            r'/upload/w_320,h_320,c_limit,e_blur:30/',
+          )
+          .replaceAll(
+            match.group(2)!,
+            r'.png',
+          ),
+    );
+    return result;
+  }
+
+  String getThumbnailURL(String url) {
+    var result = url.replaceAllMapped(
+      _thumbnailURL,
+      (match) => match.input //
+          .replaceAll(
+            match.group(1)!,
+            r'/upload/w_320,h_320,c_limit/',
           )
           .replaceAll(
             match.group(2)!,
@@ -630,26 +647,30 @@ class QiscusSDK {
         .runOrThrow();
   }
 
-  void sendFileMessage({
+  StreamTransformer<QUploadProgress<String>, QUploadProgress<QMessage>>
+      _sendFileMessageTransformer$(File file, QMessage message) {
+    return StreamTransformer.fromHandlers(handleData: (item, sink) async {
+      if (item.data != null) {
+        message.payload ??= <String, dynamic>{};
+        message.payload!['url'] = item.data;
+        message.payload!['size'] = file.lengthSync();
+        message.text = '[file] ${item.data} [/file]';
+
+        var m = await sendMessage(message: message);
+        sink.add(QUploadProgress(progress: 100, data: m));
+      } else {
+        sink.add(QUploadProgress(progress: item.progress));
+      }
+    });
+  }
+
+  Stream<QUploadProgress<QMessage>> sendFileMessage({
     required QMessage message,
     required File file,
-    required void Function(Exception?, double?, QMessage?) callback,
   }) {
-    upload(
-      file: file,
-      callback: (error, progress, url) async {
-        if (error != null) return callback(error, null, null);
-        if (error == null && progress != null) {
-          return callback(null, progress, null);
-        }
-        message.payload ??= <String, dynamic>{};
-        message.payload!['url'] = url;
-        message.payload!['size'] ??= await file.length();
-        message.text = '[file] $url [/file]';
-        await sendMessage(message: message)
-            .then((m) => callback(null, null, m));
-      },
-    );
+    var stream = upload(file);
+    var resp = stream.transform(_sendFileMessageTransformer$(file, message));
+    return resp;
   }
 
   Future<QMessage> sendMessage({
@@ -756,16 +777,9 @@ class QiscusSDK {
   }
 
   Future<void> _connectMqtt() async {
-    print('connecting to mqtt');
     if (_storage.isRealtimeEnabled) {
       await _mqtt.connect();
     }
-
-    _mqtt.onConnected = () => print('::mqtt connected');
-    _mqtt.onSubscribed = (topic) => print('::mqtt subscribe $topic');
-    _mqtt.onSubscribeFail = (topic) => print('::mqtt sub fail $topic');
-    _mqtt.onDisconnected = () => print('::mqtt disconnected');
-    _mqtt.onUnsubscribed = (topic) => print('::mqtt unsub $topic');
 
     var token = _storage.token!;
     var t1 = mqttSubscribeTopic(TopicBuilder.messageNew(token)).run(_mqtt);
@@ -914,29 +928,34 @@ class QiscusSDK {
     }).runOrThrow();
   }
 
-  void upload({
-    required File file,
-    required void Function(Exception?, double?, String?) callback,
-  }) async {
-    final uploadUrl = _storage.uploadUrl;
+  Stream<QUploadProgress<String>> upload(File file) async* {
+    var controller = StreamController<QUploadProgress<String>>();
+    var uploadUrl = _storage.uploadUrl;
     var filename = file.path.split('/').last;
     var formData = FormData.fromMap(<String, dynamic>{
       'file': await MultipartFile.fromFile(file.path, filename: filename),
     });
-    await _dio.post<Map<String, dynamic>>(
-      uploadUrl,
-      data: formData,
-      onSendProgress: (count, total) {
-        var percentage = (count / total) * 100;
-        callback(null, percentage, null);
-      },
-    ).then((resp) {
-      var json = resp.data;
-      var url = json!['results']['file']['url'] as String;
-      callback(null, null, url);
-    }).catchError((dynamic error) {
-      callback(error as Exception, null, null);
-    });
+
+    // ignore: unawaited_futures
+    _dio
+        .post<Map<String, dynamic>>(
+          uploadUrl,
+          data: formData,
+          onSendProgress: (count, total) {
+            var percentage = (count / total) * 100;
+            controller.add(QUploadProgress(progress: percentage));
+          },
+        )
+        .then((resp) => resp.data)
+        .then((json) => json!['result']['file']['url'] as String)
+        .then(
+          (url) => controller.add(QUploadProgress(progress: 100, data: url)),
+        )
+        .catchError(
+          (Object err, StackTrace trace) => controller.addError(err, trace),
+        );
+
+    yield* controller.stream;
   }
 
   Future<List<QMessage>> getFileList({
@@ -1087,34 +1106,6 @@ class QiscusSDK {
   }
 }
 
-class QHook with EquatableMixin {
-  final QInterceptor hook;
-  final Function callback;
-
-  const QHook(this.hook, this.callback);
-
-  @override
-  List<Object?> get props => [hook, callback];
-}
-
-class QDeviceToken {
-  const QDeviceToken(this.token, [this.isDevelopment = false]);
-
-  final String token;
-  final bool isDevelopment;
-  final deviceType = 'flutter';
-}
-
-class QChatRoomWithMessages with EquatableMixin {
-  const QChatRoomWithMessages(this.room, this.messages);
-
-  final QChatRoom room;
-  final List<QMessage> messages;
-
-  @override
-  List<Object> get props => [room, messages];
-}
-
 extension _TaskEither<L extends String, R> on TaskEither<L, R> {
   Future<R> runOrThrow() async {
     return run().then((it) => it.toThrow());
@@ -1140,7 +1131,7 @@ TaskEither<String, T> fromTask<T>(Task<T> task) {
   return TaskEither.fromTask(task);
 }
 
-enum QInterceptor {
-  messageBeforeSent,
-  messageBeforeReceived,
+void main() {
+  var qiscus = QiscusSDK.instance;
+  // qiscus.getChatRoomWithMessages(roomId: roomId)
 }

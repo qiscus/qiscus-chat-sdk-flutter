@@ -1,7 +1,11 @@
 part of qiscus_chat_sdk.core;
 
-
 MqttClient getMqttClient(Storage storage) {
+  // final errorMessage = 'You are currently not signed in on qiscus sdk.'
+  //     ' If you get this error after hot reload, please hot restart the application'
+  //     ' instead. That will re-initialize internal variable inside qiscus sdk.';
+  // if (storage.userId == null) throw Exception(errorMessage);
+
   final clientId = getClientId();
   final connectionMessage = getConnectionMessage(clientId, storage.userId!);
   final brokerUrl = storage.brokerUrl;

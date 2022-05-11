@@ -6,24 +6,26 @@ repository: https://github.com/qiscus/qiscus-chat-sdk-flutter
 issue_tracker: https://github.com/qiscus/qiscus-chat-sdk-flutter/issues
 
 environment:
-  sdk: '>=2.14.0 <3.0.0'
+  sdk: '>=2.16.0 <3.0.0'
+  flutter: '>=2.10.0'
 
 dependencies:
   flutter:
     sdk: flutter
   sealed_unions: ^3.0.2+2
-  async: ^2.5.0
+  async: ^2.9.0
   mqtt_client: ^9.4.2
   dio: ^4.0.0
   equatable: ^2.0.3
   pretty_dio_logger: ^1.1.1
   fpdart: ^0.0.12
+  riverpod: ^1.0.3
+  freezed_annotation: ^2.0.3
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
   build_runner: ^2.1.0
   mockito: ^5.0.13
   pedantic: ^1.8.0
-  test: ^1.6.0
-  fake_async: ^1.1.0
+  test: ^1.21.1
+  fake_async: ^1.3.0
+  freezed: ^2.0.3
