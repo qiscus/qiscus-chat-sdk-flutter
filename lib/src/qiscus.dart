@@ -20,6 +20,7 @@ import 'package:riverpod/riverpod.dart';
 
 import 'app_config/app_config.dart';
 import 'core.dart';
+import 'domain/commons.dart';
 import 'domain/message/message-model.dart';
 import 'domain/room/room-model.dart';
 import 'domain/user/user-model.dart';

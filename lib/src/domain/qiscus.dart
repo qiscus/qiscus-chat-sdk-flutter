@@ -27,7 +27,7 @@ abstract class IQiscusSDK {
 
   Future<QChatRoom> chatUser({
     required String userId,
-    Map<String, dynamic>? extras,
+    Map<String, Object?>? extras,
   });
 
   Future<void> clearMessagesByChatRoomId({
@@ -40,14 +40,14 @@ abstract class IQiscusSDK {
     required String uniqueId,
     String? name,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Map<String, Object?>? extras,
   });
 
   Future<QChatRoom> createGroupChat({
     required String name,
     required List<String> userIds,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Map<String, Object?>? extras,
   });
 
   Future<List<QMessage>> deleteMessages({
@@ -161,7 +161,7 @@ abstract class IQiscusSDK {
 
   Future<void> publishCustomEvent({
     required int roomId,
-    required Map<String, dynamic> payload,
+    required Map<String, Object?> payload,
   });
 
   Future<void> publishOnlinePresence({
@@ -218,7 +218,7 @@ abstract class IQiscusSDK {
     required String userKey,
     String? username,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Map<String, Object?>? extras,
   });
 
   Future<QAccount> setUserWithIdentityToken({required String token});
@@ -227,7 +227,7 @@ abstract class IQiscusSDK {
 
   void unsubscribeChatRoom(QChatRoom room);
 
-  Stream<Map<String, dynamic>> subscribeCustomEvent({
+  Stream<Map<String, Object?>> subscribeCustomEvent({
     required int roomId,
   });
 
@@ -246,13 +246,13 @@ abstract class IQiscusSDK {
     required int roomId,
     String? name,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Map<String, Object?>? extras,
   });
 
   Future<QAccount> updateUser({
     String? name,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Map<String, Object?>? extras,
   });
 
   Future<QMessage> updateMessage({required QMessage message});
@@ -274,15 +274,15 @@ abstract class IQiscusSDK {
   QMessage generateMessage({
     required int chatRoomId,
     required String text,
-    Map<String, dynamic>? extras,
+    Map<String, Object?>? extras,
   });
 
   QMessage generateCustomMessage({
     required int chatRoomId,
     required String text,
     required String type,
-    Map<String, dynamic>? extras,
-    required Map<String, dynamic> payload,
+    Map<String, Object?>? extras,
+    required Map<String, Object?> payload,
   });
 
   QMessage generateFileAttachmentMessage({
@@ -292,6 +292,6 @@ abstract class IQiscusSDK {
     String? filename,
     String text = 'File attachment',
     int? size,
-    Map<String, dynamic>? extras,
+    Map<String, Object?>? extras,
   });
 }

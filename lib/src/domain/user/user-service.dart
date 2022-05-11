@@ -1,6 +1,5 @@
-
+import '../commons.dart';
 import 'user-model.dart';
-
 
 abstract class IUserService {
   Future<QUser> authenticate({
@@ -21,7 +20,6 @@ abstract class IUserService {
   Stream<QUserTyping> get onUserTyping;
   Stream<QUserPresence> get onUserPresence;
 }
-
 
 class UserService extends IUserService {
   @override

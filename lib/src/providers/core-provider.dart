@@ -47,7 +47,7 @@ class Core extends IQiscusSDK {
   @override
   Future<QChatRoom> chatUser({
     required String userId,
-    Map<String, Object>? extras,
+    Map<String, Object?>? extras,
   }) {
     // TODO: implement chatUser
     throw UnimplementedError();
@@ -78,7 +78,7 @@ class Core extends IQiscusSDK {
     required String uniqueId,
     String? name,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Map<String, Object?>? extras,
   }) {
     // TODO: implement createChannel
     throw UnimplementedError();
@@ -89,7 +89,7 @@ class Core extends IQiscusSDK {
     required String name,
     required List<String> userIds,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Map<String, Object?>? extras,
   }) {
     // TODO: implement createGroupChat
     throw UnimplementedError();
@@ -120,8 +120,8 @@ class Core extends IQiscusSDK {
     required int chatRoomId,
     required String text,
     required String type,
-    Map<String, dynamic>? extras,
-    required Map<String, dynamic> payload,
+    Map<String, Object?>? extras,
+    required Map<String, Object?> payload,
   }) {
     // TODO: implement generateCustomMessage
     throw UnimplementedError();
@@ -135,7 +135,7 @@ class Core extends IQiscusSDK {
     String? filename,
     String text = 'File attachment',
     int? size,
-    Map<String, dynamic>? extras,
+    Map<String, Object?>? extras,
   }) {
     // TODO: implement generateFileAttachmentMessage
     throw UnimplementedError();
@@ -145,7 +145,7 @@ class Core extends IQiscusSDK {
   QMessage generateMessage({
     required int chatRoomId,
     required String text,
-    Map<String, dynamic>? extras,
+    Map<String, Object?>? extras,
   }) {
     // TODO: implement generateMessage
     throw UnimplementedError();
@@ -374,7 +374,7 @@ class Core extends IQiscusSDK {
 
   @override
   Future<void> publishCustomEvent(
-      {required int roomId, required Map<String, dynamic> payload}) {
+      {required int roomId, required Map<String, Object?> payload}) {
     // TODO: implement publishCustomEvent
     throw UnimplementedError();
   }
@@ -444,7 +444,7 @@ class Core extends IQiscusSDK {
     required String userKey,
     String? username,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Map<String, Object?>? extras,
   }) {
     // TODO: implement setUser
     throw UnimplementedError();
@@ -485,7 +485,7 @@ class Core extends IQiscusSDK {
   }
 
   @override
-  Stream<Map<String, dynamic>> subscribeCustomEvent({required int roomId}) {
+  Stream<Map<String, Object?>> subscribeCustomEvent({required int roomId}) {
     // TODO: implement subscribeCustomEvent
     throw UnimplementedError();
   }
@@ -535,7 +535,7 @@ class Core extends IQiscusSDK {
     required int roomId,
     String? name,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Map<String, Object?>? extras,
   }) {
     // TODO: implement updateChatRoom
     throw UnimplementedError();
@@ -549,7 +549,7 @@ class Core extends IQiscusSDK {
 
   @override
   Future<QAccount> updateUser(
-      {String? name, String? avatarUrl, Map<String, dynamic>? extras}) {
+      {String? name, String? avatarUrl, Map<String, Object?>? extras}) {
     // TODO: implement updateUser
     throw UnimplementedError();
   }

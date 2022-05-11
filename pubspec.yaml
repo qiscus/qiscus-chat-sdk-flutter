@@ -13,13 +13,13 @@ dependencies:
   flutter:
     sdk: flutter
   sealed_unions: ^3.0.2+2
-  async: ^2.9.0
+  async: ^2.8.2
   mqtt_client: ^9.4.2
   dio: ^4.0.0
   equatable: ^2.0.3
   pretty_dio_logger: ^1.1.1
   fpdart: ^0.0.12
-  riverpod: ^1.0.3
+  riverpod: ^2.0.0-dev.4
   freezed_annotation: ^2.0.3
 
 dev_dependencies:

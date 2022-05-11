@@ -1,4 +1,3 @@
-
 class QUser {
   const QUser({
     required this.id,
@@ -41,13 +40,6 @@ class QParticipant extends QUser {
   final int? lastReceivedMessageId;
 }
 
-class QDeviceToken {
-  const QDeviceToken(this.token, [this.isDevelopment = false]);
-  final String token;
-  final bool isDevelopment;
-  final deviceType = 'flutter';
-}
-
 class QUserTyping {
   const QUserTyping({
     required this.userId,
@@ -69,5 +61,3 @@ class QUserPresence {
   final DateTime lastSeen;
   final bool isOnline;
 }
-
-
