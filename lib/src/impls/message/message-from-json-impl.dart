@@ -1,12 +1,9 @@
-
 import 'package:fpdart/fpdart.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/message/message-model.dart';
 import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
 
 QMessage messageFromJson(Json json) {
-  var extras = Option.fromNullable(json['extras']).flatMap(decodeJson);
-  var payload = Option.fromNullable(json['payload']).flatMap(decodeJson);
   var status = Option.fromNullable(json['status'] as String?).map((status) {
     switch (status) {
       case 'read':
@@ -20,15 +17,27 @@ QMessage messageFromJson(Json json) {
   }).getOrElse(() => QMessageStatus.sent);
   var type = Option.of(json['type'] as String?).map((type) {
     switch (type) {
-      case 'custom':
-        return QMessageType.custom;
       case 'file_attachment':
         return QMessageType.attachment;
       case 'text':
-      default:
         return QMessageType.text;
+      case 'custom':
+      default:
+        return QMessageType.custom;
     }
-  }).getOrElse(() => QMessageType.text);
+  }).getOrElse(() => QMessageType.custom);
+
+  var extras = Option.fromNullable(json['extras']).flatMap(decodeJson);
+  var payload = Option.fromNullable(json['payload']).flatMap(decodeJson);
+
+  payload = payload.map((payload) {
+    if (type == QMessageType.custom && payload['type'] == null) {
+      payload['type'] = json['type'];
+    }
+
+    return payload;
+  });
+
   var timestamp = DateTime.fromMillisecondsSinceEpoch(
     ((json['unix_nano_timestamp'] as int) / 1e6).round(),
     isUtc: true,
