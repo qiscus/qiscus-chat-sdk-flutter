@@ -1,5 +1,6 @@
 library qiscus_chat_sdk;
 
+export 'package:dio/dio.dart' show CancelToken;
 export 'package:qiscus_chat_sdk/src/core.dart' show QLogLevel, QError;
 export 'package:qiscus_chat_sdk/src/qiscus.dart' show QiscusSDK;
 export 'package:qiscus_chat_sdk/src/domain/message/message-model.dart'

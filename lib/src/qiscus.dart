@@ -777,9 +777,31 @@ class QiscusSDK {
         .tap((_) => _connectMqtt());
   }
 
+  Stream<MqttConnectionState> _connectionState() async* {
+    const duration = Duration(milliseconds: 100);
+    var stream = Stream.periodic(duration, (_) => _mqtt.connectionStatus?.state)
+        .where((v) => v != null)
+        .distinct();
+
+    await for (var state in stream) {
+      if (state == MqttConnectionState.connected) yield state!;
+    }
+  }
+
+  Future<void> _connected() async {
+    var stream = _connectionState();
+
+    await for (var state in stream) {
+      if (state == MqttConnectionState.connected) {
+        return;
+      }
+    }
+  }
+
   Future<void> _connectMqtt() async {
     if (_storage.isRealtimeEnabled) {
       await _mqtt.connect();
+      await _connected();
     }
 
     var token = _storage.token!;
@@ -929,7 +951,10 @@ class QiscusSDK {
     }).runOrThrow();
   }
 
-  Stream<QUploadProgress<String>> upload(File file) async* {
+  Stream<QUploadProgress<String>> upload(
+    File file, {
+    CancelToken? cancelToken,
+  }) async* {
     var controller = StreamController<QUploadProgress<String>>();
     var uploadUrl = _storage.uploadUrl;
     var filename = file.path.split('/').last;
@@ -946,9 +971,12 @@ class QiscusSDK {
             var percentage = (count / total) * 100;
             controller.add(QUploadProgress(progress: percentage));
           },
+          cancelToken: cancelToken,
         )
         .then((resp) => resp.data)
-        .then((json) => json!['result']['file']['url'] as String)
+        .then((json) {
+          return json!['results']['file']['url'] as String;
+        })
         .then(
           (url) => controller.add(QUploadProgress(progress: 100, data: url)),
         )

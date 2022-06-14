@@ -2,19 +2,19 @@ part of qiscus_chat_sdk.core;
 
 // A simple utility function to dump `curl` from "Dio" requests
 String dio2curl(RequestOptions requestOption) {
-  var curl = '';
-
-  var query = requestOption
-    .queryParameters
-    .entries
-    .fold<String>('', (res, params) => res + '${params.key}=${params.value}&');
+  var curl = 'curl --request ${requestOption.method}';
 
   if (requestOption.path.startsWith('http')) {
-    curl += 'curl --request ${requestOption.method} \'${requestOption.path}$query\'';
+    curl += ' \'${requestOption.path}\'';
   } else {
     // Add PATH + REQUEST_METHOD
-    curl +=
-        'curl --request ${requestOption.method} \'${requestOption.baseUrl}${requestOption.path}?$query\'';
+    curl += ' \'${requestOption.baseUrl}${requestOption.path}\'';
+  }
+
+  var query = requestOption.queryParameters.entries.fold<String>(
+      '', (res, params) => res + '${params.key}=${params.value}&');
+  if (query.isNotEmpty) {
+    curl += '?${query.substring(0, query.length - 1)}';
   }
 
   // Include headers

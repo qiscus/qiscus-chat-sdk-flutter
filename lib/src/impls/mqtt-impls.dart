@@ -67,7 +67,9 @@ Reader<MqttClient, IOEither<String, Unit>> mqttSubscribeTopic(
 ) {
   return Reader((mqtt) {
     return IOEither.tryCatch(() {
-      mqtt.subscribe(topic, MqttQos.atLeastOnce);
+      try {
+        mqtt.subscribe(topic, MqttQos.atLeastOnce);
+      } on ConnectionException catch (_) {}
       return unit;
     }, (e, _) => e.toString());
   });

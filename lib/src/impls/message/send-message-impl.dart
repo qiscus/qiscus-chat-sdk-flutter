@@ -11,6 +11,9 @@ RTE<State<Iterable<QMessage>, QMessage>> sendMessageImpl(QMessage message) {
         roomId: message.chatRoomId,
         message: message.text,
         uniqueId: message.uniqueId,
+        type: message.type.string,
+        extras: message.extras,
+        payload: message.payload,
       );
       var m = await req(dio);
 
