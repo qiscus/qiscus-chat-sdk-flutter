@@ -1,3 +1,7 @@
+# 2.0.0-beta.4
+
+- fix not receiving incomming message
+
 # 2.0.0-beta.3
 
 - fix error when not connected to mqtt
