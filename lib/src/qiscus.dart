@@ -781,21 +781,16 @@ class QiscusSDK {
     const duration = Duration(milliseconds: 100);
     var stream = Stream.periodic(duration, (_) => _mqtt.connectionStatus?.state)
         .where((v) => v != null)
+        .cast<MqttConnectionState>()
         .distinct();
 
-    await for (var state in stream) {
-      if (state == MqttConnectionState.connected) yield state!;
-    }
+    yield* stream;
   }
 
   Future<void> _connected() async {
     var stream = _connectionState();
 
-    await for (var state in stream) {
-      if (state == MqttConnectionState.connected) {
-        return;
-      }
-    }
+    await stream.firstWhere((v) => v == MqttConnectionState.connected);
   }
 
   Future<void> _connectMqtt() async {
@@ -805,25 +800,27 @@ class QiscusSDK {
     }
 
     var token = _storage.token!;
-    var t1 = mqttSubscribeTopic(TopicBuilder.messageNew(token)).run(_mqtt);
-    var t2 = mqttSubscribeTopic(TopicBuilder.messageUpdated(token)).run(_mqtt);
-    var t3 = mqttSubscribeTopic(TopicBuilder.notification(token)).run(_mqtt);
-
-    t1(t2(t3)).runOrThrow();
+    var r1 = mqttSubscribeTopic(TopicBuilder.messageNew(token));
+    var r2 = mqttSubscribeTopic(TopicBuilder.messageUpdated(token));
+    var r3 = mqttSubscribeTopic(TopicBuilder.notification(token));
+    r1.run(_mqtt).runOrThrow();
+    r2.run(_mqtt).runOrThrow();
+    r3.run(_mqtt).runOrThrow();
   }
 
-  void subscribeChatRoom(QChatRoom room) {
+  void subscribeChatRoom(QChatRoom room) async {
+    await _connected();
+
     var roomId = room.id.toString();
     // var state = _mqtt.connectionStatus?.state.toString();
-    var subs1 = mqttSubscribeTopic(TopicBuilder.messageRead(roomId));
-    var subs2 = mqttSubscribeTopic(TopicBuilder.messageDelivered(roomId));
-    var subs3 = mqttSubscribeTopic(TopicBuilder.typing(roomId, '+'));
+    var subs1 = mqttSubscribeTopic(TopicBuilder.messageRead(roomId)).run(_mqtt);
+    var subs2 =
+        mqttSubscribeTopic(TopicBuilder.messageDelivered(roomId)).run(_mqtt);
+    var subs3 = mqttSubscribeTopic(TopicBuilder.typing(roomId, '+')).run(_mqtt);
 
-    waitTillAuthenticatedImpl
-        .local((MqttClient _) => _deps)
-        .call(subs1(subs2(subs3)))
-        .run(_mqtt)
-        .run();
+    subs1.runOrThrow();
+    subs2.runOrThrow();
+    subs3.runOrThrow();
   }
 
   void unsubscribeChatRoom(QChatRoom room) {
