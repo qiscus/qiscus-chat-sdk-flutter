@@ -1,3 +1,7 @@
+# 2.0.0-beta.5
+
+- fix synchronize and synchronize event not running in background
+
 # 2.0.0-beta.4
 
 - fix not receiving incomming message
