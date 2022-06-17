@@ -141,7 +141,10 @@ class QiscusSDK {
 
     await for (var it in acc$) {
       accumulator += it;
-      if (_storage.isSyncEnabled && accumulator > _interval()) {
+      var interval = _interval();
+      var shouldSync = _storage.isSyncEnabled && accumulator >= interval;
+
+      if (shouldSync) {
         yield unit;
         accumulator = 0.milliseconds;
       }
@@ -157,7 +160,7 @@ class QiscusSDK {
   }
 
   Stream<QRealtimeEvent> _synchronizeEvent() async* {
-    yield* _interval$()
+    yield* _interval$() //
         .transform(_authenticatedTransformer)
         .asyncMap((_) => synchronizeEventImpl(_storage.currentUser?.lastEventId)
             .run(_dio)
