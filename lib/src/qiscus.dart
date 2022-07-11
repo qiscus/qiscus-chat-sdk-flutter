@@ -127,6 +127,7 @@ class QiscusSDK {
   });
 
   Duration _interval() {
+    if (_storage.token == null) return _storage.syncInterval;
     return _mqtt.connectionStatus?.state == MqttConnectionState.connected
         ? _storage.syncIntervalWhenConnected
         : _storage.syncInterval;
@@ -172,9 +173,7 @@ class QiscusSDK {
   late final Stream<QMessage> _messageReceived$ = StreamGroup.merge([
     _synchronize(),
     _mqttUpdates.transform(mqttMessageReceivedTransformer),
-  ])
-      .asyncMap((it) => _triggerHook(QInterceptor.messageBeforeReceived, it))
-      .tap((message) => _storage.messages.add(message));
+  ]).asyncMap((it) => _triggerHook(QInterceptor.messageBeforeReceived, it));
 
   late final Stream<QMessage> _messageRead$ = StreamGroup.merge([
     _synchronizeEvent().transform(syncMessageReadTransformerImpl),
@@ -219,10 +218,14 @@ class QiscusSDK {
     _mqttUpdates.transform(mqttRoomClearedTransformerImpl),
   ]);
 
-  Stream<MqttConnectionState?> _connection$() => Stream.periodic(
-        const Duration(milliseconds: 300),
-        (_) => _mqtt.connectionStatus?.state,
-      ).distinct();
+  Stream<MqttConnectionState?> _connection$() async* {
+    await waitTillAuthenticatedImpl.run(_deps).runIgnored();
+
+    yield* Stream.periodic(
+      const Duration(milliseconds: 300),
+      (_) => _mqtt.connectionStatus?.state,
+    ).distinct();
+  }
 
   Stream<void> get _mqttDisconnected =>
       _connection$().where((it) => it == MqttConnectionState.disconnected);
@@ -781,6 +784,8 @@ class QiscusSDK {
   }
 
   Stream<MqttConnectionState> _connectionState() async* {
+    await waitTillAuthenticatedImpl.run(_deps).runIgnored();
+
     const duration = Duration(milliseconds: 100);
     var stream = Stream.periodic(duration, (_) => _mqtt.connectionStatus?.state)
         .where((v) => v != null)
@@ -797,6 +802,7 @@ class QiscusSDK {
   }
 
   Future<void> _connectMqtt() async {
+    await waitTillAuthenticatedImpl.run(_deps).runIgnored();
     if (_storage.isRealtimeEnabled) {
       await _mqtt.connect();
       await _connected();
@@ -1022,6 +1028,7 @@ class QiscusSDK {
   }
 
   Future<bool> openRealtimeConnection() async {
+    await waitTillAuthenticatedImpl.run(_deps).run();
     return tryCatch(() async {
       await _mqtt.connect();
       return true;
@@ -1132,6 +1139,12 @@ class QiscusSDK {
     );
 
     return res;
+  }
+}
+
+extension on Task {
+  Future<void> runIgnored() {
+    return run().catchError((Object? _) {});
   }
 }
 

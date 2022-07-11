@@ -34,16 +34,16 @@ Stream<Out> streamify<Out>(
   yield* controller.stream;
 }
 
-Option<Map<String, dynamic>> decodeJson(Object? json) {
+Option<Map<String, Object?>> decodeJson(Object? json) {
   return Option.fromNullable(json).flatMap((it) {
     if (it is Map && it.isEmpty) return Option.none();
     if (it is Map && it.isNotEmpty) {
-      return Option.of(it as Map<String, dynamic>);
+      return Option.of(it as Map<String, Object?>);
     }
     if (it is String && it.isEmpty) return Option.none();
     if (it is String && it.isNotEmpty) {
       try {
-        var opts = jsonDecode(it) as Map<String, dynamic>;
+        var opts = jsonDecode(it) as Map<String, Object?>;
         return Option.of(opts);
       } catch (error) {
         return Option.none();

@@ -14,3 +14,14 @@ QAccount accountFromJson(Json json) {
         .toNullable(),
   );
 }
+
+Map<String, Object?> accountToJson(QAccount account) {
+  return <String, Object?>{
+    'email': account.id,
+    'username': account.name,
+    'avatar_url': account.avatarUrl,
+    'last_comment_id': account.lastMessageId,
+    'last_sync_event_id': account.lastEventId,
+    'extras': account.extras,
+  };
+}

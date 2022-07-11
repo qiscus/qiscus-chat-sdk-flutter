@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
@@ -7,12 +8,25 @@ import 'message/message-from-json-impl.dart';
 
 RTE<Tuple2<int, Iterable<QMessage>>> synchronizeImpl([String? lastMessageId]) {
   var req = SynchronizeRequest(lastMessageId: lastMessageId);
-  return Reader((dio) => tryCatch(() => req.call(dio)));
+  return Reader((dio) {
+    return tryCatch(() {
+      return req
+          .call(dio)
+          .catchError((Object e) => const Tuple2(0, <QMessage>[]));
+    });
+  });
 }
 
-RTE<Tuple2<int, Iterable<QRealtimeEvent>>> synchronizeEventImpl([int? lastEventId]) {
+RTE<Tuple2<int, Iterable<QRealtimeEvent>>> synchronizeEventImpl(
+    [int? lastEventId]) {
   var req = SynchronizeEventRequest(lastEventId: lastEventId);
-  return Reader((dio) => tryCatch(() => req.call(dio)));
+  return Reader((dio) {
+    return tryCatch(() {
+      return req
+          .call(dio)
+          .catchError((Object _) async => Tuple2(0, <QRealtimeEvent>[]));
+    });
+  });
 }
 
 class SynchronizeRequest extends IApiRequest<Tuple2<int, Iterable<QMessage>>> {

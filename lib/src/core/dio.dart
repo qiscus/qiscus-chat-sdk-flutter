@@ -1,7 +1,7 @@
 part of qiscus_chat_sdk.core;
 
 Reader<Tuple2<Storage, Logger>, Dio> getDio =
-Reader((Tuple2<Storage, Logger> r) {
+    Reader((Tuple2<Storage, Logger> r) {
   var s = r.first;
   var l = r.second;
 
@@ -13,6 +13,27 @@ Reader((Tuple2<Storage, Logger> r) {
       request.headers['qiscus-sdk-device-brand'] = Platform.operatingSystem;
       request.headers['qiscus-sdk-device-os-version'] =
           Platform.operatingSystemVersion;
+
+      if (request.queryParameters.isNotEmpty) {
+        var qp = <String>[];
+        for (var entry in request.queryParameters.entries) {
+          if (entry.value is List) {
+            for (var item in entry.value) {
+              qp.add('${entry.key}[]=$item');
+            }
+          } else {
+            qp.add('${entry.key}=${entry.value}');
+          }
+        }
+        request.path += '?';
+        request.path += qp.join('&');
+        request.queryParameters = <String, Object?>{};
+      }
+
+      var uri = request.uri;
+      print('uri query params all: ${uri.queryParametersAll}');
+      print('uri query params: ${uri.queryParameters}');
+      print('uri query: ${uri.query}');
 
       if (s.token != null) {
         request.headers['qiscus-sdk-token'] = s.token;
@@ -40,6 +61,7 @@ Reader((Tuple2<Storage, Logger> r) {
     dio.interceptors.add(PrettyDioLogger(
       requestBody: true,
       requestHeader: true,
+      responseBody: true,
     ));
   }
   return dio;

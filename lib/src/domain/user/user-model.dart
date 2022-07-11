@@ -9,7 +9,7 @@ class QUser {
   final String id;
   final String name;
   final String? avatarUrl;
-  final Map<String, dynamic>? extras;
+  final Map<String, Object?>? extras;
 }
 
 class QAccount extends QUser {

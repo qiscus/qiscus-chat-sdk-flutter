@@ -57,34 +57,34 @@ extension DioXRequest on Dio {
   Future<Output> call<Output>(
     IApiRequest<Output> r,
   ) async {
-    var body = (r.body ?? <String, dynamic>{})
-      ..removeWhere((_, dynamic v) => v == null);
-    var params = (r.params ?? <String, dynamic>{})
-      ..removeWhere((_, dynamic v) => v == null);
-
-    return request<Map<String, dynamic>>(
-      r.url,
-      options: Options(method: r.method.asString),
-      data: body,
-      queryParameters: params,
-    ).then((it) => it.data).then((it) => r.format(it!));
+    return sendApiRequest(r);
   }
 
   Future<Output> sendApiRequest<Output extends Map<String, dynamic>>(
-    IApiRequest<dynamic> request,
+    IApiRequest<dynamic> req,
   ) async {
-    var body = request.body;
+    var body = req.body;
     body?.removeWhere((key, dynamic value) => value == null);
-    var params = request.params;
+    var params = req.params;
     params?.removeWhere((key, dynamic value) => value == null);
 
-    return this
-        .request<Output>(
-          request.url,
-          options: Options(method: request.method.asString),
-          data: body?.isNotEmpty == true ? body : null,
-          queryParameters: params?.isNotEmpty == true ? params : null,
-        )
-        .then((it) => it.data!);
+    try {
+      return request<Output>(
+        req.url,
+        options: Options(
+          method: req.method.asString,
+          listFormat: ListFormat.multiCompatible,
+        ),
+        data: body?.isNotEmpty == true ? body : null,
+        queryParameters: params?.isNotEmpty == true ? params : null,
+      ).then((it) => it.data!);
+    } catch (e) {
+      print('got dio error2');
+      print('response');
+      if (e is DioError) {
+        print(e.response?.data.toString());
+      }
+      rethrow;
+    }
   }
 }

@@ -11,6 +11,6 @@ final waitTillAuthenticatedImpl = Reader((Tuple2<MqttClient, Storage> s) {
     return Stream.periodic(
       const Duration(milliseconds: 300),
       (_) => s.second.token != null,
-    ).firstWhere((it) => it == true);
+    ).distinct().firstWhere((it) => it == true);
   });
 });
