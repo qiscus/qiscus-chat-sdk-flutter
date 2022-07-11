@@ -1,3 +1,7 @@
+# 2.0.0-beta.6
+
+- fix could not delete message
+
 # 2.0.0-beta.5
 
 - fix synchronize and synchronize event not running in background
