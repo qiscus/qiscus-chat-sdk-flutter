@@ -35,7 +35,6 @@ class AppConfig {
   });
 
   factory AppConfig.fromJson(Map<String, dynamic> json) {
-    print('got json: $json');
     return AppConfig(
       baseUrl: optionFromJson<String>(json['base_url'] as String),
       brokerLbUrl: optionFromJson<String>(json['broker_lb_url'] as String),

@@ -1,3 +1,7 @@
+# 2.0.0-beta.7
+
+- implemented wether sync event should run or not based on app config
+
 # 2.0.0-beta.6
 
 - fix could not delete message
