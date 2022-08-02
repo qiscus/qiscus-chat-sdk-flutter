@@ -1,10 +1,10 @@
 part of qiscus_chat_sdk.usecase.app_config;
 
-Option<T> optionFromJson<T extends Object>(T json) {
+Option<T> optionFromJson<T extends Object?>(T json) {
   if ((json is String) && json.isEmpty) {
     return Option<T>.none();
   }
-  return Option<T>.of(json);
+  return Option<T>.fromNullable(json);
 }
 
 class AppConfig {
@@ -17,6 +17,8 @@ class AppConfig {
   final Option<Map<String, dynamic>> extras;
   final Option<int> syncInterval;
   final Option<int> syncOnConnect;
+  final Option<bool> enableSync;
+  final Option<bool> enableSyncEvent;
 
   AppConfig({
     required this.baseUrl,
@@ -28,9 +30,12 @@ class AppConfig {
     required this.extras,
     required this.syncInterval,
     required this.syncOnConnect,
+    required this.enableSync,
+    required this.enableSyncEvent,
   });
 
   factory AppConfig.fromJson(Map<String, dynamic> json) {
+    print('got json: $json');
     return AppConfig(
       baseUrl: optionFromJson<String>(json['base_url'] as String),
       brokerLbUrl: optionFromJson<String>(json['broker_lb_url'] as String),
@@ -48,6 +53,10 @@ class AppConfig {
           return Option<Map<String, dynamic>>.none();
         }
       })(json['extras'] as String),
+      enableSync: optionFromJson(json['enable_sync'] as bool?) //
+          .map((t) => t ?? false),
+      enableSyncEvent: optionFromJson(json['enable_sync_event'] as bool?) //
+          .map((t) => t ?? true),
     );
   }
 
@@ -65,10 +74,10 @@ class AppConfig {
         () {},
       );
       extras.match((it) => s.configExtras = it, () {});
+      enableSync.match((v) => s.isSyncEnabled = v, () {});
+      enableSyncEvent.match((v) => s.isSyncEventEnabled = v, () {});
 
       return Tuple2(null, s);
     });
   }
 }
-
-

@@ -30,11 +30,6 @@ Reader<Tuple2<Storage, Logger>, Dio> getDio =
         request.queryParameters = <String, Object?>{};
       }
 
-      var uri = request.uri;
-      print('uri query params all: ${uri.queryParametersAll}');
-      print('uri query params: ${uri.queryParameters}');
-      print('uri query: ${uri.query}');
-
       if (s.token != null) {
         request.headers['qiscus-sdk-token'] = s.token;
         request.headers['qiscus-sdk-user-id'] = s.userId;

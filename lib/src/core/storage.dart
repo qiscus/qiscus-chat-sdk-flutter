@@ -31,6 +31,7 @@ class Storage with EquatableMixin {
   bool isRealtimeEnabled;
   bool isRealtimeCheckEnabled;
   bool isSyncEnabled;
+  bool isSyncEventEnabled;
   Map<String, dynamic> configExtras = <String, dynamic>{};
   Set<QMessage> messages;
   Set<QChatRoom> rooms;
@@ -56,6 +57,7 @@ class Storage with EquatableMixin {
     this.isRealtimeEnabled = true,
     this.isRealtimeCheckEnabled = false,
     this.isSyncEnabled = true,
+    this.isSyncEventEnabled = false,
     this.logLevel = QLogLevel.debug,
     this.messages = const {},
     this.rooms = const {},

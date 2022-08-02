@@ -143,7 +143,7 @@ class QiscusSDK {
     await for (var it in acc$) {
       accumulator += it;
       var interval = _interval();
-      var shouldSync = _storage.isSyncEnabled && accumulator >= interval;
+      var shouldSync = accumulator >= interval;
 
       if (shouldSync) {
         yield unit;
@@ -152,22 +152,38 @@ class QiscusSDK {
     }
   }
 
-  Stream<QMessage> _synchronize() {
-    return _interval$() //
-        .transform<bool>(_authenticatedTransformer)
-        .asyncMap((_) => synchronizeImpl().run(_dio).runOrThrow())
-        .tap((data) => _storage.currentUser?.lastMessageId = data.first)
-        .expand((it) => it.second);
+  Stream<QMessage> _synchronize() async* {
+    var stream = _interval$().transform<bool>(_authenticatedTransformer);
+    await for (var _ in stream) {
+      if (_storage.isSyncEnabled) {
+        try {
+          var _data = await synchronizeImpl().run(_dio).runOrThrow();
+
+          _storage.currentUser?.lastMessageId = _data.first;
+          for (var message in _data.second) {
+            yield message;
+          }
+        } catch (_) {}
+      }
+    }
   }
 
   Stream<QRealtimeEvent> _synchronizeEvent() async* {
-    yield* _interval$() //
-        .transform(_authenticatedTransformer)
-        .asyncMap((_) => synchronizeEventImpl(_storage.currentUser?.lastEventId)
-            .run(_dio)
-            .runOrThrow())
-        .tap((data) => _storage.currentUser?.lastEventId = data.first)
-        .expand((it) => it.second);
+    var stream = _interval$().transform(_authenticatedTransformer);
+    await for (var _ in stream) {
+      if (_storage.isSyncEventEnabled) {
+        try {
+          var data =
+              await synchronizeEventImpl(_storage.currentUser?.lastEventId)
+                  .run(_dio)
+                  .runOrThrow();
+          _storage.currentUser?.lastEventId = data.first;
+          for (var event in data.second) {
+            yield event;
+          }
+        } catch (_) {}
+      }
+    }
   }
 
   late final Stream<QMessage> _messageReceived$ = StreamGroup.merge([
@@ -724,11 +740,13 @@ class QiscusSDK {
     _storage.syncInterval = syncInterval.milliseconds;
     _storage.syncIntervalWhenConnected = syncIntervalWhenConnected.milliseconds;
 
-    await appConfigUseCase
-        .run(_dio)
-        .map((s) => s.run(_storage))
-        .map((it) => _storage = it.second)
-        .runOrThrow();
+    try {
+      await appConfigUseCase
+          .run(_dio)
+          .map((s) => s.run(_storage))
+          .map((it) => _storage = it.second)
+          .runOrThrow();
+    } catch (_) {}
   }
 
   Future<QAccount> setUser({
