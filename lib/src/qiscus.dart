@@ -7,7 +7,6 @@ import 'dart:math';
 
 import 'package:async/async.dart';
 import 'package:dio/dio.dart';
-import 'package:equatable/equatable.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:qiscus_chat_sdk/src/impls/message/on-message-deleted-impl.dart';
@@ -66,48 +65,15 @@ typedef StateTransformer<T>
 class QiscusSDK {
   static final instance = QiscusSDK();
   final container = ProviderContainer();
-
-  static Future<QiscusSDK> withAppId(String appId) async {
-    var sdk = QiscusSDK();
-    await sdk.setup(appId);
-    return sdk;
-  }
-
-  static Future<QiscusSDK> withCustomServer(
-    String appId, {
-    String baseUrl = defaultBaseUrl,
-    String brokerUrl = defaultBrokerUrl,
-    String brokerLbUrl = defaultBrokerLbUrl,
-    int syncInterval = defaultSyncInterval,
-    int syncIntervalWhenConnected = defaultSyncIntervalWhenConnected,
-  }) async {
-    var sdk = QiscusSDK();
-    await sdk.setupWithCustomServer(
-      appId,
-      baseUrl: baseUrl,
-      brokerUrl: brokerUrl,
-      brokerLbUrl: brokerLbUrl,
-      syncInterval: syncInterval,
-      syncIntervalWhenConnected: syncIntervalWhenConnected,
-    );
-    return sdk;
-  }
-
   var _storage = Storage();
-
   Tuple2<MqttClient, Storage> get _deps => Tuple2(_mqtt, _storage);
   late final Logger _logger = Logger(_storage);
   late final Dio _dio = getDio.run(Tuple2(_storage, _logger));
   late final MqttClient _mqtt = getMqttClient(_storage);
-
   String? get appId => _storage.appId;
-
   QAccount? get currentUser => _storage.currentUser;
-
   bool get isLogin => currentUser != null;
-
   String? get token => _storage.token;
-
   Storage get storage => _storage;
   static final _thumbnailURL = RegExp(
     r'^https?:\/\/\S+(\/upload\/)\S+(\.\w+)$',
@@ -1158,9 +1124,35 @@ class QiscusSDK {
 
     return res;
   }
+
+  static Future<QiscusSDK> withAppId(String appId) async {
+    var sdk = QiscusSDK();
+    await sdk.setup(appId);
+    return sdk;
+  }
+
+  static Future<QiscusSDK> withCustomServer(
+    String appId, {
+    String baseUrl = defaultBaseUrl,
+    String brokerUrl = defaultBrokerUrl,
+    String brokerLbUrl = defaultBrokerLbUrl,
+    int syncInterval = defaultSyncInterval,
+    int syncIntervalWhenConnected = defaultSyncIntervalWhenConnected,
+  }) async {
+    var sdk = QiscusSDK();
+    await sdk.setupWithCustomServer(
+      appId,
+      baseUrl: baseUrl,
+      brokerUrl: brokerUrl,
+      brokerLbUrl: brokerLbUrl,
+      syncInterval: syncInterval,
+      syncIntervalWhenConnected: syncIntervalWhenConnected,
+    );
+    return sdk;
+  }
 }
 
-extension on Task {
+extension _TaskExt<T> on Task<T> {
   Future<void> runIgnored() {
     return run().catchError((Object? _) {});
   }
