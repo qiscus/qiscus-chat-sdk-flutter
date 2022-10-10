@@ -1,3 +1,8 @@
+# 2.0.0
+
+- upgrade dependencies to use the stable version
+- fix wrong message timestamp
+
 # 2.0.0-beta.7
 
 - implemented wether sync event should run or not based on app config
