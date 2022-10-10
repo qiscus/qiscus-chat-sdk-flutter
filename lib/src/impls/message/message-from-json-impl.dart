@@ -38,9 +38,9 @@ QMessage messageFromJson(Json json) {
     return payload;
   });
 
+  var rawTimestamp = json['unix_nano_timestamp'] as int;
   var timestamp = DateTime.fromMillisecondsSinceEpoch(
-    ((json['unix_nano_timestamp'] as int) / 1e6).round(),
-    isUtc: true,
+    (rawTimestamp / 1e6).round(),
   );
 
   var sender = QUser(

@@ -14,31 +14,26 @@ class MyHomepage extends StatefulWidget {
 }
 
 class _MyHomepageState extends State<MyHomepage> {
-  QiscusSDK _qiscusSDK;
+  QiscusSDK? _qiscusSDK;
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      _qiscusSDK = QiscusSDK.withAppId('sdksample', callback: (error) {
-        if (error != null) {
-          return print('Error happend while initializing qiscus sdk: $error');
-        }
-        print('Qiscus SDK Ready to use');
-      });
+    Future.microtask(() async {
+      _qiscusSDK = await QiscusSDK.withAppId('sdksample');
     });
   }
 
   @override
   void dispose() {
     super.dispose();
-    _qiscusSDK?.clearUser(callback: (error) {
-      // ignore error
-    });
+    _qiscusSDK?.clearUser().ignore();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Scaffold(
+      appBar: AppBar(),
+    );
   }
 }

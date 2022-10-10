@@ -2,13 +2,13 @@ part of qiscus_chat_sdk.core;
 
 Reader<Tuple2<Storage, Logger>, Dio> getDio =
     Reader((Tuple2<Storage, Logger> r) {
-  var s = r.first;
-  var l = r.second;
+  var storage = r.first;
+  var logger = r.second;
 
   final interceptor = InterceptorsWrapper(
     onRequest: (request, handler) {
-      request.baseUrl = '${s.baseUrl}/api/v2/mobile/';
-      request.headers['qiscus-sdk-app-id'] = s.appId;
+      request.baseUrl = '${storage.baseUrl}/api/v2/mobile/';
+      request.headers['qiscus-sdk-app-id'] = storage.appId;
       request.headers['qiscus-sdk-version'] = '$sdkPlatformName-$sdkVersion';
       request.headers['qiscus-sdk-device-brand'] = Platform.operatingSystem;
       request.headers['qiscus-sdk-device-os-version'] =
@@ -30,19 +30,19 @@ Reader<Tuple2<Storage, Logger>, Dio> getDio =
         request.queryParameters = <String, Object?>{};
       }
 
-      if (s.token != null) {
-        request.headers['qiscus-sdk-token'] = s.token;
-        request.headers['qiscus-sdk-user-id'] = s.userId;
+      if (storage.token != null) {
+        request.headers['qiscus-sdk-token'] = storage.token;
+        request.headers['qiscus-sdk-user-id'] = storage.userId;
       }
-      if (s.customHeaders.isNotEmpty == true) {
-        request.headers.addAll(s.customHeaders);
+      if (storage.customHeaders.isNotEmpty == true) {
+        request.headers.addAll(storage.customHeaders);
       }
       handler.next(request);
     },
   );
   var curl = InterceptorsWrapper(
     onRequest: (request, handler) {
-      l.log('QiscusSDK ->: ${dio2curl(request)}');
+      logger.log('QiscusSDK ->: ${dio2curl(request)}');
       return handler.next(request);
     },
   );
@@ -52,7 +52,7 @@ Reader<Tuple2<Storage, Logger>, Dio> getDio =
       curl,
     ]);
 
-  if (l.enabled && l.level == QLogLevel.verbose) {
+  if (logger.enabled && logger.level == QLogLevel.verbose) {
     dio.interceptors.add(PrettyDioLogger(
       requestBody: true,
       requestHeader: true,

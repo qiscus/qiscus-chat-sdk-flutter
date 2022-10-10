@@ -1173,7 +1173,7 @@ extension _IOEither<L extends String, R> on IOEither<L, R> {
 extension _EitherX<L extends String, R> on Either<L, R> {
   R toThrow() {
     return match(
-      (l) => throw QError(l),
+      (l) => throw l,
       (r) => r,
     );
   }
