@@ -20,9 +20,11 @@ import 'package:riverpod/riverpod.dart';
 import 'app_config/app_config.dart';
 import 'core.dart';
 import 'domain/commons.dart';
+import 'domain/custom-event/custom-event-model.dart';
 import 'domain/message/message-model.dart';
 import 'domain/room/room-model.dart';
 import 'domain/user/user-model.dart';
+import 'impls/custom-event-impl.dart';
 import 'impls/message/delete-messages-impl.dart';
 import 'impls/message/get-message-impl.dart';
 import 'impls/message/on-message-read-impl.dart';
@@ -70,6 +72,7 @@ class QiscusSDK {
   late final Logger _logger = Logger(_storage);
   late final Dio _dio = getDio.run(Tuple2(_storage, _logger));
   late final MqttClient _mqtt = getMqttClient(_storage);
+  MqttClient get mqtt => _mqtt;
   String? get appId => _storage.appId;
   QAccount? get currentUser => _storage.currentUser;
   bool get isLogin => currentUser != null;
@@ -86,6 +89,9 @@ class QiscusSDK {
       .asBroadcastStream()
       .transform(mqttExpandTransformer);
 
+  late final _authenticated =
+      Stream.periodic(const Duration(milliseconds: 100), (_) => isLogin)
+          .firstWhere((it) => it == true);
   late final StreamTransformer<Unit, bool> _authenticatedTransformer =
       StreamTransformer.fromHandlers(handleData: (_, sink) async {
     var isLoggedIn = await waitTillAuthenticatedImpl.run(_deps).run();
@@ -120,6 +126,7 @@ class QiscusSDK {
 
   Stream<QMessage> _synchronize() async* {
     var stream = _interval$().transform<bool>(_authenticatedTransformer);
+
     await for (var _ in stream) {
       if (_storage.isSyncEnabled) {
         try {
@@ -152,12 +159,12 @@ class QiscusSDK {
     }
   }
 
-  late final Stream<QMessage> _messageReceived$ = StreamGroup.merge([
+  late final Stream<QMessage> _messageReceived$ = StreamGroup.mergeBroadcast([
     _synchronize(),
     _mqttUpdates.transform(mqttMessageReceivedTransformer),
   ]).asyncMap((it) => _triggerHook(QInterceptor.messageBeforeReceived, it));
 
-  late final Stream<QMessage> _messageRead$ = StreamGroup.merge([
+  late final Stream<QMessage> _messageRead$ = StreamGroup.mergeBroadcast([
     _synchronizeEvent().transform(syncMessageReadTransformerImpl),
     _mqttUpdates.transform(mqttMessageReadTransformerImpl),
   ])
@@ -166,7 +173,7 @@ class QiscusSDK {
       .map((it) => it.first)
       .transform(nonNullTransformer());
 
-  late final Stream<QMessage> _messageDelivered$ = StreamGroup.merge([
+  late final Stream<QMessage> _messageDelivered$ = StreamGroup.mergeBroadcast([
     _synchronizeEvent().transform(syncMessageDeliveredTransformerImpl),
     _mqttUpdates.transform(mqttMessageDeliveredTransformerImpl),
   ])
@@ -175,7 +182,7 @@ class QiscusSDK {
       .map((it) => it.first)
       .transform(nonNullTransformer());
 
-  late final Stream<QMessage> _messageDeleted$ = StreamGroup.merge([
+  late final Stream<QMessage> _messageDeleted$ = StreamGroup.mergeBroadcast([
     _synchronizeEvent().transform(syncMessageDeletedTransformerImpl),
     _mqttUpdates.transform(mqttMessageDeletedTransformerImpl)
   ])
@@ -193,8 +200,8 @@ class QiscusSDK {
   late final Stream<QUserPresence> _userPresence$ =
       _mqttUpdates.transform(mqttUserPresenceTransformerImpl);
 
-  // late final Stream<QCustomEvent> _customEventReceived$ =
-  //     _mqttUpdates.transform(mqttCustomEventTransformerImpl);
+  late final Stream<QCustomEvent> _customEventReceived$ =
+      _mqttUpdates.transform(mqttCustomEventTransformerImpl);
   late final Stream<int> _roomCleared$ = StreamGroup.merge([
     _synchronizeEvent().transform(syncRoomClearedTransformerImpl),
     _mqttUpdates.transform(mqttRoomClearedTransformerImpl),
@@ -589,6 +596,7 @@ class QiscusSDK {
   Future<void> publishOnlinePresence({
     required bool isOnline,
   }) async {
+    await _connected();
     waitTillAuthenticatedImpl
         .call(publishOnlinePresenceImpl(isOnline))
         .run(_deps)

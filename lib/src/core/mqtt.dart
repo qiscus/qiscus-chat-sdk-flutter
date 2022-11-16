@@ -7,7 +7,8 @@ MqttClient getMqttClient(Storage storage) {
   // if (storage.userId == null) throw Exception(errorMessage);
 
   final clientId = getClientId();
-  final connectionMessage = getConnectionMessage(clientId, storage.userId!);
+  final connectionMessage =
+      getConnectionMessage(clientId, storage.userId ?? 'unknown');
   final brokerUrl = storage.brokerUrl;
 
   return MqttServerClient(brokerUrl, clientId)

@@ -38,14 +38,12 @@ Reader<MqttClient, IO<Stream<bool>>> mqttConnectionState() {
 Reader<MqttClient, IO<MqttUpdates>> mqttUpdates() {
   return Reader((mqtt) {
     return mqttConnectionState() //
-            .run(mqtt)
-            // .map((it) => _restartSubscription(it, () => mqtt.updates!))
-            .map((it) async* {
+        .run(mqtt)
+        // .map((it) => _restartSubscription(it, () => mqtt.updates!))
+        .map((it) async* {
       await it.where((it) => it == true).first;
       yield* mqtt.updates!;
-    })
-        //
-        ;
+    });
   });
 }
 

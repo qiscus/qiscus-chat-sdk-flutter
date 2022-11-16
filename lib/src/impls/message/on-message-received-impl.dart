@@ -7,9 +7,8 @@ import 'package:qiscus_chat_sdk/src/impls/mqtt-impls.dart';
 
 import 'message-from-json-impl.dart';
 
-
 StreamTransformer<QMqttMessage, QMessage> mqttMessageReceivedTransformer =
-StreamTransformer.fromHandlers(handleData: (data, sink) {
+    StreamTransformer.fromHandlers(handleData: (data, sink) {
   if (reNewMessage.hasMatch(data.topic)) {
     var json = jsonDecode(data.payload) as Map<String, dynamic>;
     var message = messageFromJson(json);

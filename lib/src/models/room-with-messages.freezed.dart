@@ -341,27 +341,27 @@ abstract class _QChatRoom implements QChatRoom {
       final List<QMessage> messages}) = _$_QChatRoom;
 
   @override
-  int get id => throw _privateConstructorUsedError;
+  int get id;
   @override
-  String get uniqueId => throw _privateConstructorUsedError;
+  String get uniqueId;
   @override
-  String get name => throw _privateConstructorUsedError;
+  String get name;
   @override
-  String? get avatarUrl => throw _privateConstructorUsedError;
+  String? get avatarUrl;
   @override
-  Map<String, Object?>? get extras => throw _privateConstructorUsedError;
+  Map<String, Object?>? get extras;
   @override
-  QMessage? get lastMessage => throw _privateConstructorUsedError;
+  QMessage? get lastMessage;
   @override
-  int get unreadCount => throw _privateConstructorUsedError;
+  int get unreadCount;
   @override
-  int get totalParticipants => throw _privateConstructorUsedError;
+  int get totalParticipants;
   @override
-  List<QParticipant> get participants => throw _privateConstructorUsedError;
+  List<QParticipant> get participants;
   @override
-  QRoomType get type => throw _privateConstructorUsedError;
+  QRoomType get type;
   @override
-  List<QMessage> get messages => throw _privateConstructorUsedError;
+  List<QMessage> get messages;
   @override
   @JsonKey(ignore: true)
   _$$_QChatRoomCopyWith<_$_QChatRoom> get copyWith =>
