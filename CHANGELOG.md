@@ -1,3 +1,7 @@
+# 2.0.1
+
+- fix unable to listen more than once on realtime events
+
 # 2.0.0
 
 - upgrade dependencies to use the stable version
