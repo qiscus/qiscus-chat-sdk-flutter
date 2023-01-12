@@ -1,3 +1,10 @@
+# 2.0.2
+
+- fix could not send `clearMessagesByChatRoomId` and `deleteMessages`
+- fix not saving synchronize `lastMessageId` and `lastEventId`
+- implement sending `markAsDelivered` when receiving message
+- implement `hashCode` and `toString` to some model
+
 # 2.0.1
 
 - fix unable to listen more than once on realtime events
