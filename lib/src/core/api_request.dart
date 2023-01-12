@@ -74,13 +74,14 @@ extension DioXRequest on Dio {
         options: Options(
           method: req.method.asString,
           listFormat: ListFormat.multiCompatible,
+          contentType: req.method == IRequestMethod.delete
+              ? ContentType.text.mimeType
+              : null,
         ),
         data: body?.isNotEmpty == true ? body : null,
         queryParameters: params?.isNotEmpty == true ? params : null,
       ).then((it) => it.data!);
     } catch (e) {
-      print('got dio error2');
-      print('response');
       if (e is DioError) {
         print(e.response?.data.toString());
       }
