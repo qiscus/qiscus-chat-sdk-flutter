@@ -128,11 +128,19 @@ class QiscusSDK {
     var stream = _interval$().transform<bool>(_authenticatedTransformer);
 
     await for (var _ in stream) {
-      if (_storage.isSyncEnabled) {
+      if (_storage.isSyncEnabled && isLogin) {
         try {
-          var _data = await synchronizeImpl().run(_dio).runOrThrow();
+          var lastMessageId =
+              _storage.currentUser?.lastMessageId ?? _storage.lastMessageId;
+          print('do sync($lastMessageId)');
+          var _data = await synchronizeImpl(lastMessageId.toString())
+              .run(_dio)
+              .runOrThrow();
 
-          _storage.currentUser?.lastMessageId = _data.first;
+          if (_data.second.isNotEmpty || _data.first != 0) {
+            _storage.currentUser?.lastMessageId = _data.first;
+            _storage.lastMessageId = _data.first;
+          }
           for (var message in _data.second) {
             yield message;
           }
@@ -144,13 +152,18 @@ class QiscusSDK {
   Stream<QRealtimeEvent> _synchronizeEvent() async* {
     var stream = _interval$().transform(_authenticatedTransformer);
     await for (var _ in stream) {
-      if (_storage.isSyncEventEnabled) {
+      if (_storage.isSyncEventEnabled && isLogin) {
         try {
+          var lastEventId =
+              _storage.currentUser?.lastEventId ?? _storage.lastEventId;
           var data =
-              await synchronizeEventImpl(_storage.currentUser?.lastEventId)
-                  .run(_dio)
-                  .runOrThrow();
-          _storage.currentUser?.lastEventId = data.first;
+              await synchronizeEventImpl(lastEventId).run(_dio).runOrThrow();
+
+          if (data.second.isNotEmpty || data.first != 0) {
+            _storage.currentUser?.lastEventId = data.first;
+            _storage.lastEventId = data.first;
+          }
+
           for (var event in data.second) {
             yield event;
           }
