@@ -1,22 +1,24 @@
+library qiscus_chat_sdk;
+
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
 
 import '../core.dart';
-import '../providers/http-client-provider.dart';
-import 'commons.dart';
-import 'message/message-model.dart';
-import 'room/room-model.dart';
-import 'user/user-model.dart';
+import '../debug.dart';
+import 'domains.dart';
 
 abstract class IQiscusSDK {
   String? get appId;
   QAccount? get currentUser;
-  String? get token;
   bool get isLogin;
-  Storage get storage;
+  String? get token;
 
-  void addHttpInterceptors(RequestInterceptorFn onRequest);
+  void addHttpInterceptors(
+    RequestOptions Function(RequestOptions, RequestInterceptorHandler)
+        onRequest,
+  );
 
   Future<List<QParticipant>> addParticipants({
     required int roomId,
@@ -132,6 +134,7 @@ abstract class IQiscusSDK {
     required int roomId,
     required int messageId,
   });
+
   Future<void> markAsRead({
     required int roomId,
     required int messageId,
@@ -223,6 +226,8 @@ abstract class IQiscusSDK {
 
   Future<QAccount> setUserWithIdentityToken({required String token});
 
+  Debug get debug;
+
   void subscribeChatRoom(QChatRoom room);
 
   void unsubscribeChatRoom(QChatRoom room);
@@ -242,6 +247,7 @@ abstract class IQiscusSDK {
   void synchronizeEvent({String? lastEventId});
 
   Future<QUser> unblockUser({required String userId});
+
   Future<QChatRoom> updateChatRoom({
     required int roomId,
     String? name,
@@ -257,7 +263,10 @@ abstract class IQiscusSDK {
 
   Future<QMessage> updateMessage({required QMessage message});
 
-  Stream<QUploadProgress<String>> upload(File file);
+  Stream<QUploadProgress<String>> upload(
+    File file, {
+    CancelToken? cancelToken,
+  });
 
   Future<List<QMessage>> getFileList({
     List<int>? roomIds,
@@ -270,7 +279,9 @@ abstract class IQiscusSDK {
   });
 
   Future<bool> closeRealtimeConnection();
+
   Future<bool> openRealtimeConnection();
+
   QMessage generateMessage({
     required int chatRoomId,
     required String text,

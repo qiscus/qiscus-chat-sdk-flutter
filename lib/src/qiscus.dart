@@ -9,26 +9,25 @@ import 'package:async/async.dart';
 import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mqtt_client/mqtt_client.dart';
-import 'package:qiscus_chat_sdk/src/impls/message/on-message-deleted-impl.dart';
-import 'package:qiscus_chat_sdk/src/impls/message/on-message-delivered-impl.dart';
-import 'package:qiscus_chat_sdk/src/impls/message/on-message-updated-impl.dart';
-import 'package:qiscus_chat_sdk/src/impls/room/on-room-cleared.dart';
-import 'package:qiscus_chat_sdk/src/impls/user/on-user-presence-impl.dart';
-import 'package:qiscus_chat_sdk/src/impls/user/on-user-typing-impl.dart';
 import 'package:riverpod/riverpod.dart';
 
 import 'app_config/app_config.dart';
 import 'core.dart';
+import 'debug.dart';
 import 'domain/commons.dart';
 import 'domain/custom-event/custom-event-model.dart';
 import 'domain/message/message-model.dart';
+import 'domain/qiscus.dart';
 import 'domain/room/room-model.dart';
 import 'domain/user/user-model.dart';
 import 'impls/custom-event-impl.dart';
 import 'impls/message/delete-messages-impl.dart';
 import 'impls/message/get-message-impl.dart';
+import 'impls/message/on-message-deleted-impl.dart';
+import 'impls/message/on-message-delivered-impl.dart';
 import 'impls/message/on-message-read-impl.dart';
 import 'impls/message/on-message-received-impl.dart';
+import 'impls/message/on-message-updated-impl.dart';
 import 'impls/message/send-message-impl.dart';
 import 'impls/message/update-message-impl.dart';
 import 'impls/message/update-message-status-impl.dart';
@@ -45,6 +44,7 @@ import 'impls/room/get-file-list-impl.dart';
 import 'impls/room/get-participants-impl.dart';
 import 'impls/room/get-room-with-messages-impl.dart';
 import 'impls/room/get-total-unread-count-impl.dart';
+import 'impls/room/on-room-cleared.dart';
 import 'impls/room/publish-custom-event-impl.dart';
 import 'impls/room/remove-participant-impl.dart';
 import 'impls/room/update-chat-room-impl.dart';
@@ -55,6 +55,8 @@ import 'impls/user/get-nonce-impl.dart';
 import 'impls/user/get-user-data-impl.dart';
 import 'impls/user/get-users-impl.dart';
 import 'impls/user/is-authenticated-impl.dart';
+import 'impls/user/on-user-presence-impl.dart';
+import 'impls/user/on-user-typing-impl.dart';
 import 'impls/user/publish-online-presence-impl.dart';
 import 'impls/user/register-device-token-impl.dart';
 import 'impls/user/set-user-impl.dart';
@@ -64,7 +66,7 @@ import 'impls/user/update-user-impl.dart';
 typedef StateTransformer<T>
     = StreamTransformer<QMqttMessage, State<Iterable<T>, T>>;
 
-class QiscusSDK {
+class QiscusSDK implements IQiscusSDK {
   static final instance = QiscusSDK();
   final container = ProviderContainer();
   var _storage = Storage();
@@ -824,6 +826,11 @@ class QiscusSDK {
     r2.run(_mqtt).runOrThrow();
     r3.run(_mqtt).runOrThrow();
   }
+
+  Debug get debug => Debug(
+        mqtt: _mqtt,
+        interval: _interval$(),
+      );
 
   void subscribeChatRoom(QChatRoom room) async {
     await _connected();

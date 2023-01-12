@@ -21,6 +21,10 @@ class _MyHomepageState extends State<MyHomepage> {
     super.initState();
     Future.microtask(() async {
       _qiscusSDK = await QiscusSDK.withAppId('sdksample');
+      var room = await _qiscusSDK.chatUser(userId: 'guest-2002');
+      var message =
+          _qiscusSDK.generateMessage(chatRoomId: room.id, text: 'Hi there');
+      message = await _qiscusSDK.sendMessage(message: message);
     });
   }
 

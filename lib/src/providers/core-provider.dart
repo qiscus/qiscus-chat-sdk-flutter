@@ -1,10 +1,12 @@
-import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
-import 'package:qiscus_chat_sdk/src/domain/room/room-model.dart';
-import 'package:qiscus_chat_sdk/src/domain/message/message-model.dart';
-import 'package:qiscus_chat_sdk/src/domain/commons.dart';
-import 'package:qiscus_chat_sdk/src/core.dart';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
+import 'package:qiscus_chat_sdk/src/core.dart';
+import 'package:qiscus_chat_sdk/src/debug.dart';
+import 'package:qiscus_chat_sdk/src/domain/commons.dart';
+import 'package:qiscus_chat_sdk/src/domain/message/message-model.dart';
+import 'package:qiscus_chat_sdk/src/domain/room/room-model.dart';
+import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
 import 'package:riverpod/riverpod.dart';
 
 import '../domain/qiscus.dart';
@@ -555,8 +557,13 @@ class Core extends IQiscusSDK {
   }
 
   @override
-  Stream<QUploadProgress<String>> upload(File file) {
+  Stream<QUploadProgress<String>> upload(File file,
+      {CancelToken? cancelToken}) {
     // TODO: implement upload
     throw UnimplementedError();
   }
+
+  @override
+  // TODO: implement debug
+  Debug get debug => throw UnimplementedError();
 }

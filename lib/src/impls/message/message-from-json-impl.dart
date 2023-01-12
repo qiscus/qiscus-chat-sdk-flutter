@@ -8,11 +8,11 @@ QMessage messageFromJson(Json json) {
     switch (status) {
       case 'read':
         return QMessageStatus.read;
-      case 'delivered':
-        return QMessageStatus.delivered;
       case 'sent':
-      default:
         return QMessageStatus.sent;
+      case 'delivered':
+      default:
+        return QMessageStatus.delivered;
     }
   }).getOrElse(() => QMessageStatus.sent);
   var type = Option.of(json['type'] as String?).map((type) {

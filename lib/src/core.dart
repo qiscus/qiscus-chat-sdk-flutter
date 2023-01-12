@@ -54,6 +54,10 @@ abstract class TopicBuilder {
 
 TaskEither<String, T> tryCatch<T>(Future<T> Function() fn) {
   return TaskEither.tryCatch(fn, (e, stack) {
+    if (e is DioError) {
+      var response = e.response;
+      print('response: $response');
+    }
     throw e;
     // throw QError(e.toString(), stack);
     // return e.toString();

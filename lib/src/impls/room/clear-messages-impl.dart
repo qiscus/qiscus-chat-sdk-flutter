@@ -13,7 +13,6 @@ ReaderTaskEither<Dio, String, Unit> clearMessagesImpl(
   });
 }
 
-
 class ClearMessagesRequest extends IApiRequest<void> {
   ClearMessagesRequest(this.roomUniqueIds);
 
