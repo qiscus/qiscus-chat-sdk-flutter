@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
 
 enum QMessageType {
@@ -20,7 +21,7 @@ extension QMessageTypeString on QMessageType {
   }
 }
 
-class QMessage {
+class QMessage with EquatableMixin {
   int id;
   int chatRoomId;
   int previousMessageId;
@@ -63,16 +64,7 @@ class QMessage {
       ')';
 
   @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is QMessage &&
-          runtimeType == other.runtimeType &&
-          uniqueId == other.uniqueId;
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => uniqueId.hashCode;
+  List<Object?> get props => [id, chatRoomId, sender, uniqueId];
 }
 
 enum QMessageStatus {

@@ -1,4 +1,6 @@
-class QUser {
+import 'package:equatable/equatable.dart';
+
+class QUser with EquatableMixin {
   const QUser({
     required this.id,
     required this.name,
@@ -10,6 +12,9 @@ class QUser {
   final String name;
   final String? avatarUrl;
   final Map<String, Object?>? extras;
+
+  @override
+  List<Object?> get props => [id];
 }
 
 class QAccount extends QUser {
@@ -40,7 +45,7 @@ class QParticipant extends QUser {
   final int? lastReceivedMessageId;
 }
 
-class QUserTyping {
+class QUserTyping with EquatableMixin {
   const QUserTyping({
     required this.userId,
     required this.roomId,
@@ -49,9 +54,12 @@ class QUserTyping {
   final String userId;
   final bool isTyping;
   final int roomId;
+
+  @override
+  List<Object?> get props => [userId, roomId];
 }
 
-class QUserPresence {
+class QUserPresence with EquatableMixin {
   const QUserPresence({
     required this.userId,
     required this.lastSeen,
@@ -60,4 +68,7 @@ class QUserPresence {
   final String userId;
   final DateTime lastSeen;
   final bool isOnline;
+
+  @override
+  List<Object?> get props => [userId];
 }

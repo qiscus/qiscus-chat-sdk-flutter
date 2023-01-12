@@ -1,9 +1,10 @@
+import 'package:equatable/equatable.dart';
 import 'package:qiscus_chat_sdk/src/domain/message/message-model.dart';
 import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
 
 import '../../core.dart';
 
-class QChatRoom {
+class QChatRoom with EquatableMixin {
   int id;
   int unreadCount;
   int totalParticipants;
@@ -40,6 +41,9 @@ class QChatRoom {
       'lastMessage=$lastMessage, '
       'type=$type'
       ')';
+
+  @override
+  List<Object?> get props => [id, uniqueId];
 }
 
 enum QRoomType {
