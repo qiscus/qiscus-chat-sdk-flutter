@@ -175,7 +175,10 @@ class QiscusSDK {
   late final Stream<QMessage> _messageReceived$ = StreamGroup.mergeBroadcast([
     _synchronize(),
     _mqttUpdates.transform(mqttMessageReceivedTransformer),
-  ]).asyncMap((it) => _triggerHook(QInterceptor.messageBeforeReceived, it));
+  ]).asyncMap((it) async {
+    markAsDelivered(roomId: it.chatRoomId, messageId: it.id).ignore();
+    return it;
+  }).asyncMap((it) => _triggerHook(QInterceptor.messageBeforeReceived, it));
 
   late final Stream<QMessage> _messageRead$ = StreamGroup.mergeBroadcast([
     _synchronizeEvent().transform(syncMessageReadTransformerImpl),
