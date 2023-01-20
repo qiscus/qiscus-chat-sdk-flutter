@@ -134,7 +134,6 @@ class QiscusSDK implements IQiscusSDK {
         try {
           var lastMessageId =
               _storage.currentUser?.lastMessageId ?? _storage.lastMessageId;
-          print('do sync($lastMessageId)');
           var _data = await synchronizeImpl(lastMessageId.toString())
               .run(_dio)
               .runOrThrow();
