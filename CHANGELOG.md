@@ -1,3 +1,7 @@
+# 2.0.3
+
+- fix not sending user typing events
+
 # 2.0.2
 
 - fix could not send `clearMessagesByChatRoomId` and `deleteMessages`
