@@ -58,6 +58,7 @@ import 'impls/user/is-authenticated-impl.dart';
 import 'impls/user/on-user-presence-impl.dart';
 import 'impls/user/on-user-typing-impl.dart';
 import 'impls/user/publish-online-presence-impl.dart';
+import 'impls/user/publish-user-typing-impl.dart';
 import 'impls/user/register-device-token-impl.dart';
 import 'impls/user/set-user-impl.dart';
 import 'impls/user/unblock-user-impl.dart';
@@ -624,7 +625,10 @@ class QiscusSDK implements IQiscusSDK {
     required int roomId,
     bool? isTyping = true,
   }) async {
-    await waitTillAuthenticatedImpl.run(_deps).run();
+    waitTillAuthenticatedImpl
+        .call(publishUserTypingImpl(roomId: roomId, isTyping: isTyping))
+        .run(_deps)
+        .runOrThrow();
   }
 
   Future<bool> registerDeviceToken({
