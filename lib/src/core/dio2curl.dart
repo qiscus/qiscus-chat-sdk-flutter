@@ -11,7 +11,6 @@ String dio2curl(RequestOptions requestOption) {
     curl += ' \'${requestOption.baseUrl}${requestOption.path}';
   }
 
-  var query = requestOption.uri.query;
   if (requestOption.queryParameters.isNotEmpty) {
     var qp = <String>[];
     for (var entry in requestOption.queryParameters.entries) {
@@ -23,20 +22,12 @@ String dio2curl(RequestOptions requestOption) {
         qp.add('${entry.key}=${entry.value}');
       }
     }
-    // requestOption.path += '?';
-    // requestOption.path += qp.join('&');
-    // requestOption.queryParameters = <String, Object?>{};
     if (qp.isNotEmpty) {
       curl += '?';
       curl += qp.join('&');
     }
   }
   curl += '\'';
-  // if (query.isNotEmpty) {
-  //   curl += '?${query.substring(0, query.length - 1)}\'';
-  // } else {
-  //   curl += '\'';
-  // }
 
   // Include headers
   for (var key in requestOption.headers.keys) {

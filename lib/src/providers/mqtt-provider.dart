@@ -50,7 +50,7 @@ final mqttUpdatesProvider =
   }
 });
 
-StreamTransformer<MqttUpdatesData, QMqttMessage> _mqttExpandTransformer =
+StreamTransformer<MqttUpdatesData, QMqttMessage> mqttExpandTransformer =
     StreamTransformer.fromHandlers(handleData: (source, sink) {
   for (var data in source) {
     var payload = data.payload as MqttPublishMessage;

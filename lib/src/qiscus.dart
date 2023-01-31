@@ -15,12 +15,10 @@ import 'app_config/app_config.dart';
 import 'core.dart';
 import 'debug.dart';
 import 'domain/commons.dart';
-import 'domain/custom-event/custom-event-model.dart';
 import 'domain/message/message-model.dart';
 import 'domain/qiscus.dart';
 import 'domain/room/room-model.dart';
 import 'domain/user/user-model.dart';
-import 'impls/custom-event-impl.dart';
 import 'impls/message/delete-messages-impl.dart';
 import 'impls/message/get-message-impl.dart';
 import 'impls/message/on-message-deleted-impl.dart';
@@ -92,9 +90,6 @@ class QiscusSDK implements IQiscusSDK {
       .asBroadcastStream()
       .transform(mqttExpandTransformer);
 
-  late final _authenticated =
-      Stream.periodic(const Duration(milliseconds: 100), (_) => isLogin)
-          .firstWhere((it) => it == true);
   late final StreamTransformer<Unit, bool> _authenticatedTransformer =
       StreamTransformer.fromHandlers(handleData: (_, sink) async {
     var isLoggedIn = await waitTillAuthenticatedImpl.run(_deps).run();
@@ -218,8 +213,6 @@ class QiscusSDK implements IQiscusSDK {
   late final Stream<QUserPresence> _userPresence$ =
       _mqttUpdates.transform(mqttUserPresenceTransformerImpl);
 
-  late final Stream<QCustomEvent> _customEventReceived$ =
-      _mqttUpdates.transform(mqttCustomEventTransformerImpl);
   late final Stream<int> _roomCleared$ = StreamGroup.merge([
     _synchronizeEvent().transform(syncRoomClearedTransformerImpl),
     _mqttUpdates.transform(mqttRoomClearedTransformerImpl),
@@ -1187,8 +1180,8 @@ class QiscusSDK implements IQiscusSDK {
 }
 
 extension _TaskExt<T> on Task<T> {
-  Future<void> runIgnored() {
-    return run().catchError((Object? _) {});
+  Future<void> runIgnored() async {
+    run().ignore();
   }
 }
 
@@ -1215,9 +1208,4 @@ extension _EitherX<L extends String, R> on Either<L, R> {
 
 TaskEither<String, T> fromTask<T>(Task<T> task) {
   return TaskEither.fromTask(task);
-}
-
-void main() {
-  var qiscus = QiscusSDK.instance;
-  // qiscus.getChatRoomWithMessages(roomId: roomId)
 }

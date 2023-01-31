@@ -477,8 +477,6 @@ class Core extends IQiscusSDK {
     throw UnimplementedError();
   }
 
-  @override
-  // TODO: implement storage
   Storage get storage => throw UnimplementedError();
 
   @override
