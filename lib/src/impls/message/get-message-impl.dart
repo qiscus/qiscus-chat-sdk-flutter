@@ -57,7 +57,7 @@ class GetMessagesRequest extends IApiRequest<Iterable<QMessage>> {
   @override
   IRequestMethod get method => IRequestMethod.get;
   @override
-  Map<String, dynamic> get params => <String, dynamic>{
+  Json get params => <String, dynamic>{
         'topic_id': roomId,
         'last_comment_id': lastMessageId,
         'after': after,
@@ -65,9 +65,9 @@ class GetMessagesRequest extends IApiRequest<Iterable<QMessage>> {
       };
 
   @override
-  Iterable<QMessage> format(Map<String, dynamic> json) sync* {
-    var data = (json['results']['comments'] as List) //
-        .cast<Map<String, dynamic>>();
+  Iterable<QMessage> format(Json json) sync* {
+    var data = ((json['results'] as Map?)?['comments'] as List) //
+        .cast<Json>();
 
     for (var json in data) {
       yield messageFromJson(json);

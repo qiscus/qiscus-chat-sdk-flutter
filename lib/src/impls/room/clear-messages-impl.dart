@@ -25,7 +25,7 @@ class ClearMessagesRequest extends IApiRequest<void> {
   IRequestMethod get method => IRequestMethod.delete;
 
   @override
-  Map<String, dynamic> get params => <String, dynamic>{
+  Json get params => <String, dynamic>{
         'room_channel_ids': roomUniqueIds,
       };
 

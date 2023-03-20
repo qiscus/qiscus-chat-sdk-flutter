@@ -8,7 +8,8 @@ RTE<State<Iterable<QMessage>, QMessage>> updateMessageImpl(QMessage message) {
     var req = UpdateMessageRequest(message: message);
 
     var msg = await req(dio);
-    return State((messages) => Tuple2(msg, [...messages.where((it) => it.id != msg.id), msg]));
+    return State((messages) =>
+        Tuple2(msg, [...messages.where((it) => it.id != msg.id), msg]));
   });
 }
 
@@ -24,13 +25,13 @@ class UpdateMessageRequest extends IApiRequest<QMessage> {
   String get url => 'update_message';
 
   @override
-  QMessage format(Map<String, dynamic> json) {
-    var data = json['results']['comment'] as Map<String, dynamic>;
+  QMessage format(Json json) {
+    var data = (json['results'] as Map?)?['comment'] as Json;
     return messageFromJson(data);
   }
 
   @override
-  Map<String, dynamic> get body {
+  Json get body {
     var m = message;
     var data = <String, dynamic>{
       'room_id': m.chatRoomId,

@@ -32,7 +32,7 @@ class Storage with EquatableMixin {
   bool isRealtimeCheckEnabled;
   bool isSyncEnabled;
   bool isSyncEventEnabled;
-  Map<String, dynamic> configExtras = <String, dynamic>{};
+  Json? configExtras;
   Set<QMessage> messages;
   Set<QChatRoom> rooms;
 

@@ -25,7 +25,6 @@ RTE<Iterable<QMessage>> getFileListImpl({
   });
 }
 
-
 class FileListRequest extends IApiRequest<Iterable<QMessage>> {
   FileListRequest({
     this.roomIds,
@@ -51,8 +50,7 @@ class FileListRequest extends IApiRequest<Iterable<QMessage>> {
   IRequestMethod get method => IRequestMethod.post;
 
   @override
-  Map<String, dynamic> get body =>
-      <String, dynamic>{
+  Json get body => <String, dynamic>{
         'query': query,
         'room_ids': roomIds?.map((it) => it.toString()).toList(),
         'sender': sender,
@@ -64,9 +62,9 @@ class FileListRequest extends IApiRequest<Iterable<QMessage>> {
       };
 
   @override
-  Iterable<QMessage> format(Map<String, dynamic> json) sync* {
-    var results = json['results'] as Map<String, dynamic>;
-    var comments = (results['comments'] as List).cast<Map<String, dynamic>>();
+  Iterable<QMessage> format(Json json) sync* {
+    var results = json['results'] as Json;
+    var comments = (results['comments'] as List).cast<Json>();
 
     for (var comment in comments) {
       yield messageFromJson(comment);

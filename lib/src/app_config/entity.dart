@@ -14,7 +14,7 @@ class AppConfig {
   final Option<bool> enableEventReport;
   final Option<bool> enableRealtime;
   final Option<bool> enableRealtimeCheck;
-  final Option<Map<String, dynamic>> extras;
+  final Option<Json> extras;
   final Option<int> syncInterval;
   final Option<int> syncOnConnect;
   final Option<bool> enableSync;
@@ -34,7 +34,7 @@ class AppConfig {
     required this.enableSyncEvent,
   });
 
-  factory AppConfig.fromJson(Map<String, dynamic> json) {
+  factory AppConfig.fromJson(Json json) {
     return AppConfig(
       baseUrl: optionFromJson<String>(json['base_url'] as String),
       brokerLbUrl: optionFromJson<String>(json['broker_lb_url'] as String),
@@ -49,9 +49,9 @@ class AppConfig {
         if ((extras is String) && extras.isNotEmpty) {
           return decodeJson(extras);
         } else {
-          return Option<Map<String, dynamic>>.none();
+          return Option<Json>.none();
         }
-      })(json['extras'] as String),
+      })(json['extras']),
       enableSync: optionFromJson(json['enable_sync'] as bool?) //
           .map((t) => t ?? false),
       enableSyncEvent: optionFromJson(json['enable_sync_event'] as bool?) //

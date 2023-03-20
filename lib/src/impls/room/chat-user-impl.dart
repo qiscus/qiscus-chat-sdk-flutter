@@ -6,7 +6,8 @@ import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/room/room-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/room/room-from-json-impl.dart';
 
-ReaderTaskEither<Dio, String, QChatRoom> chatUserImpl(String userId, [Json? extras]) {
+ReaderTaskEither<Dio, String, QChatRoom> chatUserImpl(String userId,
+    [Json? extras]) {
   return Reader((Dio dio) {
     return TaskEither.tryCatch(() async {
       var req = ChatTargetRequest(userId: userId);
@@ -14,7 +15,6 @@ ReaderTaskEither<Dio, String, QChatRoom> chatUserImpl(String userId, [Json? extr
     }, (e, _) => e.toString());
   });
 }
-
 
 class ChatTargetRequest extends IApiRequest<QChatRoom> {
   ChatTargetRequest({
@@ -32,13 +32,13 @@ class ChatTargetRequest extends IApiRequest<QChatRoom> {
   IRequestMethod get method => IRequestMethod.post;
 
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'emails': [userId],
         'options': jsonEncode(extras),
       };
 
   @override
-  QChatRoom format(Map<String, dynamic> json) {
-    return roomFromJson(json['results']['room'] as Map<String, dynamic>);
+  QChatRoom format(Json json) {
+    return roomFromJson((json['results'] as Map?)?['room'] as Json);
   }
 }

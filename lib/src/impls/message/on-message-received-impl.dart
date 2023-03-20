@@ -10,7 +10,7 @@ import 'message-from-json-impl.dart';
 StreamTransformer<QMqttMessage, QMessage> mqttMessageReceivedTransformer =
     StreamTransformer.fromHandlers(handleData: (data, sink) {
   if (reNewMessage.hasMatch(data.topic)) {
-    var json = jsonDecode(data.payload) as Map<String, dynamic>;
+    var json = jsonDecode(data.payload) as Json;
     var message = messageFromJson(json);
 
     sink.add(message);

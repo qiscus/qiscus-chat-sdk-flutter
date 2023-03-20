@@ -1,4 +1,3 @@
-
 import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
@@ -26,7 +25,6 @@ ReaderTaskEither<Dio, String, Iterable<QChatRoom>> getAllChatRoomsImpl({
   });
 }
 
-
 class GetAllRoomRequest extends IApiRequest<Iterable<QChatRoom>> {
   GetAllRoomRequest({
     this.withParticipants,
@@ -49,7 +47,7 @@ class GetAllRoomRequest extends IApiRequest<Iterable<QChatRoom>> {
   IRequestMethod get method => IRequestMethod.get;
 
   @override
-  Map<String, dynamic> get params => <String, dynamic>{
+  Json get params => <String, dynamic>{
         'show_participants': withParticipants,
         'show_empty': withEmptyRoom,
         'show_removed': withRemovedRoom,
@@ -58,9 +56,9 @@ class GetAllRoomRequest extends IApiRequest<Iterable<QChatRoom>> {
       };
 
   @override
-  Iterable<QChatRoom> format(Map<String, dynamic> json) sync* {
-    var rooms = (json['results']['rooms_info'] as List) //
-        .cast<Map<String, dynamic>>();
+  Iterable<QChatRoom> format(Json json) sync* {
+    var rooms = ((json['results'] as Map?)?['rooms_info'] as List) //
+        .cast<Json>();
 
     for (var item in rooms) {
       yield roomFromJson(item);

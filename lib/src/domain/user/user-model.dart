@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../core.dart';
+
 class QUser with EquatableMixin {
   const QUser({
     required this.id,
@@ -22,7 +24,7 @@ class QAccount extends QUser {
     required String id,
     required String name,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Json? extras,
     this.lastEventId,
     this.lastMessageId,
   }) : super(id: id, name: name, avatarUrl: avatarUrl, extras: extras);
@@ -36,7 +38,7 @@ class QParticipant extends QUser {
     required String id,
     required String name,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Json? extras,
     this.lastReadMessageId,
     this.lastReceivedMessageId,
   }) : super(id: id, name: name, avatarUrl: avatarUrl, extras: extras);

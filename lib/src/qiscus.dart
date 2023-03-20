@@ -262,7 +262,7 @@ class QiscusSDK implements IQiscusSDK {
 
   Future<QChatRoom> chatUser({
     required String userId,
-    Map<String, dynamic>? extras,
+    Json? extras,
   }) async {
     var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = chatUserImpl(userId, extras).run(_dio);
@@ -289,7 +289,7 @@ class QiscusSDK implements IQiscusSDK {
     required String uniqueId,
     String? name,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Json? extras,
   }) async {
     var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = createChannelImpl(
@@ -306,7 +306,7 @@ class QiscusSDK implements IQiscusSDK {
     required String name,
     required List<String> userIds,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Json? extras,
   }) async {
     var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = createGroupChatImpl(
@@ -596,7 +596,7 @@ class QiscusSDK implements IQiscusSDK {
 
   Future<void> publishCustomEvent({
     required int roomId,
-    required Map<String, dynamic> payload,
+    required Json payload,
   }) async {
     var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = publishCustomEventImpl(roomId, payload).run(_mqtt);
@@ -742,7 +742,7 @@ class QiscusSDK implements IQiscusSDK {
     required String userKey,
     String? username,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Json? extras,
   }) async {
     if (userId.isEmpty) {
       throw ArgumentError.value(
@@ -854,7 +854,7 @@ class QiscusSDK implements IQiscusSDK {
         .run();
   }
 
-  Stream<Map<String, dynamic>> subscribeCustomEvent({
+  Stream<Json> subscribeCustomEvent({
     required int roomId,
   }) async* {
     var topic = TopicBuilder.customEvent(roomId);
@@ -865,7 +865,7 @@ class QiscusSDK implements IQiscusSDK {
         .run();
 
     await for (var data in stream) {
-      yield jsonDecode(data.payload) as Map<String, dynamic>;
+      yield jsonDecode(data.payload) as Json;
     }
   }
 
@@ -922,7 +922,7 @@ class QiscusSDK implements IQiscusSDK {
     required int roomId,
     String? name,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Json? extras,
   }) {
     return waitTillAuthenticatedImpl
         .local<Dio>((_) => _deps)
@@ -943,7 +943,7 @@ class QiscusSDK implements IQiscusSDK {
   Future<QAccount> updateUser({
     String? name,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Json? extras,
   }) {
     return waitTillAuthenticatedImpl
         .local<Dio>((_) => _deps)
@@ -981,7 +981,7 @@ class QiscusSDK implements IQiscusSDK {
 
     // ignore: unawaited_futures
     _dio
-        .post<Map<String, dynamic>>(
+        .post<Json>(
           uploadUrl,
           data: formData,
           onSendProgress: (count, total) {
@@ -992,7 +992,7 @@ class QiscusSDK implements IQiscusSDK {
         )
         .then((resp) => resp.data)
         .then((json) {
-          return json!['results']['file']['url'] as String;
+          return (json!['results'] as Map)['file']['url'] as String;
         })
         .then(
           (url) => controller.add(QUploadProgress(progress: 100, data: url)),
@@ -1052,7 +1052,7 @@ class QiscusSDK implements IQiscusSDK {
   QMessage generateMessage({
     required int chatRoomId,
     required String text,
-    Map<String, dynamic>? extras,
+    Json? extras,
   }) {
     var id = Random.secure().nextInt(10000);
     return QMessage(
@@ -1076,8 +1076,8 @@ class QiscusSDK implements IQiscusSDK {
     required int chatRoomId,
     required String text,
     required String type,
-    Map<String, dynamic>? extras,
-    required Map<String, dynamic> payload,
+    Json? extras,
+    required Json payload,
   }) {
     var id = Random.secure().nextInt(10000);
     return QMessage(
@@ -1107,7 +1107,7 @@ class QiscusSDK implements IQiscusSDK {
     String? filename,
     String text = 'File attachment',
     int? size,
-    Map<String, dynamic>? extras,
+    Json? extras,
   }) {
     var id = Random.secure().nextInt(10000);
     return QMessage(

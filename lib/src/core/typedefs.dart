@@ -1,6 +1,6 @@
 part of qiscus_chat_sdk.core;
 
-typedef Json = Map<String, dynamic>;
+typedef Json = Map<String, Object?>;
 typedef Callback0 = void Function(Error error);
 typedef Callback1<Data1> = void Function(Data1, Error error);
 typedef Callback2<Data1, Data2> = void Function(Data1, Data2, Error error);

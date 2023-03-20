@@ -8,13 +8,13 @@ import 'package:qiscus_chat_sdk/src/impls/sync.dart';
 StreamTransformer<QMqttMessage, int> mqttRoomClearedTransformerImpl =
     StreamTransformer.fromHandlers(handleData: (data, sink) {
   if (reNotification.hasMatch(data.topic)) {
-    var json = jsonDecode(data.payload) as Map<String, dynamic>;
+    var json = jsonDecode(data.payload) as Json;
     var actionType = json['action_topic'] as String;
-    var payload = json['payload'] as Map<String, dynamic>;
+    var payload = json['payload'] as Json;
 
     if (actionType == 'clear_room') {
-      var rooms = (payload['data']['deleted_rooms'] as List)
-          .cast<Map<String, dynamic>>();
+      var rooms =
+          ((payload['data'] as Map)['deleted_rooms'] as List).cast<Json>();
       var roomIds = rooms.map((room) => room['id'] as int);
 
       for (var roomId in roomIds) {
@@ -25,7 +25,7 @@ StreamTransformer<QMqttMessage, int> mqttRoomClearedTransformerImpl =
 });
 
 StreamTransformer<QRealtimeEvent, int> syncRoomClearedTransformerImpl =
-StreamTransformer.fromHandlers(handleData: (data, sink) {
+    StreamTransformer.fromHandlers(handleData: (data, sink) {
   data.flow(
     messageDeleted: (_) {},
     messageDelivered: (_) {},

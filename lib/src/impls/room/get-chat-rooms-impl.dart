@@ -56,7 +56,7 @@ class GetRoomInfoRequest extends IApiRequest<Iterable<QChatRoom>> {
   IRequestMethod get method => IRequestMethod.post;
 
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'room_id': roomIds?.map((e) => e.toString()).toList(),
         'room_unique_id': uniqueIds,
         'show_participants': withParticipants,
@@ -65,10 +65,10 @@ class GetRoomInfoRequest extends IApiRequest<Iterable<QChatRoom>> {
       };
 
   @override
-  Iterable<QChatRoom> format(Map<String, dynamic> json) sync* {
-    var roomsInfo = json['results']['rooms_info'] as List;
+  Iterable<QChatRoom> format(Json json) sync* {
+    var roomsInfo = (json['results'] as Map?)?['rooms_info'] as List;
 
-    for (var json in roomsInfo.cast<Map<String, dynamic>>()) {
+    for (var json in roomsInfo.cast<Json>()) {
       yield roomFromJson(json);
     }
   }

@@ -11,7 +11,7 @@ RTE<State<Iterable<QMessage>, QMessage>> sendMessageImpl(QMessage message) {
         roomId: message.chatRoomId,
         message: message.text,
         uniqueId: message.uniqueId,
-        type: message.type.string,
+        type: message.type.toString(),
         extras: message.extras,
         payload: message.payload,
       );
@@ -29,8 +29,8 @@ class SendMessageRequest extends IApiRequest<QMessage> {
   final String message;
   final String type;
   final String uniqueId;
-  final Map<String, dynamic>? extras;
-  final Map<String, dynamic>? payload;
+  final Json? extras;
+  final Json? payload;
 
   SendMessageRequest({
     required this.roomId,
@@ -46,7 +46,7 @@ class SendMessageRequest extends IApiRequest<QMessage> {
   @override
   IRequestMethod get method => IRequestMethod.post;
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'topic_id': roomId.toString(),
         'comment': message,
         'type': type,
@@ -56,8 +56,8 @@ class SendMessageRequest extends IApiRequest<QMessage> {
       };
 
   @override
-  QMessage format(Map<String, dynamic> json) {
-    var data = json['results']['comment'] as Map<String, dynamic>;
+  QMessage format(Json json) {
+    var data = ((json['results'] as Map?)?['comment'] as Json);
     return messageFromJson(data);
   }
 }

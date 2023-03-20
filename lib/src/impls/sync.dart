@@ -46,8 +46,9 @@ class SynchronizeRequest extends IApiRequest<Tuple2<int, Iterable<QMessage>>> {
 
   @override
   Tuple2<int, Iterable<QMessage>> format(Map<String, dynamic> json) {
-    var lastId = json['results']['meta']['last_received_comment_id'] as int;
-    var messages = (json['results']['comments'] as List)
+    var lastId =
+        (json['results'] as Map)['meta']['last_received_comment_id'] as int;
+    var messages = ((json['results'] as Map)['comments'] as List)
         .cast<Map<String, dynamic>>()
         .map((it) => messageFromJson(it))
         .toList();

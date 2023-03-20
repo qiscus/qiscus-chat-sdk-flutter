@@ -34,15 +34,15 @@ class AddParticipantRequest extends IApiRequest<Iterable<QParticipant>> {
   IRequestMethod get method => IRequestMethod.post;
 
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'room_id': roomId.toString(),
         'emails': userIds,
       };
 
   @override
-  Iterable<QParticipant> format(Map<String, dynamic> json) sync* {
-    var participants = (json['results']['participants_added'] as List)
-        .cast<Map<String, dynamic>>();
+  Iterable<QParticipant> format(Json json) sync* {
+    var participants =
+        ((json['results'] as Map?)?['participants_added'] as List).cast<Json>();
 
     for (var item in participants) {
       yield participantFromJson(item);

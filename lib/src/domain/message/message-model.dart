@@ -1,22 +1,22 @@
 import 'package:equatable/equatable.dart';
 import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
 
+import '../../core.dart';
+
 enum QMessageType {
   text,
   custom,
-  attachment,
-}
+  attachment;
 
-extension QMessageTypeString on QMessageType {
-  String get string {
+  @override
+  String toString() {
     switch (this) {
-      case QMessageType.attachment:
-        return 'file_attachment';
-      case QMessageType.custom:
-        return 'custom';
-      case QMessageType.text:
-      default:
+      case text:
         return 'text';
+      case custom:
+        return 'custom';
+      case attachment:
+        return 'file_attachment';
     }
   }
 }
@@ -29,8 +29,8 @@ class QMessage with EquatableMixin {
   String text;
   QMessageStatus status;
   QMessageType type;
-  Map<String, dynamic>? extras;
-  Map<String, dynamic>? payload;
+  Json? extras;
+  Json? payload;
   QUser sender;
   DateTime timestamp;
 
@@ -71,21 +71,18 @@ enum QMessageStatus {
   sending,
   sent,
   delivered,
-  read,
-}
+  read;
 
-extension QMessageStatusStr on QMessageStatus {
-  String get string {
+  String toString() {
     switch (this) {
-      case QMessageStatus.sending:
+      case sending:
         return 'sending';
-      case QMessageStatus.delivered:
-        return 'delivered';
-      case QMessageStatus.read:
-        return 'read';
-      case QMessageStatus.sent:
-      default:
+      case sent:
         return 'sent';
+      case delivered:
+        return 'delivered';
+      case read:
+        return 'read';
     }
   }
 }

@@ -45,15 +45,15 @@ class SetDeviceTokenRequest extends IApiRequest<bool> {
   IRequestMethod get method => IRequestMethod.post;
 
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'device_token': token,
         'is_development': isDevelopment,
         'device_platform': platform,
       };
 
   @override
-  bool format(Map<String, dynamic> json) {
-    return json['results']['changed'] as bool;
+  bool format(Json json) {
+    return (json['results'] as Map)['changed'] as bool;
   }
 }
 
@@ -74,14 +74,14 @@ class UnsetDeviceTokenRequest extends IApiRequest<bool> {
   IRequestMethod get method => IRequestMethod.post;
 
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'device_token': token,
         'is_development': isDevelopment,
         'device_platform': platform,
       };
 
   @override
-  bool format(Map<String, dynamic> json) {
-    return json['results']['success'] as bool;
+  bool format(Json json) {
+    return (json['results'] as Map)['success'] as bool;
   }
 }

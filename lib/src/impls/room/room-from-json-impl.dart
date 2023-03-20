@@ -6,11 +6,11 @@ import 'package:qiscus_chat_sdk/src/impls/user/participant-from-json-impl.dart';
 
 QChatRoom roomFromJson(Json json) {
   var participants = Option.fromNullable((json['participants'] as List?))
-      .map((it) => it.cast<Map<String, dynamic>>())
+      .map((it) => it.cast<Json>())
       .map((it) => it.map((json) => participantFromJson(json)))
       .map((it) => it.toList());
 
-  var lastMessage = Option.fromNullable(json['last_comment'] as Map<String, dynamic>?)
+  var lastMessage = Option.fromNullable(json['last_comment'] as Json?)
       .map((it) => messageFromJson(it));
 
   Option<QRoomType> _type;

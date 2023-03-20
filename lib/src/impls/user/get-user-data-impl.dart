@@ -26,7 +26,7 @@ class GetUserDataRequest extends IApiRequest<QAccount> {
   IRequestMethod get method => IRequestMethod.get;
 
   @override
-  QAccount format(Map<String, dynamic> json) {
-    return accountFromJson(json['results']['user'] as Map<String, dynamic>);
+  QAccount format(Json json) {
+    return accountFromJson((json['results'] as Map)['user'] as Json);
   }
 }

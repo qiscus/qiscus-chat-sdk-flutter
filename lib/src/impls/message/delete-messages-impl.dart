@@ -30,16 +30,16 @@ class DeleteMessagesRequest extends IApiRequest<Iterable<QMessage>> {
   @override
   IRequestMethod get method => IRequestMethod.delete;
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'unique_ids': uniqueIds,
         'is_hard_delete': isHardDelete,
         'is_delete_for_everyone': isForEveryone,
       };
 
   @override
-  Iterable<QMessage> format(Map<String, dynamic> json) sync* {
-    var data = (json['results']['comments'] as List) //
-        .cast<Map<String, dynamic>>();
+  Iterable<QMessage> format(Json json) sync* {
+    var data = ((json['results'] as Map?)?['comments'] as List) //
+        .cast<Json>();
 
     for (var item in data) {
       yield messageFromJson(item);

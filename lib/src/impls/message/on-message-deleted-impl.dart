@@ -8,15 +8,15 @@ import 'package:qiscus_chat_sdk/src/impls/mqtt-impls.dart';
 import 'package:qiscus_chat_sdk/src/impls/sync.dart';
 
 final mqttMessageDeletedTransformerImpl = StreamTransformer<QMqttMessage,
-State<Iterable<QMessage>, QMessage?>>.fromBind((stream) {
+    State<Iterable<QMessage>, QMessage?>>.fromBind((stream) {
   return stream
-  .where((it) => reNotification.hasMatch(it.topic))
+      .where((it) => reNotification.hasMatch(it.topic))
       .transform(_mqttMessageDeletedTransformerImpl)
       .transform(_eventReceiveProcess);
 });
 
 StreamTransformer<QMessageDeletedEvent, State<Iterable<QMessage>, QMessage?>>
-_eventReceiveProcess = StreamTransformer.fromHandlers(
+    _eventReceiveProcess = StreamTransformer.fromHandlers(
   handleData: (data, sink) {
     sink.add(State((Iterable<QMessage> messages) {
       var message =
@@ -42,24 +42,23 @@ var _syncEventReceived =
     );
   },
 );
-var syncMessageDeletedTransformerImpl =
-StreamTransformer<QRealtimeEvent, State<Iterable<QMessage>, QMessage?>>.fromBind((stream) {
+var syncMessageDeletedTransformerImpl = StreamTransformer<QRealtimeEvent,
+    State<Iterable<QMessage>, QMessage?>>.fromBind((stream) {
   return stream //
       .transform(_syncEventReceived)
       .transform(_eventReceiveProcess);
 });
 
 final _mqttMessageDeletedTransformerImpl =
-StreamTransformer<QMqttMessage, QMessageDeletedEvent>.fromHandlers(
+    StreamTransformer<QMqttMessage, QMessageDeletedEvent>.fromHandlers(
   handleData: (data, sink) {
-
-    var json = jsonDecode(data.payload) as Map<String, dynamic>;
+    var json = jsonDecode(data.payload) as Json;
     var actionType = json['action_topic'] as String;
-    var payload = json['payload'] as Map<String, dynamic>;
+    var payload = json['payload'] as Json;
 
     if (actionType == 'delete_message') {
-      var mPayload = (payload['data']['deleted_messages'] as List)
-          .cast<Map<String, dynamic>>();
+      var mPayload =
+          ((payload['data'] as Map?)?['deleted_messages'] as List).cast<Json>();
       for (var m in mPayload) {
         var roomId = int.parse(m['room_id'] as String);
         var uniqueIds = (m['message_unique_ids'] as List).cast<String>();

@@ -41,14 +41,14 @@ class UpdateUserDataRequest extends IApiRequest<QAccount> {
   IRequestMethod get method => IRequestMethod.patch;
 
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'name': name,
         'avatar_url': avatarUrl,
         'extras': extras,
       };
 
   @override
-  QAccount format(Map<String, dynamic> json) {
-    return accountFromJson(json['results']['user'] as Map<String, dynamic>);
+  QAccount format(Json json) {
+    return accountFromJson((json['results'] as Map)['user'] as Json);
   }
 }

@@ -6,8 +6,8 @@ import 'package:qiscus_chat_sdk/src/domain/room/room-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/message/message-from-json-impl.dart';
 import 'package:qiscus_chat_sdk/src/impls/room/room-from-json-impl.dart';
 
-
-ReaderTaskEither<Dio, String, Tuple2<QChatRoom, Iterable<QMessage>>> getRoomWithMessagesImpl(int roomId) {
+ReaderTaskEither<Dio, String, Tuple2<QChatRoom, Iterable<QMessage>>>
+    getRoomWithMessagesImpl(int roomId) {
   return Reader((dio) {
     return tryCatch(() async {
       var req = GetRoomByIdRequest(roomId: roomId);
@@ -16,7 +16,8 @@ ReaderTaskEither<Dio, String, Tuple2<QChatRoom, Iterable<QMessage>>> getRoomWith
   });
 }
 
-class GetRoomByIdRequest extends IApiRequest<Tuple2<QChatRoom, Iterable<QMessage>>> {
+class GetRoomByIdRequest
+    extends IApiRequest<Tuple2<QChatRoom, Iterable<QMessage>>> {
   GetRoomByIdRequest({
     required this.roomId,
   });
@@ -30,14 +31,14 @@ class GetRoomByIdRequest extends IApiRequest<Tuple2<QChatRoom, Iterable<QMessage
   IRequestMethod get method => IRequestMethod.get;
 
   @override
-  Map<String, dynamic> get params => <String, dynamic>{'id': roomId};
+  Json get params => <String, dynamic>{'id': roomId};
 
   @override
-  Tuple2<QChatRoom, Iterable<QMessage>> format(Map<String, dynamic> json) {
-    var results = json['results'] as Map<String, dynamic>;
-    var room = roomFromJson(results['room'] as Map<String, dynamic>);
+  Tuple2<QChatRoom, Iterable<QMessage>> format(Json json) {
+    var results = json['results'] as Json;
+    var room = roomFromJson(results['room'] as Json);
     var messages = (results['comments'] as List) //
-        .cast<Map<String, dynamic>>()
+        .cast<Json>()
         .map((it) => messageFromJson(it));
 
     return Tuple2(room, messages);

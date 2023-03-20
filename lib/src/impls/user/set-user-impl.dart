@@ -52,7 +52,7 @@ class AuthenticateRequest extends IApiRequest<Tuple2<String, QAccount>> {
   final String userKey;
   final String? name;
   final String? avatarUrl;
-  final Map<String, dynamic>? extras;
+  final Json? extras;
 
   @override
   String get url => 'login_or_register';
@@ -61,7 +61,7 @@ class AuthenticateRequest extends IApiRequest<Tuple2<String, QAccount>> {
   IRequestMethod get method => IRequestMethod.post;
 
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'email': userId,
         'password': userKey,
         'username': name,
@@ -70,9 +70,9 @@ class AuthenticateRequest extends IApiRequest<Tuple2<String, QAccount>> {
       };
 
   @override
-  Tuple2<String, QAccount> format(Map<String, dynamic> json) {
-    var token = json['results']['user']['token'] as String;
-    var user = accountFromJson(json['results']['user'] as Map<String, dynamic>);
+  Tuple2<String, QAccount> format(Json json) {
+    var token = (json['results'] as Map)['user']['token'] as String;
+    var user = accountFromJson((json['results'] as Map)['user'] as Json);
 
     return Tuple2(token, user);
   }
@@ -93,14 +93,14 @@ class AuthenticateWithTokenRequest
   IRequestMethod get method => IRequestMethod.post;
 
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'identity_token': identityToken,
       };
 
   @override
-  Tuple2<String, QAccount> format(Map<String, dynamic> json) {
-    var token = json['results']['user']['token'] as String;
-    var user = accountFromJson(json['results']['user'] as Map<String, dynamic>);
+  Tuple2<String, QAccount> format(Json json) {
+    var token = (json['results'] as Map)['user']['token'] as String;
+    var user = accountFromJson((json['results'] as Map)['user'] as Json);
 
     return Tuple2(token, user);
   }

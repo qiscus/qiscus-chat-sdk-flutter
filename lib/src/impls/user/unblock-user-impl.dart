@@ -13,7 +13,6 @@ ReaderTaskEither<Dio, String, QUser> unblockUserImpl(String userId) {
   });
 }
 
-
 class UnblockUserRequest extends IApiRequest<QUser> {
   UnblockUserRequest({
     required this.userId,
@@ -25,12 +24,12 @@ class UnblockUserRequest extends IApiRequest<QUser> {
   @override
   IRequestMethod get method => IRequestMethod.post;
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'user_email': userId,
       };
 
   @override
-  QUser format(Map<String, dynamic> json) {
-    return userFromJson(json['results']['user'] as Map<String, dynamic>);
+  QUser format(Json json) {
+    return userFromJson((json['results'] as Map)['user'] as Json);
   }
 }

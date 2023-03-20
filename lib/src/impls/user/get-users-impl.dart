@@ -34,16 +34,16 @@ class GetUserListRequest extends IApiRequest<Iterable<QUser>> {
   @override
   IRequestMethod get method => IRequestMethod.get;
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'page': page,
         'limit': limit,
         'query': query,
       };
 
   @override
-  Iterable<QUser> format(Map<String, dynamic> json) sync* {
-    var users = json['results']['users'] as List;
-    for (var json in users.cast<Map<String, dynamic>>()) {
+  Iterable<QUser> format(Json json) sync* {
+    var users = (json['results'] as Map)['users'] as List;
+    for (var json in users.cast<Json>()) {
       yield userFromJson(json);
     }
   }

@@ -7,7 +7,7 @@ class GetConfigRequest extends IApiRequest<AppConfig> {
   String get url => 'config';
 
   @override
-  AppConfig format(Map<String, dynamic> json) {
-    return AppConfig.fromJson(json['results'] as Map<String, dynamic>);
+  AppConfig format(Json json) {
+    return AppConfig.fromJson(json['results'] as Json);
   }
 }

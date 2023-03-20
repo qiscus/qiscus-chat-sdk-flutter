@@ -49,7 +49,7 @@ class UpdateRoomRequest extends IApiRequest<QChatRoom> {
   IRequestMethod get method => IRequestMethod.post;
 
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'id': roomId,
         'name': name,
         'avatar_url': avatarUrl,
@@ -57,7 +57,7 @@ class UpdateRoomRequest extends IApiRequest<QChatRoom> {
       };
 
   @override
-  QChatRoom format(Map<String, dynamic> json) {
-    return roomFromJson(json['results']['room'] as Map<String, dynamic>);
+  QChatRoom format(Json json) {
+    return roomFromJson((json['results'] as Map)['room'] as Json);
   }
 }

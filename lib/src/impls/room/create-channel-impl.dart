@@ -20,7 +20,6 @@ ReaderTaskEither<Dio, String, QChatRoom> createChannelImpl(
   });
 }
 
-
 class GetOrCreateChannelRequest extends IApiRequest<QChatRoom> {
   GetOrCreateChannelRequest({
     required this.uniqueId,
@@ -49,7 +48,7 @@ class GetOrCreateChannelRequest extends IApiRequest<QChatRoom> {
       };
 
   @override
-  QChatRoom format(Map<String, dynamic> json) {
-    return roomFromJson(json['results']['room'] as Map<String, dynamic>);
+  QChatRoom format(Json json) {
+    return roomFromJson((json['results'] as Map?)?['room'] as Json);
   }
 }

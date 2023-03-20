@@ -18,7 +18,7 @@ class GetTotalUnreadCountRequest extends IApiRequest<int> {
   IRequestMethod get method => IRequestMethod.get;
 
   @override
-  int format(Map<String, dynamic> json) {
-    return json['results']['total_unread_count'] as int;
+  int format(Json json) {
+    return (json['results'] as Map)['total_unread_count'] as int;
   }
 }

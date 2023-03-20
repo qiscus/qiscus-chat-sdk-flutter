@@ -39,7 +39,7 @@ class CreateGroupRequest extends IApiRequest<QChatRoom> {
   final List<String> userIds;
 
   final String? avatarUrl;
-  final Map<String, dynamic>? extras;
+  final Json? extras;
 
   @override
   String get url => 'create_room';
@@ -48,7 +48,7 @@ class CreateGroupRequest extends IApiRequest<QChatRoom> {
   IRequestMethod get method => IRequestMethod.post;
 
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'name': name,
         'participants': userIds,
         'avatar_url': avatarUrl,
@@ -56,7 +56,7 @@ class CreateGroupRequest extends IApiRequest<QChatRoom> {
       };
 
   @override
-  QChatRoom format(Map<String, dynamic> json) {
-    return roomFromJson(json['results']['room'] as Map<String, dynamic>);
+  QChatRoom format(Json json) {
+    return roomFromJson((json['results'] as Map?)?['room'] as Json);
   }
 }

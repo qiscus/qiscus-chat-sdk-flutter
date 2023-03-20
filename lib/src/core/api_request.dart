@@ -1,15 +1,15 @@
 part of qiscus_chat_sdk.core;
 
-typedef Formatter<Output> = Output Function(Map<String, dynamic> json);
+typedef Formatter<Output> = Output Function(Json json);
 
 abstract class IApiRequest<T> {
   IApiRequest();
 
   String get url;
   IRequestMethod get method;
-  Map<String, dynamic>? get body => <String, dynamic>{};
-  Map<String, dynamic>? get params => <String, dynamic>{};
-  T format(Map<String, dynamic> json);
+  Json? get body => null;
+  Json? get params => null;
+  T format(Json json);
 
   Future<T> call(Dio dio) async {
     return dio.sendApiRequest(this).then((r) => format(r));
@@ -34,7 +34,7 @@ abstract class IApiRequest<T> {
 
 enum IRequestMethod { get, post, patch, put, delete }
 
-extension on IRequestMethod {
+extension XIRequestMethod on IRequestMethod {
   String get asString {
     switch (this) {
       case IRequestMethod.get:
@@ -54,13 +54,7 @@ extension on IRequestMethod {
 }
 
 extension DioXRequest on Dio {
-  Future<Output> call<Output>(
-    IApiRequest<Output> r,
-  ) async {
-    return sendApiRequest(r);
-  }
-
-  Future<Output> sendApiRequest<Output extends Map<String, dynamic>>(
+  Future<Output> sendApiRequest<Output extends Json>(
     IApiRequest<dynamic> req,
   ) async {
     var body = req.body;

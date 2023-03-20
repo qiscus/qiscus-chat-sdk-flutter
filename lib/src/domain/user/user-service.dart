@@ -1,3 +1,4 @@
+import '../../core.dart';
 import '../commons.dart';
 import 'user-model.dart';
 
@@ -7,7 +8,7 @@ abstract class IUserService {
     required String userKey,
     String? name,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Json? extras,
   });
   Future<QUser> authenticateWithIdentityToken({required String identityToken});
   Future<bool> block(String userId);
@@ -28,7 +29,7 @@ class UserService extends IUserService {
     required String userKey,
     String? name,
     String? avatarUrl,
-    Map<String, dynamic>? extras,
+    Json? extras,
   }) async {
     throw UnimplementedError();
   }

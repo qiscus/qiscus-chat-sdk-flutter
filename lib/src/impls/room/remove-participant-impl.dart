@@ -29,14 +29,14 @@ class RemoveParticipantRequest extends IApiRequest<Iterable<String>> {
   IRequestMethod get method => IRequestMethod.post;
 
   @override
-  Map<String, dynamic> get body => <String, dynamic>{
+  Json get body => <String, dynamic>{
         'room_id': roomId.toString(),
         'emails': userIds,
       };
 
   @override
-  Iterable<String> format(Map<String, dynamic> json) {
-    var ids = (json['results']['participants_removed'] as List) //
+  Iterable<String> format(Json json) {
+    var ids = ((json['results'] as Map)['participants_removed'] as List) //
         .cast<String>();
 
     return ids;

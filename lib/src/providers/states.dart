@@ -1,5 +1,7 @@
 import 'package:riverpod/riverpod.dart';
 
+import '../core.dart';
+
 const defaultBaseUrl = 'https://api3.qiscus.com';
 const defaultUploadUrl = '$defaultBaseUrl/api/v2/sdk/upload';
 const defaultBrokerUrl = 'realtime-bali.qiscus.com';
@@ -15,6 +17,7 @@ final brokerUrlProvider = Provider<String>((_) => defaultBrokerUrl);
 final enableEventReportProvider = Provider<bool>((_) => false);
 final enableRealtimeProvider = Provider<bool>((_) => true);
 final enableRealtimeCheckProvider = Provider<bool>((_) => true);
-final extrasProvider = Provider<Map<String, dynamic>?>((_) => null);
+final extrasProvider = Provider<Json?>((_) => null);
 final syncIntervalProvider = Provider<int>((_) => defaultSyncInterval);
-final syncOnConnectProvider = Provider<int>((_) => defaultSyncIntervalWhenConnected);
+final syncOnConnectProvider =
+    Provider<int>((_) => defaultSyncIntervalWhenConnected);

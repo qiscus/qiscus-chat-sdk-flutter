@@ -1,12 +1,6 @@
 include: package:pedantic/analysis_options.yaml
 
 analyzer:
-  strong-mode:
-    implicit-casts: false
-    implicit-dynamic: false
-  language:
-    strict-inference: true
-    strict-raw-types: true
   errors:
     mixin_inherits_from_not_object: ignore
     public_member_api_docs: ignore
