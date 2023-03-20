@@ -6,7 +6,7 @@ repository: https://github.com/qiscus/qiscus-chat-sdk-flutter
 issue_tracker: https://github.com/qiscus/qiscus-chat-sdk-flutter/issues
 
 environment:
-  sdk: '>=2.16.0 <3.0.0'
+  sdk: '>=2.17.0 <3.0.0'
   flutter: '>=2.10.0'
 
 dependencies:
