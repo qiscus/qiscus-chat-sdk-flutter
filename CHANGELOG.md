@@ -1,3 +1,7 @@
+# 2.0.4
+
+- remove wait on all method when not authenticated
+
 # 2.0.3
 
 - fix not sending user typing events

@@ -1,7 +1,7 @@
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
-// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'room-with-messages.dart';
 
@@ -36,7 +36,8 @@ mixin _$QChatRoom {
 /// @nodoc
 abstract class $QChatRoomCopyWith<$Res> {
   factory $QChatRoomCopyWith(QChatRoom value, $Res Function(QChatRoom) then) =
-      _$QChatRoomCopyWithImpl<$Res>;
+      _$QChatRoomCopyWithImpl<$Res, QChatRoom>;
+  @useResult
   $Res call(
       {int id,
       String uniqueId,
@@ -52,73 +53,76 @@ abstract class $QChatRoomCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$QChatRoomCopyWithImpl<$Res> implements $QChatRoomCopyWith<$Res> {
+class _$QChatRoomCopyWithImpl<$Res, $Val extends QChatRoom>
+    implements $QChatRoomCopyWith<$Res> {
   _$QChatRoomCopyWithImpl(this._value, this._then);
 
-  final QChatRoom _value;
   // ignore: unused_field
-  final $Res Function(QChatRoom) _then;
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
 
+  @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = freezed,
-    Object? uniqueId = freezed,
-    Object? name = freezed,
+    Object? id = null,
+    Object? uniqueId = null,
+    Object? name = null,
     Object? avatarUrl = freezed,
     Object? extras = freezed,
     Object? lastMessage = freezed,
-    Object? unreadCount = freezed,
-    Object? totalParticipants = freezed,
-    Object? participants = freezed,
-    Object? type = freezed,
-    Object? messages = freezed,
+    Object? unreadCount = null,
+    Object? totalParticipants = null,
+    Object? participants = null,
+    Object? type = null,
+    Object? messages = null,
   }) {
     return _then(_value.copyWith(
-      id: id == freezed
+      id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
-      uniqueId: uniqueId == freezed
+      uniqueId: null == uniqueId
           ? _value.uniqueId
           : uniqueId // ignore: cast_nullable_to_non_nullable
               as String,
-      name: name == freezed
+      name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      avatarUrl: avatarUrl == freezed
+      avatarUrl: freezed == avatarUrl
           ? _value.avatarUrl
           : avatarUrl // ignore: cast_nullable_to_non_nullable
               as String?,
-      extras: extras == freezed
+      extras: freezed == extras
           ? _value.extras
           : extras // ignore: cast_nullable_to_non_nullable
               as Map<String, Object?>?,
-      lastMessage: lastMessage == freezed
+      lastMessage: freezed == lastMessage
           ? _value.lastMessage
           : lastMessage // ignore: cast_nullable_to_non_nullable
               as QMessage?,
-      unreadCount: unreadCount == freezed
+      unreadCount: null == unreadCount
           ? _value.unreadCount
           : unreadCount // ignore: cast_nullable_to_non_nullable
               as int,
-      totalParticipants: totalParticipants == freezed
+      totalParticipants: null == totalParticipants
           ? _value.totalParticipants
           : totalParticipants // ignore: cast_nullable_to_non_nullable
               as int,
-      participants: participants == freezed
+      participants: null == participants
           ? _value.participants
           : participants // ignore: cast_nullable_to_non_nullable
               as List<QParticipant>,
-      type: type == freezed
+      type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
               as QRoomType,
-      messages: messages == freezed
+      messages: null == messages
           ? _value.messages
           : messages // ignore: cast_nullable_to_non_nullable
               as List<QMessage>,
-    ));
+    ) as $Val);
   }
 }
 
@@ -128,6 +132,7 @@ abstract class _$$_QChatRoomCopyWith<$Res> implements $QChatRoomCopyWith<$Res> {
           _$_QChatRoom value, $Res Function(_$_QChatRoom) then) =
       __$$_QChatRoomCopyWithImpl<$Res>;
   @override
+  @useResult
   $Res call(
       {int id,
       String uniqueId,
@@ -143,71 +148,70 @@ abstract class _$$_QChatRoomCopyWith<$Res> implements $QChatRoomCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_QChatRoomCopyWithImpl<$Res> extends _$QChatRoomCopyWithImpl<$Res>
+class __$$_QChatRoomCopyWithImpl<$Res>
+    extends _$QChatRoomCopyWithImpl<$Res, _$_QChatRoom>
     implements _$$_QChatRoomCopyWith<$Res> {
   __$$_QChatRoomCopyWithImpl(
       _$_QChatRoom _value, $Res Function(_$_QChatRoom) _then)
-      : super(_value, (v) => _then(v as _$_QChatRoom));
+      : super(_value, _then);
 
-  @override
-  _$_QChatRoom get _value => super._value as _$_QChatRoom;
-
+  @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = freezed,
-    Object? uniqueId = freezed,
-    Object? name = freezed,
+    Object? id = null,
+    Object? uniqueId = null,
+    Object? name = null,
     Object? avatarUrl = freezed,
     Object? extras = freezed,
     Object? lastMessage = freezed,
-    Object? unreadCount = freezed,
-    Object? totalParticipants = freezed,
-    Object? participants = freezed,
-    Object? type = freezed,
-    Object? messages = freezed,
+    Object? unreadCount = null,
+    Object? totalParticipants = null,
+    Object? participants = null,
+    Object? type = null,
+    Object? messages = null,
   }) {
     return _then(_$_QChatRoom(
-      id: id == freezed
+      id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
-      uniqueId: uniqueId == freezed
+      uniqueId: null == uniqueId
           ? _value.uniqueId
           : uniqueId // ignore: cast_nullable_to_non_nullable
               as String,
-      name: name == freezed
+      name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      avatarUrl: avatarUrl == freezed
+      avatarUrl: freezed == avatarUrl
           ? _value.avatarUrl
           : avatarUrl // ignore: cast_nullable_to_non_nullable
               as String?,
-      extras: extras == freezed
+      extras: freezed == extras
           ? _value._extras
           : extras // ignore: cast_nullable_to_non_nullable
               as Map<String, Object?>?,
-      lastMessage: lastMessage == freezed
+      lastMessage: freezed == lastMessage
           ? _value.lastMessage
           : lastMessage // ignore: cast_nullable_to_non_nullable
               as QMessage?,
-      unreadCount: unreadCount == freezed
+      unreadCount: null == unreadCount
           ? _value.unreadCount
           : unreadCount // ignore: cast_nullable_to_non_nullable
               as int,
-      totalParticipants: totalParticipants == freezed
+      totalParticipants: null == totalParticipants
           ? _value.totalParticipants
           : totalParticipants // ignore: cast_nullable_to_non_nullable
               as int,
-      participants: participants == freezed
+      participants: null == participants
           ? _value._participants
           : participants // ignore: cast_nullable_to_non_nullable
               as List<QParticipant>,
-      type: type == freezed
+      type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
               as QRoomType,
-      messages: messages == freezed
+      messages: null == messages
           ? _value._messages
           : messages // ignore: cast_nullable_to_non_nullable
               as List<QMessage>,
@@ -247,6 +251,7 @@ class _$_QChatRoom implements _QChatRoom {
   Map<String, Object?>? get extras {
     final value = _extras;
     if (value == null) return null;
+    if (_extras is EqualUnmodifiableMapView) return _extras;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(value);
   }
@@ -263,6 +268,7 @@ class _$_QChatRoom implements _QChatRoom {
   @override
   @JsonKey()
   List<QParticipant> get participants {
+    if (_participants is EqualUnmodifiableListView) return _participants;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_participants);
   }
@@ -274,6 +280,7 @@ class _$_QChatRoom implements _QChatRoom {
   @override
   @JsonKey()
   List<QMessage> get messages {
+    if (_messages is EqualUnmodifiableListView) return _messages;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_messages);
   }
@@ -288,40 +295,43 @@ class _$_QChatRoom implements _QChatRoom {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_QChatRoom &&
-            const DeepCollectionEquality().equals(other.id, id) &&
-            const DeepCollectionEquality().equals(other.uniqueId, uniqueId) &&
-            const DeepCollectionEquality().equals(other.name, name) &&
-            const DeepCollectionEquality().equals(other.avatarUrl, avatarUrl) &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.uniqueId, uniqueId) ||
+                other.uniqueId == uniqueId) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.avatarUrl, avatarUrl) ||
+                other.avatarUrl == avatarUrl) &&
             const DeepCollectionEquality().equals(other._extras, _extras) &&
-            const DeepCollectionEquality()
-                .equals(other.lastMessage, lastMessage) &&
-            const DeepCollectionEquality()
-                .equals(other.unreadCount, unreadCount) &&
-            const DeepCollectionEquality()
-                .equals(other.totalParticipants, totalParticipants) &&
+            (identical(other.lastMessage, lastMessage) ||
+                other.lastMessage == lastMessage) &&
+            (identical(other.unreadCount, unreadCount) ||
+                other.unreadCount == unreadCount) &&
+            (identical(other.totalParticipants, totalParticipants) ||
+                other.totalParticipants == totalParticipants) &&
             const DeepCollectionEquality()
                 .equals(other._participants, _participants) &&
-            const DeepCollectionEquality().equals(other.type, type) &&
+            (identical(other.type, type) || other.type == type) &&
             const DeepCollectionEquality().equals(other._messages, _messages));
   }
 
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      const DeepCollectionEquality().hash(id),
-      const DeepCollectionEquality().hash(uniqueId),
-      const DeepCollectionEquality().hash(name),
-      const DeepCollectionEquality().hash(avatarUrl),
+      id,
+      uniqueId,
+      name,
+      avatarUrl,
       const DeepCollectionEquality().hash(_extras),
-      const DeepCollectionEquality().hash(lastMessage),
-      const DeepCollectionEquality().hash(unreadCount),
-      const DeepCollectionEquality().hash(totalParticipants),
+      lastMessage,
+      unreadCount,
+      totalParticipants,
       const DeepCollectionEquality().hash(_participants),
-      const DeepCollectionEquality().hash(type),
+      type,
       const DeepCollectionEquality().hash(_messages));
 
   @JsonKey(ignore: true)
   @override
+  @pragma('vm:prefer-inline')
   _$$_QChatRoomCopyWith<_$_QChatRoom> get copyWith =>
       __$$_QChatRoomCopyWithImpl<_$_QChatRoom>(this, _$identity);
 }
