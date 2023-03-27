@@ -219,8 +219,6 @@ class QiscusSDK implements IQiscusSDK {
   ]);
 
   Stream<MqttConnectionState?> _connection$() async* {
-    await waitTillAuthenticatedImpl.run(_deps).runIgnored();
-
     yield* Stream.periodic(
       const Duration(milliseconds: 300),
       (_) => _mqtt.connectionStatus?.state,
@@ -247,40 +245,35 @@ class QiscusSDK implements IQiscusSDK {
     required int roomId,
     required List<String> userIds,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = addParticipantsImpl(roomId, userIds).run(_dio);
 
-    return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
+    return t2.map((it) => it.toList()).runOrThrow();
   }
 
   Future<QUser> blockUser({required String userId}) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = blockUserImpl(userId).run(_dio);
 
-    return fromTask(t1)(t2).runOrThrow();
+    return t2.runOrThrow();
   }
 
   Future<QChatRoom> chatUser({
     required String userId,
     Json? extras,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = chatUserImpl(userId, extras).run(_dio);
 
-    return fromTask(t1)(t2).runOrThrow();
+    return t2.runOrThrow();
   }
 
   Future<void> clearMessagesByChatRoomId({
     required List<String> roomUniqueIds,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = clearMessagesImpl(roomUniqueIds).run(_dio);
 
-    await fromTask(t1)(t2).runOrThrow();
+    await t2.runOrThrow();
   }
 
   Future<void> clearUser() async {
-    await waitTillAuthenticatedImpl.run(_deps).run();
     _storage.clear();
     _mqtt.disconnect();
   }
@@ -291,7 +284,6 @@ class QiscusSDK implements IQiscusSDK {
     String? avatarUrl,
     Json? extras,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = createChannelImpl(
       uniqueId,
       name: name,
@@ -299,7 +291,7 @@ class QiscusSDK implements IQiscusSDK {
       extras: extras,
     ).run(_dio);
 
-    return fromTask(t1)(t2).runOrThrow();
+    return t2.runOrThrow();
   }
 
   Future<QChatRoom> createGroupChat({
@@ -308,7 +300,6 @@ class QiscusSDK implements IQiscusSDK {
     String? avatarUrl,
     Json? extras,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = createGroupChatImpl(
       name,
       userIds,
@@ -316,16 +307,15 @@ class QiscusSDK implements IQiscusSDK {
       extras: extras,
     ).run(_dio);
 
-    return fromTask(t1)(t2).runOrThrow();
+    return t2.runOrThrow();
   }
 
   Future<List<QMessage>> deleteMessages({
     required List<String> messageUniqueIds,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = deleteMessagesImpl(messageUniqueIds).run(_dio);
 
-    return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
+    return t2.map((it) => it.toList()).runOrThrow();
   }
 
   void enableDebugMode({
@@ -343,7 +333,6 @@ class QiscusSDK implements IQiscusSDK {
     int? limit,
     int? page,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getAllChatRoomsImpl(
       showParticipant: showParticipant,
       showRemoved: showRemoved,
@@ -352,26 +341,24 @@ class QiscusSDK implements IQiscusSDK {
       page: page,
     ).run(_dio);
 
-    return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
+    return t2.map((it) => it.toList()).runOrThrow();
   }
 
   Future<List<QUser>> getBlockedUsers({
     int? page,
     int? limit,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getBlockedUsersImpl(page: page, limit: limit).run(_dio);
 
-    return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
+    return t2.map((it) => it.toList()).runOrThrow();
   }
 
   Future<QChatRoom> getChannel({
     required String uniqueId,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getChannelImpl(uniqueId).run(_dio);
 
-    return fromTask(t1)(t2).runOrThrow();
+    return t2.runOrThrow();
   }
 
   Future<List<QChatRoom>> getChatRooms({
@@ -381,7 +368,6 @@ class QiscusSDK implements IQiscusSDK {
     bool? showRemoved,
     bool? showParticipants,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getChatRoomsImpl(
       roomIds: roomIds,
       uniqueIds: uniqueIds,
@@ -390,18 +376,17 @@ class QiscusSDK implements IQiscusSDK {
       showParticipants: showParticipants,
     ).run(_dio);
 
-    return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
+    return t2.map((it) => it.toList()).runOrThrow();
   }
 
   Future<QChatRoomWithMessages> getChatRoomWithMessages({
     required int roomId,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
-    var t2 = getRoomWithMessagesImpl(roomId).run(_dio);
+    var t2 = getRoomWithMessagesImpl(roomId).map((v) {
+      return v.map((v) => QChatRoomWithMessages(v.first, v.second.toList()));
+    }).run(_dio);
 
-    return fromTask(t1)(t2)
-        .map((it) => QChatRoomWithMessages(it.first, it.second.toList()))
-        .runOrThrow();
+    return t2.runOrThrow();
   }
 
   Future<String> getJWTNonce() async {
@@ -413,10 +398,9 @@ class QiscusSDK implements IQiscusSDK {
     required int messageId,
     int? limit,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getNextMessagesImpl(roomId, messageId, limit: limit).run(_dio);
 
-    return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
+    return t2.map((it) => it.toList()).runOrThrow();
   }
 
   Future<List<QParticipant>> getParticipants({
@@ -425,7 +409,6 @@ class QiscusSDK implements IQiscusSDK {
     int? limit,
     String? sorting,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getParticipantsImpl(
       roomUniqueId,
       page: page,
@@ -433,7 +416,7 @@ class QiscusSDK implements IQiscusSDK {
       sorting: sorting,
     ).run(_dio);
 
-    return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
+    return t2.map((it) => it.toList()).runOrThrow();
   }
 
   Future<List<QMessage>> getPreviousMessagesById({
@@ -441,10 +424,9 @@ class QiscusSDK implements IQiscusSDK {
     required int messageId,
     int? limit,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getPreviousMessagesImpl(roomId, messageId, limit: limit).run(_dio);
 
-    return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
+    return t2.map((it) => it.toList()).runOrThrow();
   }
 
   String getBlurryThumbnailURL(String url) {
@@ -480,16 +462,14 @@ class QiscusSDK implements IQiscusSDK {
   }
 
   Future<int> getTotalUnreadCount() async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getTotalUnreadImpl().run(_dio);
 
-    return fromTask(t1)(t2).runOrThrow();
+    return t2.runOrThrow();
   }
 
   Future<QAccount> getUserData() async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getUserDataImpl().run(_dio);
-    return fromTask(t1)(t2).map((s) {
+    return t2.map((s) {
       var res = s.run(_storage);
       _storage = res.second;
       return res.first;
@@ -501,14 +481,13 @@ class QiscusSDK implements IQiscusSDK {
     int? page,
     int? limit,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = getUsersImpl(
       query: searchUsername,
       page: page,
       limit: limit,
     ).run(_dio);
 
-    return fromTask(t1)(t2).map((it) => it.toList()).runOrThrow();
+    return t2.map((it) => it.toList()).runOrThrow();
   }
 
   bool hasSetupUser() {
@@ -526,100 +505,93 @@ class QiscusSDK implements IQiscusSDK {
     required int roomId,
     required int messageId,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = updateMessageStatusImpl(
       roomId,
       messageId,
       QMessageStatus.delivered,
     ).run(_dio);
 
-    await fromTask(t1)(t2).runOrThrow();
+    await t2.runOrThrow();
   }
 
   Future<void> markAsRead({
     required int roomId,
     required int messageId,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = updateMessageStatusImpl(
       roomId,
       messageId,
       QMessageStatus.read,
     ).run(_dio);
 
-    await fromTask(t1)(t2).runOrThrow();
+    await t2.runOrThrow();
   }
 
-  Stream<int> onChatRoomCleared() async* {
-    yield* _roomCleared$;
+  Stream<int> onChatRoomCleared() {
+    return _roomCleared$;
   }
 
-  Stream<void> onConnected() async* {
-    yield* _mqttConnected;
+  Stream<void> onConnected() {
+    return _mqttConnected;
   }
 
-  Stream<void> onDisconnected() async* {
-    yield* _mqttDisconnected;
+  Stream<void> onDisconnected() {
+    return _mqttDisconnected;
   }
 
-  Stream<QMessage> onMessageDeleted() async* {
-    yield* _messageDeleted$;
+  Stream<QMessage> onMessageDeleted() {
+    return _messageDeleted$;
   }
 
-  Stream<QMessage> onMessageDelivered() async* {
-    yield* _messageDelivered$;
+  Stream<QMessage> onMessageDelivered() {
+    return _messageDelivered$;
   }
 
-  Stream<QMessage> onMessageRead() async* {
-    yield* _messageRead$;
+  Stream<QMessage> onMessageRead() {
+    return _messageRead$;
   }
 
-  Stream<QMessage> onMessageReceived() async* {
-    yield* _messageReceived$;
+  Stream<QMessage> onMessageReceived() {
+    return _messageReceived$;
   }
 
-  Stream<QMessage> onMessageUpdated() async* {
-    yield* _messageUpdated$;
+  Stream<QMessage> onMessageUpdated() {
+    return _messageUpdated$;
   }
 
-  Stream<void> onReconnecting() async* {
-    yield* _mqttReconnecting;
+  Stream<void> onReconnecting() {
+    return _mqttReconnecting;
   }
 
-  Stream<QUserPresence> onUserOnlinePresence() async* {
-    yield* _userPresence$;
+  Stream<QUserPresence> onUserOnlinePresence() {
+    return _userPresence$;
   }
 
-  Stream<QUserTyping> onUserTyping() async* {
-    yield* _userTyping$;
+  Stream<QUserTyping> onUserTyping() {
+    return _userTyping$;
   }
 
   Future<void> publishCustomEvent({
     required int roomId,
     required Json payload,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = publishCustomEventImpl(roomId, payload).run(_mqtt);
 
-    await fromTask(t1)(t2).runOrThrow();
+    await t2.runOrThrow();
   }
 
   Future<void> publishOnlinePresence({
     required bool isOnline,
   }) async {
     await _connected();
-    waitTillAuthenticatedImpl
-        .call(publishOnlinePresenceImpl(isOnline))
-        .run(_deps)
-        .runOrThrow();
+    publishOnlinePresenceImpl(isOnline).run(_deps).runOrThrow();
   }
 
   Future<void> publishTyping({
     required int roomId,
     bool? isTyping = true,
   }) async {
-    waitTillAuthenticatedImpl
-        .call(publishUserTypingImpl(roomId: roomId, isTyping: isTyping))
+    publishUserTypingImpl(roomId: roomId, isTyping: isTyping)
         .run(_deps)
         .runOrThrow();
   }
@@ -628,20 +600,14 @@ class QiscusSDK implements IQiscusSDK {
     required String token,
     bool? isDevelopment,
   }) async {
-    return waitTillAuthenticatedImpl
-        .local<Dio>((_) => _deps)
-        .call(registerDeviceTokenImpl(token, isDevelopment))
-        .run(_dio)
-        .runOrThrow();
+    return registerDeviceTokenImpl(token, isDevelopment).run(_dio).runOrThrow();
   }
 
   Future<bool> removeDeviceToken({
     required String token,
     bool? isDevelopment,
   }) {
-    return waitTillAuthenticatedImpl
-        .local((Dio _) => _deps)
-        .call(unregisterDeviceTokenImpl(token, isDevelopment))
+    return unregisterDeviceTokenImpl(token, isDevelopment)
         .run(_dio)
         .runOrThrow();
   }
@@ -650,9 +616,7 @@ class QiscusSDK implements IQiscusSDK {
     required int roomId,
     required List<String> userIds,
   }) async {
-    return waitTillAuthenticatedImpl
-        .local((Dio _) => _deps)
-        .call(removeParticipantImpl(roomId: roomId, userIds: userIds))
+    return removeParticipantImpl(roomId: roomId, userIds: userIds)
         .run(_dio)
         .map((it) => it.toList())
         .runOrThrow();
@@ -687,12 +651,10 @@ class QiscusSDK implements IQiscusSDK {
   Future<QMessage> sendMessage({
     required QMessage message,
   }) async {
-    var t1 = waitTillAuthenticatedImpl.run(_deps);
     var t2 = tryCatch(
       () => _triggerHook(QInterceptor.messageBeforeSent, message),
     );
-    var t3 = fromTask(t1)(t2)
-        .flatMap((message) => sendMessageImpl(message).run(_dio));
+    var t3 = t2.flatMap((message) => sendMessageImpl(message).run(_dio));
     return t3.map((state) {
       var res = state.run(_storage.messages);
       _storage.messages = res.second.toSet();
@@ -790,8 +752,6 @@ class QiscusSDK implements IQiscusSDK {
   }
 
   Stream<MqttConnectionState> _connectionState() async* {
-    await waitTillAuthenticatedImpl.run(_deps).runIgnored();
-
     const duration = Duration(milliseconds: 100);
     var stream = Stream.periodic(duration, (_) => _mqtt.connectionStatus?.state)
         .where((v) => v != null)
@@ -808,7 +768,6 @@ class QiscusSDK implements IQiscusSDK {
   }
 
   Future<void> _connectMqtt() async {
-    await waitTillAuthenticatedImpl.run(_deps).runIgnored();
     if (_storage.isRealtimeEnabled) {
       await _mqtt.connect();
       await _connected();
@@ -845,11 +804,9 @@ class QiscusSDK implements IQiscusSDK {
 
   void unsubscribeChatRoom(QChatRoom room) {
     var roomId = room.id.toString();
-    waitTillAuthenticatedImpl
-        .local<MqttClient>((_) => _deps)
-        .call(mqttUnsubscribeTopic(TopicBuilder.messageRead(roomId)).call(
-            mqttUnsubscribeTopic(TopicBuilder.messageDelivered(roomId))
-                .call(mqttUnsubscribeTopic(TopicBuilder.typing(roomId, '+')))))
+    mqttUnsubscribeTopic(TopicBuilder.messageRead(roomId))
+        .call(mqttUnsubscribeTopic(TopicBuilder.messageDelivered(roomId))
+            .call(mqttUnsubscribeTopic(TopicBuilder.typing(roomId, '+'))))
         .run(_mqtt)
         .run();
   }
@@ -858,11 +815,8 @@ class QiscusSDK implements IQiscusSDK {
     required int roomId,
   }) async* {
     var topic = TopicBuilder.customEvent(roomId);
-    var stream = waitTillAuthenticatedImpl
-        .local<MqttClient>((_) => _deps)
-        .call(mqttSubscribeTopic(topic).call(mqttForTopic(topic)))
-        .run(_mqtt)
-        .run();
+    var stream =
+        mqttSubscribeTopic(topic).call(mqttForTopic(topic)).run(_mqtt).run();
 
     await for (var data in stream) {
       yield jsonDecode(data.payload) as Json;
@@ -871,51 +825,27 @@ class QiscusSDK implements IQiscusSDK {
 
   void unsubscribeCustomEvent({required int roomId}) {
     var topic = TopicBuilder.customEvent(roomId);
-    waitTillAuthenticatedImpl
-        .local<MqttClient>((_) => _deps)
-        .call(mqttUnsubscribeTopic(topic))
-        .run(_mqtt)
-        .run();
+    mqttUnsubscribeTopic(topic).run(_mqtt).run();
   }
 
   void subscribeUserOnlinePresence(String userId) {
-    waitTillAuthenticatedImpl
-        .local<MqttClient>((_) => _deps)
-        .call(mqttSubscribeTopic(TopicBuilder.presence(userId)))
-        .run(_mqtt)
-        .runOrThrow();
+    mqttSubscribeTopic(TopicBuilder.presence(userId)).run(_mqtt).runOrThrow();
   }
 
   void unsubscribeUserOnlinePresence(String userId) {
-    waitTillAuthenticatedImpl
-        .local<MqttClient>((_) => _deps)
-        .call(mqttUnsubscribeTopic(TopicBuilder.presence(userId)))
-        .run(_mqtt)
-        .run();
+    mqttUnsubscribeTopic(TopicBuilder.presence(userId)).run(_mqtt).run();
   }
 
   void synchronize({String? lastMessageId}) async {
-    await waitTillAuthenticatedImpl
-        .local<Dio>((_) => _deps)
-        .call(synchronizeImpl(lastMessageId))
-        .run(_dio)
-        .run();
+    await synchronizeImpl(lastMessageId).run(_dio).run();
   }
 
   void synchronizeEvent({String? lastEventId}) async {
-    await waitTillAuthenticatedImpl
-        .local<Dio>((_) => _deps)
-        .call(synchronizeEventImpl(int.tryParse(lastEventId ?? '')))
-        .run(_dio)
-        .run();
+    await synchronizeEventImpl(int.tryParse(lastEventId ?? '')).run(_dio).run();
   }
 
   Future<QUser> unblockUser({required String userId}) {
-    return waitTillAuthenticatedImpl
-        .local<Dio>((_) => _deps)
-        .call(unblockUserImpl(userId))
-        .run(_dio)
-        .runOrThrow();
+    return unblockUserImpl(userId).run(_dio).runOrThrow();
   }
 
   Future<QChatRoom> updateChatRoom({
@@ -924,16 +854,12 @@ class QiscusSDK implements IQiscusSDK {
     String? avatarUrl,
     Json? extras,
   }) {
-    return waitTillAuthenticatedImpl
-        .local<Dio>((_) => _deps)
-        .call(updateChatRoomImpl(
-          roomId: roomId,
-          name: name,
-          avatarUrl: avatarUrl,
-          extras: extras,
-        ))
-        .run(_dio)
-        .map((state) {
+    return updateChatRoomImpl(
+      roomId: roomId,
+      name: name,
+      avatarUrl: avatarUrl,
+      extras: extras,
+    ).run(_dio).map((state) {
       var data = state.run(_storage.rooms);
       _storage.rooms = data.second.toSet();
       return data.first;
@@ -945,9 +871,7 @@ class QiscusSDK implements IQiscusSDK {
     String? avatarUrl,
     Json? extras,
   }) {
-    return waitTillAuthenticatedImpl
-        .local<Dio>((_) => _deps)
-        .call(updateUserImpl(name: name, avatarUrl: avatarUrl, extras: extras))
+    return updateUserImpl(name: name, avatarUrl: avatarUrl, extras: extras)
         .run(_dio)
         .map((state) {
       var data = state.run(_storage);
@@ -957,11 +881,7 @@ class QiscusSDK implements IQiscusSDK {
   }
 
   Future<QMessage> updateMessage({required QMessage message}) {
-    return waitTillAuthenticatedImpl
-        .local<Dio>((_) => _deps)
-        .call(updateMessageImpl(message))
-        .run(_dio)
-        .map((state) {
+    return updateMessageImpl(message).run(_dio).map((state) {
       var data = state.run(_storage.messages);
       _storage.messages = data.second.toSet();
       return data.first;
@@ -1013,20 +933,15 @@ class QiscusSDK implements IQiscusSDK {
     int? page,
     int? limit,
   }) async {
-    return waitTillAuthenticatedImpl
-        .local<Dio>((_) => _deps)
-        .call(getFileListImpl(
-          roomIds: roomIds,
-          fileType: fileType,
-          includeExtensions: includeExtensions,
-          excludeExtensions: excludeExtensions,
-          userId: userId,
-          page: page,
-          limit: limit,
-        ))
-        .run(_dio)
-        .map((it) => it.toList())
-        .runOrThrow();
+    return getFileListImpl(
+      roomIds: roomIds,
+      fileType: fileType,
+      includeExtensions: includeExtensions,
+      excludeExtensions: excludeExtensions,
+      userId: userId,
+      page: page,
+      limit: limit,
+    ).run(_dio).map((it) => it.toList()).runOrThrow();
   }
 
   Future<bool> closeRealtimeConnection() async {
@@ -1039,7 +954,6 @@ class QiscusSDK implements IQiscusSDK {
   }
 
   Future<bool> openRealtimeConnection() async {
-    await waitTillAuthenticatedImpl.run(_deps).run();
     return tryCatch(() async {
       await _mqtt.connect();
       return true;
