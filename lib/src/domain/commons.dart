@@ -13,12 +13,15 @@ class QHook with EquatableMixin {
   List<Object?> get props => [hook, callback];
 }
 
-class QDeviceToken {
+class QDeviceToken with EquatableMixin {
   const QDeviceToken(this.token, [this.isDevelopment = false]);
 
   final String token;
   final bool isDevelopment;
   final deviceType = 'flutter';
+
+  @override
+  List<Object?> get props => [token, isDevelopment];
 }
 
 class QChatRoomWithMessages with EquatableMixin {
@@ -36,8 +39,11 @@ enum QInterceptor {
   messageBeforeReceived,
 }
 
-class QUploadProgress<T extends Object> {
+class QUploadProgress<T extends Object> with EquatableMixin {
   const QUploadProgress({required this.progress, this.data});
   final double progress;
   final T? data;
+
+  @override
+  List<Object?> get props => [progress, data];
 }

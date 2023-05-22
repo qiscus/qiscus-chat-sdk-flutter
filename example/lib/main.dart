@@ -1,5 +1,5 @@
 import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 
@@ -21,10 +21,12 @@ class _MyHomepageState extends State<MyHomepage> {
     super.initState();
     Future.microtask(() async {
       _qiscusSDK = await QiscusSDK.withAppId('sdksample');
-      var room = await _qiscusSDK.chatUser(userId: 'guest-2002');
+      var account =
+          await _qiscusSDK!.setUser(userId: 'guest-1001', userKey: 'passkey');
+      var room = await _qiscusSDK!.chatUser(userId: 'guest-2002');
       var message =
-          _qiscusSDK.generateMessage(chatRoomId: room.id, text: 'Hi there');
-      message = await _qiscusSDK.sendMessage(message: message);
+          _qiscusSDK!.generateMessage(chatRoomId: room.id, text: 'Hi there');
+      message = await _qiscusSDK!.sendMessage(message: message);
     });
   }
 
@@ -36,8 +38,11 @@ class _MyHomepageState extends State<MyHomepage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(),
+        body: Container(),
+      ),
     );
   }
 }

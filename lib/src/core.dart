@@ -24,7 +24,6 @@ part 'core/logger.dart';
 part 'core/mqtt.dart';
 part 'core/storage.dart';
 part 'core/typedefs.dart';
-part 'core/usecases.dart';
 part 'core/utils.dart';
 
 final reNewMessage = RegExp(r'^(.+)\/c$', caseSensitive: false);
