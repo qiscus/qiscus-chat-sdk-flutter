@@ -1,3 +1,8 @@
+# 2.0.5
+
+- change mqtt client id format
+- fix opening & closing realtime connection manually
+
 # 2.0.4
 
 - remove wait on all method when not authenticated
