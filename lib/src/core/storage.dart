@@ -32,6 +32,7 @@ class Storage with EquatableMixin {
   bool isRealtimeCheckEnabled;
   bool isSyncEnabled;
   bool isSyncEventEnabled;
+  bool isRealtimeManuallyClosed;
   Json? configExtras;
   Set<QMessage> messages;
   Set<QChatRoom> rooms;
@@ -56,6 +57,7 @@ class Storage with EquatableMixin {
     this.enableEventReport = false,
     this.isRealtimeEnabled = true,
     this.isRealtimeCheckEnabled = false,
+    this.isRealtimeManuallyClosed = false,
     this.isSyncEnabled = true,
     this.isSyncEventEnabled = false,
     this.logLevel = QLogLevel.debug,

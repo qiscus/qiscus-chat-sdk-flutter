@@ -62,24 +62,21 @@ extension DioXRequest on Dio {
     var params = req.params;
     params?.removeWhere((key, dynamic value) => value == null);
 
-    try {
-      return request<Output>(
-        req.url,
-        options: Options(
-          method: req.method.asString,
-          listFormat: ListFormat.multiCompatible,
-          contentType: req.method == IRequestMethod.delete
-              ? ContentType.text.mimeType
-              : null,
-        ),
-        data: body?.isNotEmpty == true ? body : null,
-        queryParameters: params?.isNotEmpty == true ? params : null,
-      ).then((it) => it.data!);
-    } catch (e) {
-      if (e is DioError) {
-        print(e.response?.data.toString());
-      }
-      rethrow;
-    }
+    return request<Output>(
+      req.url,
+      options: Options(
+        method: req.method.asString,
+        listFormat: ListFormat.multiCompatible,
+        contentType: req.method == IRequestMethod.delete
+            ? ContentType.text.mimeType
+            : null,
+      ),
+      data: body?.isNotEmpty == true ? body : null,
+      queryParameters: params?.isNotEmpty == true ? params : null,
+    ).then((it) => it.data!).catchError((err, stack) {
+      var json = err.response?.data as Map<String, dynamic>;
+      var messages = json['error']['detailed_messages'] as List;
+      throw QError(messages.first, stack);
+    }, test: (e) => e.runtimeType == DioError);
   }
 }

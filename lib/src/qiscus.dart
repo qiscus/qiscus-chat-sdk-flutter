@@ -80,7 +80,7 @@ class QiscusSDK implements IQiscusSDK {
   String? get token => _storage.token;
   Storage get storage => _storage;
   static final _thumbnailURL = RegExp(
-    r'^https?:\/\/\S+(\/upload\/)\S+(\.\w+)$',
+    r'^https?://\S+(/upload/)\S+(\.\w+)$',
     caseSensitive: false,
   );
 
@@ -169,7 +169,10 @@ class QiscusSDK implements IQiscusSDK {
     }
   }
 
+  late final StreamController<QMessage> _messageReceivedSubs$ =
+      StreamController();
   late final Stream<QMessage> _messageReceived$ = StreamGroup.mergeBroadcast([
+    _messageReceivedSubs$.stream,
     _synchronize(),
     _mqttUpdates.transform(mqttMessageReceivedTransformer),
   ]).asyncMap((it) async {
@@ -837,7 +840,11 @@ class QiscusSDK implements IQiscusSDK {
   }
 
   void synchronize({String? lastMessageId}) async {
-    await synchronizeImpl(lastMessageId).run(_dio).run();
+    await synchronizeImpl(lastMessageId).run(_dio).map((r) {
+      _storage.lastMessageId = r.first;
+      r.second.forEach((m) => _messageReceivedSubs$.sink.add(m));
+      return r;
+    }).run();
   }
 
   void synchronizeEvent({String? lastEventId}) async {
@@ -945,19 +952,27 @@ class QiscusSDK implements IQiscusSDK {
   }
 
   Future<bool> closeRealtimeConnection() async {
-    return tryCatch(() async {
-      // var subscriptions = _mqtt.subscriptionsManager?.subscriptions.entries
-      //     .where((it) => it.value != null);
-      _mqtt.disconnect();
+    if (isLogin) {
+      storage.isRealtimeManuallyClosed = true;
+      tryCatch(() async {
+        _mqtt.disconnect();
+        return true;
+      }).runOrThrow().ignore();
       return true;
-    }).runOrThrow();
+    }
+    return false;
   }
 
   Future<bool> openRealtimeConnection() async {
-    return tryCatch(() async {
-      await _mqtt.connect();
+    if (isLogin && storage.isRealtimeEnabled) {
+      storage.isRealtimeManuallyClosed = false;
+      tryCatch(() async {
+        await _mqtt.connect();
+        return true;
+      }).runOrThrow().ignore();
       return true;
-    }).runOrThrow();
+    }
+    return false;
   }
 
   String _generateUniqueId() =>
