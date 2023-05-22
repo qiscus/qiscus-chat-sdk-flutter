@@ -6,7 +6,7 @@ MqttClient getMqttClient(Storage storage) {
   //     ' instead. That will re-initialize internal variable inside qiscus sdk.';
   // if (storage.userId == null) throw Exception(errorMessage);
 
-  final clientId = getClientId();
+  final clientId = getClientId(appId: storage.appId, userId: storage.userId);
   final connectionMessage =
       getConnectionMessage(clientId, storage.userId ?? 'unknown');
   final brokerUrl = storage.brokerUrl;
@@ -22,9 +22,18 @@ MqttClient getMqttClient(Storage storage) {
       ;
 }
 
-String getClientId([int? millis]) {
+String getClientId({String? appId, String? userId, int? millis}) {
+  var clientId = 'flutter';
   var _millis = millis ?? DateTime.now().millisecondsSinceEpoch;
-  return 'flutter-sdk-$_millis';
+
+  if (appId != null) {
+    clientId += '_$appId';
+  }
+  if (userId != null) {
+    clientId += '_$userId';
+  }
+
+  return '${clientId}_$_millis';
 }
 
 MqttConnectMessage getConnectionMessage(String clientId, String userId) {
