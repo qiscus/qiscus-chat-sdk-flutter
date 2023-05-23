@@ -1,4 +1,4 @@
 part of qiscus_chat_sdk.core;
 
-const sdkVersion = '2.0.4';
+const sdkVersion = '2.0.6';
 const sdkPlatformName = 'flutter';

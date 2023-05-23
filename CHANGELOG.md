@@ -1,3 +1,8 @@
+# 2.0.6
+
+- fix throwing errors on certain method when not connection
+  to realtime services
+
 # 2.0.5
 
 - change mqtt client id format
