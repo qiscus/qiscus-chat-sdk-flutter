@@ -578,25 +578,28 @@ class QiscusSDK implements IQiscusSDK {
     required int roomId,
     required Json payload,
   }) async {
-    var t2 = publishCustomEventImpl(roomId, payload).run(_mqtt);
-
-    await t2.runOrThrow();
+    await _doOnConnected(() {
+      publishCustomEventImpl(roomId, payload).run(_mqtt).runOrThrow();
+    });
   }
 
   Future<void> publishOnlinePresence({
     required bool isOnline,
   }) async {
-    await _connected();
-    publishOnlinePresenceImpl(isOnline).run(_deps).runOrThrow();
+    await _doOnConnected(() {
+      publishOnlinePresenceImpl(isOnline).run(_deps).runOrThrow();
+    });
   }
 
   Future<void> publishTyping({
     required int roomId,
     bool? isTyping = true,
   }) async {
-    publishUserTypingImpl(roomId: roomId, isTyping: isTyping)
-        .run(_deps)
-        .runOrThrow();
+    await _doOnConnected(() {
+      publishUserTypingImpl(roomId: roomId, isTyping: isTyping)
+          .run(_deps)
+          .runOrThrow();
+    });
   }
 
   Future<bool> registerDeviceToken({
@@ -765,24 +768,43 @@ class QiscusSDK implements IQiscusSDK {
   }
 
   Future<void> _connected() async {
+    if (storage.isRealtimeEnabled == false ||
+        storage.isRealtimeManuallyClosed == true) {
+      return;
+    }
     var stream = _connectionState();
 
-    await stream.firstWhere((v) => v == MqttConnectionState.connected);
+    return stream
+        .firstWhere((v) => v == MqttConnectionState.connected)
+        .then((_) => null);
+  }
+
+  MqttConnectionState? get _mqttConnectionState =>
+      _mqtt.connectionStatus?.state;
+  bool get _mqttIsConnected =>
+      _mqtt.connectionStatus?.state == MqttConnectionState.connected;
+
+  Future<void> _doOnConnected(void Function() cb) async {
+    await _connected();
+    if (_mqttIsConnected) {
+      cb();
+    }
   }
 
   Future<void> _connectMqtt() async {
     if (_storage.isRealtimeEnabled) {
       await _mqtt.connect();
-      await _connected();
     }
 
-    var token = _storage.token!;
-    var r1 = mqttSubscribeTopic(TopicBuilder.messageNew(token));
-    var r2 = mqttSubscribeTopic(TopicBuilder.messageUpdated(token));
-    var r3 = mqttSubscribeTopic(TopicBuilder.notification(token));
-    r1.run(_mqtt).runOrThrow();
-    r2.run(_mqtt).runOrThrow();
-    r3.run(_mqtt).runOrThrow();
+    await _doOnConnected(() {
+      var token = _storage.token!;
+      var r1 = mqttSubscribeTopic(TopicBuilder.messageNew(token));
+      var r2 = mqttSubscribeTopic(TopicBuilder.messageUpdated(token));
+      var r3 = mqttSubscribeTopic(TopicBuilder.notification(token));
+      r1.run(_mqtt).runOrThrow();
+      r2.run(_mqtt).runOrThrow();
+      r3.run(_mqtt).runOrThrow();
+    });
   }
 
   Debug get debug => Debug(
@@ -791,52 +813,67 @@ class QiscusSDK implements IQiscusSDK {
       );
 
   void subscribeChatRoom(QChatRoom room) async {
-    await _connected();
+    await _doOnConnected(() {
+      var roomId = room.id.toString();
+      // var state = _mqtt.connectionStatus?.state.toString();
+      var subs1 =
+          mqttSubscribeTopic(TopicBuilder.messageRead(roomId)).run(_mqtt);
+      var subs2 =
+          mqttSubscribeTopic(TopicBuilder.messageDelivered(roomId)).run(_mqtt);
+      var subs3 =
+          mqttSubscribeTopic(TopicBuilder.typing(roomId, '+')).run(_mqtt);
 
-    var roomId = room.id.toString();
-    // var state = _mqtt.connectionStatus?.state.toString();
-    var subs1 = mqttSubscribeTopic(TopicBuilder.messageRead(roomId)).run(_mqtt);
-    var subs2 =
-        mqttSubscribeTopic(TopicBuilder.messageDelivered(roomId)).run(_mqtt);
-    var subs3 = mqttSubscribeTopic(TopicBuilder.typing(roomId, '+')).run(_mqtt);
-
-    subs1.runOrThrow();
-    subs2.runOrThrow();
-    subs3.runOrThrow();
+      subs1.runOrThrow();
+      subs2.runOrThrow();
+      subs3.runOrThrow();
+    });
   }
 
   void unsubscribeChatRoom(QChatRoom room) {
-    var roomId = room.id.toString();
-    mqttUnsubscribeTopic(TopicBuilder.messageRead(roomId))
-        .call(mqttUnsubscribeTopic(TopicBuilder.messageDelivered(roomId))
-            .call(mqttUnsubscribeTopic(TopicBuilder.typing(roomId, '+'))))
-        .run(_mqtt)
-        .run();
+    _doOnConnected(() {
+      var roomId = room.id.toString();
+      mqttUnsubscribeTopic(TopicBuilder.messageRead(roomId))
+          .call(mqttUnsubscribeTopic(TopicBuilder.messageDelivered(roomId))
+              .call(mqttUnsubscribeTopic(TopicBuilder.typing(roomId, '+'))))
+          .run(_mqtt)
+          .run();
+    }).ignore();
   }
 
   Stream<Json> subscribeCustomEvent({
     required int roomId,
   }) async* {
-    var topic = TopicBuilder.customEvent(roomId);
-    var stream =
-        mqttSubscribeTopic(topic).call(mqttForTopic(topic)).run(_mqtt).run();
+    var controller = StreamController<Json>();
+    await _doOnConnected(() {
+      var topic = TopicBuilder.customEvent(roomId);
+      var stream = mqttSubscribeTopic(topic)
+          .call(mqttForTopic(topic))
+          .run(_mqtt)
+          .run()
+          .map((data) => jsonDecode(data.payload) as Json);
+      controller.addStream(stream);
+    });
 
-    await for (var data in stream) {
-      yield jsonDecode(data.payload) as Json;
-    }
+    yield* controller.stream;
   }
 
   void unsubscribeCustomEvent({required int roomId}) {
-    var topic = TopicBuilder.customEvent(roomId);
-    mqttUnsubscribeTopic(topic).run(_mqtt).run();
+    _doOnConnected(() {
+      var topic = TopicBuilder.customEvent(roomId);
+      mqttUnsubscribeTopic(topic).run(_mqtt).run();
+    }).ignore();
   }
 
   void subscribeUserOnlinePresence(String userId) {
-    mqttSubscribeTopic(TopicBuilder.presence(userId)).run(_mqtt).runOrThrow();
+    _doOnConnected(() {
+      mqttSubscribeTopic(TopicBuilder.presence(userId)).run(_mqtt).runOrThrow();
+    }).ignore();
   }
 
   void unsubscribeUserOnlinePresence(String userId) {
-    mqttUnsubscribeTopic(TopicBuilder.presence(userId)).run(_mqtt).run();
+    _doOnConnected(() {
+      mqttUnsubscribeTopic(TopicBuilder.presence(userId)).run(_mqtt).run();
+    }).ignore();
   }
 
   void synchronize({String? lastMessageId}) async {
