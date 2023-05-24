@@ -1,3 +1,7 @@
+# 2.0.7
+
+- fix Bad Stream State on room cleared event
+
 # 2.0.6
 
 - fix throwing errors on certain method when not connection
