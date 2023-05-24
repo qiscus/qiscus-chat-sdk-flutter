@@ -216,7 +216,7 @@ class QiscusSDK implements IQiscusSDK {
   late final Stream<QUserPresence> _userPresence$ =
       _mqttUpdates.transform(mqttUserPresenceTransformerImpl);
 
-  late final Stream<int> _roomCleared$ = StreamGroup.merge([
+  late final Stream<int> _roomCleared$ = StreamGroup.mergeBroadcast([
     _synchronizeEvent().transform(syncRoomClearedTransformerImpl),
     _mqttUpdates.transform(mqttRoomClearedTransformerImpl),
   ]);
