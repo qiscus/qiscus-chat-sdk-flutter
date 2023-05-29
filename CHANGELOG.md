@@ -1,3 +1,7 @@
+# 2.0.8
+
+- fix can not delete messages
+
 # 2.0.7
 
 - fix Bad Stream State on room cleared event
