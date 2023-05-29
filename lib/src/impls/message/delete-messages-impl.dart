@@ -30,7 +30,7 @@ class DeleteMessagesRequest extends IApiRequest<Iterable<QMessage>> {
   @override
   IRequestMethod get method => IRequestMethod.delete;
   @override
-  Json get body => <String, dynamic>{
+  Json get params => <String, dynamic>{
         'unique_ids': uniqueIds,
         'is_hard_delete': isHardDelete,
         'is_delete_for_everyone': isForEveryone,
