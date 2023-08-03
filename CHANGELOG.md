@@ -1,3 +1,7 @@
+# 2.0.9
+
+- fix error or infinite loading when not connected to realtime server
+
 # 2.0.8
 
 - fix can not delete messages
