@@ -785,15 +785,18 @@ class QiscusSDK implements IQiscusSDK {
       _mqtt.connectionStatus?.state == MqttConnectionState.connected;
 
   Future<void> _doOnConnected(void Function() cb) async {
-    await _connected();
-    if (_mqttIsConnected) {
-      cb();
-    }
+    try {
+      await _connected().timeout(const Duration(seconds: 1)).then((_) {
+        if (_mqttIsConnected) {
+          cb();
+        }
+      }).ignoreAwaited();
+    } catch (_) {}
   }
 
   Future<void> _connectMqtt() async {
     if (_storage.isRealtimeEnabled) {
-      await _mqtt.connect();
+      await _mqtt.connect().ignoreAwaited();
     }
 
     await _doOnConnected(() {
@@ -988,28 +991,32 @@ class QiscusSDK implements IQiscusSDK {
     ).run(_dio).map((it) => it.toList()).runOrThrow();
   }
 
+  /// Manually close realtime connection to server.
+  /// Returning [bool] wheter the operation is successful or not.
   Future<bool> closeRealtimeConnection() async {
-    if (isLogin) {
+    if (!isLogin) return false;
+
+    try {
       storage.isRealtimeManuallyClosed = true;
-      tryCatch(() async {
-        _mqtt.disconnect();
-        return true;
-      }).runOrThrow().ignore();
+      _mqtt.disconnect();
       return true;
+    } catch (_) {
+      return false;
     }
-    return false;
   }
 
+  /// Manually open realtime connection to server.
+  /// Returning [bool] wheter the operation is successful or not.
   Future<bool> openRealtimeConnection() async {
-    if (isLogin && storage.isRealtimeEnabled) {
+    if (!isLogin && !storage.isRealtimeEnabled) return false;
+
+    try {
       storage.isRealtimeManuallyClosed = false;
-      tryCatch(() async {
-        await _mqtt.connect();
-        return true;
-      }).runOrThrow().ignore();
+      await _mqtt.connect().timeout(const Duration(seconds: 1));
       return true;
+    } catch (_) {
+      return false;
     }
-    return false;
   }
 
   String _generateUniqueId() =>

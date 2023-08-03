@@ -34,6 +34,12 @@ extension FutureX<T> on Future<T> {
   Future<O> chain<O>(FutureOr<O> future) {
     return then((_) => future);
   }
+
+  Future<void> ignoreAwaited() async {
+    try {
+      await this;
+    } catch (_) {}
+  }
 }
 
 extension DurationX on int {
