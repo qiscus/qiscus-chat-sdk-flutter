@@ -9,7 +9,6 @@ import 'package:async/async.dart';
 import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mqtt_client/mqtt_client.dart';
-import 'package:riverpod/riverpod.dart';
 
 import 'app_config/app_config.dart';
 import 'core.dart';
@@ -67,7 +66,6 @@ typedef StateTransformer<T>
 
 class QiscusSDK implements IQiscusSDK {
   static final instance = QiscusSDK();
-  final container = ProviderContainer();
   var _storage = Storage();
   Tuple2<MqttClient, Storage> get _deps => Tuple2(_mqtt, _storage);
   late final Logger _logger = Logger(_storage);
