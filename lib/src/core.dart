@@ -53,7 +53,7 @@ abstract class TopicBuilder {
 
 TaskEither<String, T> tryCatch<T>(Future<T> Function() fn) {
   return TaskEither.tryCatch(fn, (e, stack) {
-    if (e is DioError) {
+    if (e is DioException) {
       var response = e.response;
       print('response: $response');
     }

@@ -356,6 +356,7 @@ class QiscusSDK implements IQiscusSDK {
 
   Future<QChatRoom> getChannel({
     required String uniqueId,
+    String? name,
   }) async {
     var t2 = getChannelImpl(uniqueId).run(_dio);
 
@@ -777,8 +778,6 @@ class QiscusSDK implements IQiscusSDK {
         .then((_) => null);
   }
 
-  MqttConnectionState? get _mqttConnectionState =>
-      _mqtt.connectionStatus?.state;
   bool get _mqttIsConnected =>
       _mqtt.connectionStatus?.state == MqttConnectionState.connected;
 
@@ -1147,12 +1146,6 @@ class QiscusSDK implements IQiscusSDK {
       syncIntervalWhenConnected: syncIntervalWhenConnected,
     );
     return sdk;
-  }
-}
-
-extension _TaskExt<T> on Task<T> {
-  Future<void> runIgnored() async {
-    run().ignore();
   }
 }
 

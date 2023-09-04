@@ -15,6 +15,9 @@ RTE<State<Storage, QAccount>> setUserImpl({
     var req = AuthenticateRequest(
       userId: userId,
       userKey: userKey,
+      name: displayName,
+      avatarUrl: avatarUrl,
+      extras: extras,
     );
     var data = await req(dio);
     return State((Storage s) {

@@ -39,7 +39,7 @@ void main() {
     expect(c.enableEventReport, Some(false));
     expect(c.enableRealtime, Some(true));
     expect(c.enableRealtimeCheck, Some(false));
-    expect(c.extras, None<Map<String, Object?>>());
+    expect(c.extras, None());
     expect(c.syncInterval, Some(5000));
     expect(c.syncOnConnect, Some(30000));
   });

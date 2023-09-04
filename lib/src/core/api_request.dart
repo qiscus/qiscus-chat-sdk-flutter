@@ -77,6 +77,6 @@ extension DioXRequest on Dio {
       var json = err.response?.data as Map<String, dynamic>;
       var messages = json['error']['detailed_messages'] as List;
       throw QError(messages.first, stack);
-    }, test: (e) => e.runtimeType == DioError);
+    }, test: (e) => e.runtimeType == DioException);
   }
 }

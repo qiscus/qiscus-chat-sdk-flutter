@@ -5,20 +5,6 @@ import 'package:qiscus_chat_sdk/src/domain/domains.dart';
 import 'package:test/test.dart';
 
 void main() {
-  late Storage s;
-  late Logger l;
-  late Dio d;
-
-  void setDio() {
-    d = getDio.run(Tuple2(s, l));
-  }
-
-  setUp(() {
-    s = Storage();
-    l = Logger(s);
-    setDio();
-  });
-
   test('dio test', () {
     var s = Storage();
     var l = Logger(s);

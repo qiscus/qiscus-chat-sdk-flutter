@@ -14,12 +14,14 @@ RTE<Unit> updateMessageStatusImpl(
           return UpdateMessageStatusRequest(
             roomId: roomId,
             lastDeliveredId: messageId,
+            lastReadId: null,
           )(dio)
               .then((_) => unit);
         case QMessageStatus.read:
           return UpdateMessageStatusRequest(
             roomId: roomId,
             lastReadId: messageId,
+            lastDeliveredId: null,
           )(dio)
               .then((_) => unit);
         case QMessageStatus.sending:

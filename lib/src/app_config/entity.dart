@@ -61,20 +61,20 @@ class AppConfig {
 
   State<Storage, void> hydrate() {
     return State<Storage, void>((s) {
-      baseUrl.match((it) => s.baseUrl = it, () {});
-      brokerLbUrl.match((it) => s.brokerLbUrl = it, () {});
-      brokerUrl.match((it) => s.brokerUrl = it, () {});
-      enableEventReport.match((it) => s.enableEventReport = it, () {});
-      enableRealtime.match((it) => s.isRealtimeEnabled = it, () {});
-      enableRealtimeCheck.match((it) => s.isRealtimeCheckEnabled = it, () {});
-      syncInterval.match((it) => s.syncInterval = it.milliseconds, () {});
+      baseUrl.match(() {}, (it) => s.baseUrl = it);
+      brokerLbUrl.match(() {}, (it) => s.brokerLbUrl = it);
+      brokerUrl.match(() {}, (it) => s.brokerUrl = it);
+      enableEventReport.match(() {}, (it) => s.enableEventReport = it);
+      enableRealtime.match(() {}, (it) => s.isRealtimeEnabled = it);
+      enableRealtimeCheck.match(() {}, (it) => s.isRealtimeCheckEnabled = it);
+      syncInterval.match(() {}, (it) => s.syncInterval = it.milliseconds);
       syncOnConnect.match(
-        (it) => s.syncIntervalWhenConnected = it.milliseconds,
         () {},
+        (it) => s.syncIntervalWhenConnected = it.milliseconds,
       );
-      extras.match((it) => s.configExtras = it, () {});
-      enableSync.match((v) => s.isSyncEnabled = v, () {});
-      enableSyncEvent.match((v) => s.isSyncEventEnabled = v, () {});
+      extras.match(() {}, (it) => s.configExtras = it);
+      enableSync.match(() {}, (v) => s.isSyncEnabled = v);
+      enableSyncEvent.match(() {}, (v) => s.isSyncEventEnabled = v);
 
       return Tuple2(null, s);
     });

@@ -6,7 +6,7 @@ void main() {
   test('utils decodeJson with an empty map', () {
     var res = decodeJson(<String, Object?>{});
 
-    expect(res, None<Map<String, Object?>>());
+    expect(res, None());
   });
 
   test('utils decodeJson with a map', () {
@@ -18,7 +18,7 @@ void main() {
   test('utils decodeJson with empty string', () {
     var res = decodeJson('');
 
-    expect(res, None<Map<String, Object?>>());
+    expect(res, None());
   });
 
   test('utils decodeJson with a string json', () {
@@ -30,11 +30,11 @@ void main() {
   test('utils decodeJson with non map or string', () {
     var res = decodeJson(123);
 
-    expect(res, None<Map<String, Object?>>());
+    expect(res, None());
   });
 
   test('utils decodeJson with throwing string', () {
     var res = decodeJson('{abc: 123}');
-    expect(res, None<Map<String, Object?>>());
+    expect(res, None());
   });
 }
