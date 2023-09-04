@@ -1,3 +1,7 @@
+# 2.0.10
+
+- fix not sending `extras` data when creating room
+
 # 2.0.9
 
 - fix error or infinite loading when not connected to realtime server
