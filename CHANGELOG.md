@@ -1,3 +1,7 @@
+# 2.0.11
+
+- fix missed errors
+
 # 2.0.10
 
 - fix not sending `extras` data when creating room
