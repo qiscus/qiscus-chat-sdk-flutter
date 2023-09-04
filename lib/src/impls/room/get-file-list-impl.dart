@@ -10,6 +10,7 @@ RTE<Iterable<QMessage>> getFileListImpl({
   String? userId,
   int? page,
   int? limit,
+  String? query,
 }) {
   return tryCR((dio) async {
     var req = FileListRequest(
@@ -20,21 +21,22 @@ RTE<Iterable<QMessage>> getFileListImpl({
       sender: userId,
       page: page,
       limit: limit,
+      query: query,
     );
     return req(dio);
   });
 }
 
 class FileListRequest extends IApiRequest<Iterable<QMessage>> {
-  FileListRequest({
-    this.roomIds,
-    this.fileType,
-    this.sender,
-    this.query,
+  const FileListRequest({
+    required this.roomIds,
+    required this.fileType,
+    required this.sender,
+    required this.query,
+    required this.page,
+    required this.limit,
     this.includeExtensions = const [],
     this.excludeExtensions = const [],
-    this.page,
-    this.limit,
   });
 
   final String? query;

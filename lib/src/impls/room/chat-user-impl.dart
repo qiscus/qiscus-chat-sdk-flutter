@@ -10,16 +10,19 @@ ReaderTaskEither<Dio, String, QChatRoom> chatUserImpl(String userId,
     [Json? extras]) {
   return Reader((Dio dio) {
     return TaskEither.tryCatch(() async {
-      var req = ChatTargetRequest(userId: userId);
+      var req = ChatTargetRequest(
+        userId: userId,
+        extras: extras,
+      );
       return req(dio);
     }, (e, _) => e.toString());
   });
 }
 
 class ChatTargetRequest extends IApiRequest<QChatRoom> {
-  ChatTargetRequest({
+  const ChatTargetRequest({
     required this.userId,
-    this.extras,
+    required this.extras,
   });
 
   final String userId;

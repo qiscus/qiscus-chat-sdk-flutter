@@ -19,7 +19,7 @@ class DeleteMessagesRequest extends IApiRequest<Iterable<QMessage>> {
   final bool isHardDelete;
   final bool isForEveryone;
 
-  DeleteMessagesRequest({
+  const DeleteMessagesRequest({
     required this.uniqueIds,
     this.isForEveryone = true,
     this.isHardDelete = true,

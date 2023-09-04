@@ -14,7 +14,7 @@ RTE<Iterable<String>> removeParticipantImpl({
 }
 
 class RemoveParticipantRequest extends IApiRequest<Iterable<String>> {
-  RemoveParticipantRequest({
+  const RemoveParticipantRequest({
     required this.roomId,
     required this.userIds,
   });

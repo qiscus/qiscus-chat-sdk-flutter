@@ -45,7 +45,7 @@ class GetMessagesRequest extends IApiRequest<Iterable<QMessage>> {
   final int? limit;
   final bool? after;
 
-  GetMessagesRequest({
+  const GetMessagesRequest({
     required this.roomId,
     required this.lastMessageId,
     this.after = false,

@@ -30,7 +30,7 @@ RTE<State<Iterable<QChatRoom>, QChatRoom>> updateChatRoomImpl({
 }
 
 class UpdateRoomRequest extends IApiRequest<QChatRoom> {
-  UpdateRoomRequest({
+  const UpdateRoomRequest({
     required this.roomId,
     this.name,
     this.avatarUrl,

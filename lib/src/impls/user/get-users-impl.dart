@@ -20,10 +20,10 @@ RTE<Iterable<QUser>> getUsersImpl({
 }
 
 class GetUserListRequest extends IApiRequest<Iterable<QUser>> {
-  GetUserListRequest({
-    this.query,
-    this.page,
-    this.limit,
+  const GetUserListRequest({
+    required this.query,
+    required this.page,
+    required this.limit,
   });
   final String? query;
   final int? page;

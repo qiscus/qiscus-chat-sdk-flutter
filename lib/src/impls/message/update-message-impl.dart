@@ -14,7 +14,7 @@ RTE<State<Iterable<QMessage>, QMessage>> updateMessageImpl(QMessage message) {
 }
 
 class UpdateMessageRequest extends IApiRequest<QMessage> {
-  UpdateMessageRequest({required this.message});
+  const UpdateMessageRequest({required this.message});
 
   final QMessage message;
 

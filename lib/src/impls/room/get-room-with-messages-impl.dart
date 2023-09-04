@@ -18,7 +18,7 @@ ReaderTaskEither<Dio, String, Tuple2<QChatRoom, Iterable<QMessage>>>
 
 class GetRoomByIdRequest
     extends IApiRequest<Tuple2<QChatRoom, Iterable<QMessage>>> {
-  GetRoomByIdRequest({
+  const GetRoomByIdRequest({
     required this.roomId,
   });
 

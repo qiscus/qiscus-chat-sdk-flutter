@@ -23,11 +23,11 @@ ReaderTaskEither<Dio, String, Iterable<QParticipant>> getParticipantsImpl(
 }
 
 class GetParticipantRequest extends IApiRequest<Iterable<QParticipant>> {
-  GetParticipantRequest({
+  const GetParticipantRequest({
     required this.roomUniqueId,
-    this.page,
-    this.limit,
-    this.sorting,
+    required this.page,
+    required this.limit,
+    required this.sorting,
   });
 
   final String roomUniqueId;

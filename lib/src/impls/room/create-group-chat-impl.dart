@@ -28,11 +28,11 @@ ReaderTaskEither<Dio, String, QChatRoom> createGroupChatImpl(
 }
 
 class CreateGroupRequest extends IApiRequest<QChatRoom> {
-  CreateGroupRequest({
+  const CreateGroupRequest({
     required this.name,
     required this.userIds,
-    this.avatarUrl,
-    this.extras,
+    required this.avatarUrl,
+    required this.extras,
   });
 
   final String name;

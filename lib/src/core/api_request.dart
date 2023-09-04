@@ -3,7 +3,7 @@ part of qiscus_chat_sdk.core;
 typedef Formatter<Output> = Output Function(Json json);
 
 abstract class IApiRequest<T> {
-  IApiRequest();
+  const IApiRequest();
 
   String get url;
   IRequestMethod get method;

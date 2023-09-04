@@ -25,10 +25,10 @@ RTE<State<Storage, QAccount>> updateUserImpl({
 }
 
 class UpdateUserDataRequest extends IApiRequest<QAccount> {
-  UpdateUserDataRequest({
-    this.name,
-    this.avatarUrl,
-    this.extras,
+  const UpdateUserDataRequest({
+    required this.name,
+    required this.avatarUrl,
+    required this.extras,
   });
   final String? name;
   final String? avatarUrl;

@@ -14,18 +14,23 @@ ReaderTaskEither<Dio, String, QChatRoom> createChannelImpl(
 }) {
   return Reader((Dio dio) {
     return TaskEither.tryCatch(() async {
-      var req = GetOrCreateChannelRequest(uniqueId: uniqueId);
+      var req = GetOrCreateChannelRequest(
+        uniqueId: uniqueId,
+        name: name,
+        avatarUrl: avatarUrl,
+        extras: extras,
+      );
       return req(dio);
     }, (e, _) => e.toString());
   });
 }
 
 class GetOrCreateChannelRequest extends IApiRequest<QChatRoom> {
-  GetOrCreateChannelRequest({
+  const GetOrCreateChannelRequest({
     required this.uniqueId,
-    this.name,
-    this.avatarUrl,
-    this.extras,
+    required this.name,
+    required this.avatarUrl,
+    required this.extras,
   });
 
   final String uniqueId;

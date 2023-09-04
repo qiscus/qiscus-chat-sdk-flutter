@@ -17,9 +17,9 @@ ReaderTaskEither<Dio, String, Iterable<QUser>> getBlockedUsersImpl({
 }
 
 class GetBlockedUsersRequest extends IApiRequest<Iterable<QUser>> {
-  GetBlockedUsersRequest({
-    this.page,
-    this.limit,
+  const GetBlockedUsersRequest({
+    required this.page,
+    required this.limit,
   });
   final int? page;
   final int? limit;

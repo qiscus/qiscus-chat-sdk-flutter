@@ -29,7 +29,7 @@ RTE<bool> unregisterDeviceTokenImpl(
 }
 
 class SetDeviceTokenRequest extends IApiRequest<bool> {
-  SetDeviceTokenRequest({
+  const SetDeviceTokenRequest({
     required this.token,
     this.isDevelopment = false,
     this.platform = 'flutter',
@@ -58,7 +58,7 @@ class SetDeviceTokenRequest extends IApiRequest<bool> {
 }
 
 class UnsetDeviceTokenRequest extends IApiRequest<bool> {
-  UnsetDeviceTokenRequest({
+  const UnsetDeviceTokenRequest({
     required this.token,
     this.isDevelopment = false,
     this.platform = 'flutter',

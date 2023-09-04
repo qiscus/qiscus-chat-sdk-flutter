@@ -40,12 +40,12 @@ RTE<State<Storage, QAccount>> setUserWithIdentityTokenImpl(String token) {
 }
 
 class AuthenticateRequest extends IApiRequest<Tuple2<String, QAccount>> {
-  AuthenticateRequest({
+  const AuthenticateRequest({
     required this.userId,
     required this.userKey,
-    this.name,
-    this.avatarUrl,
-    this.extras,
+    required this.name,
+    required this.avatarUrl,
+    required this.extras,
   });
 
   final String userId;
@@ -80,7 +80,7 @@ class AuthenticateRequest extends IApiRequest<Tuple2<String, QAccount>> {
 
 class AuthenticateWithTokenRequest
     extends IApiRequest<Tuple2<String, QAccount>> {
-  AuthenticateWithTokenRequest({
+  const AuthenticateWithTokenRequest({
     required this.identityToken,
   });
 

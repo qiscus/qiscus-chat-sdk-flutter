@@ -14,7 +14,7 @@ ReaderTaskEither<Dio, String, QUser> unblockUserImpl(String userId) {
 }
 
 class UnblockUserRequest extends IApiRequest<QUser> {
-  UnblockUserRequest({
+  const UnblockUserRequest({
     required this.userId,
   });
   final String userId;

@@ -31,7 +31,7 @@ RTE<Tuple2<int, Iterable<QRealtimeEvent>>> synchronizeEventImpl(
 class SynchronizeRequest extends IApiRequest<Tuple2<int, Iterable<QMessage>>> {
   final String? lastMessageId;
 
-  SynchronizeRequest({
+  const SynchronizeRequest({
     this.lastMessageId = '0',
   });
 
@@ -59,7 +59,7 @@ class SynchronizeRequest extends IApiRequest<Tuple2<int, Iterable<QMessage>>> {
 
 class SynchronizeEventRequest
     extends IApiRequest<Tuple2<int, Iterable<QRealtimeEvent>>> {
-  SynchronizeEventRequest({
+  const SynchronizeEventRequest({
     this.lastEventId = 0,
   });
 

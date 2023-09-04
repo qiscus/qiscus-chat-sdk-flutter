@@ -26,12 +26,12 @@ ReaderTaskEither<Dio, String, Iterable<QChatRoom>> getAllChatRoomsImpl({
 }
 
 class GetAllRoomRequest extends IApiRequest<Iterable<QChatRoom>> {
-  GetAllRoomRequest({
-    this.withParticipants,
-    this.withEmptyRoom,
-    this.withRemovedRoom,
-    this.limit,
-    this.page,
+  const GetAllRoomRequest({
+    required this.withParticipants,
+    required this.withEmptyRoom,
+    required this.withRemovedRoom,
+    required this.limit,
+    required this.page,
   });
 
   final bool? withParticipants;

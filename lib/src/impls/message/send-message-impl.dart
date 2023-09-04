@@ -32,13 +32,13 @@ class SendMessageRequest extends IApiRequest<QMessage> {
   final Json? extras;
   final Json? payload;
 
-  SendMessageRequest({
+  const SendMessageRequest({
     required this.roomId,
     required this.message,
     required this.uniqueId,
     this.type = 'text',
-    this.extras,
-    this.payload,
+    required this.extras,
+    required this.payload,
   });
 
   @override

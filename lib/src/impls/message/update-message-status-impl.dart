@@ -35,10 +35,10 @@ class UpdateMessageStatusRequest extends IApiRequest<void> {
   final int? lastReadId;
   final int? lastDeliveredId;
 
-  UpdateMessageStatusRequest({
+  const UpdateMessageStatusRequest({
     required this.roomId,
-    this.lastReadId,
-    this.lastDeliveredId,
+    required this.lastReadId,
+    required this.lastDeliveredId,
   });
 
   @override

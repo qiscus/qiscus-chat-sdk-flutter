@@ -19,7 +19,7 @@ Reader<Dio, TaskEither<String, Iterable<QParticipant>>> addParticipantsImpl(
 }
 
 class AddParticipantRequest extends IApiRequest<Iterable<QParticipant>> {
-  AddParticipantRequest({
+  const AddParticipantRequest({
     required this.roomId,
     required this.userIds,
   });
