@@ -75,8 +75,18 @@ extension DioXRequest on Dio {
       queryParameters: params?.isNotEmpty == true ? params : null,
     ).then((it) => it.data!).catchError((err, stack) {
       var json = err.response?.data as Map<String, dynamic>;
-      var messages = json['error']['detailed_messages'] as List;
-      throw QError(messages.first, stack);
+      var errors = json['error'] as Map<String, dynamic>;
+      String message;
+
+      if (errors['detailed_messages'] != null) {
+        message = (errors['detailed_messages'] as List).first;
+      } else if (errors['message'] != null) {
+        message = errors['message'];
+      } else {
+        message = jsonEncode(errors);
+      }
+
+      throw QError(message, stack);
     }, test: (e) => e.runtimeType == DioException);
   }
 }
