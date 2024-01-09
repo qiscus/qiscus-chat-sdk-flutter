@@ -173,10 +173,13 @@ class QiscusSDK implements IQiscusSDK {
     _messageReceivedSubs$.stream,
     _synchronize(),
     _mqttUpdates.transform(mqttMessageReceivedTransformer),
-  ]).asyncMap((it) async {
-    markAsDelivered(roomId: it.chatRoomId, messageId: it.id).ignore();
-    return it;
-  }).asyncMap((it) => _triggerHook(QInterceptor.messageBeforeReceived, it));
+  ])
+      .tap((it) => markAsDelivered(
+            roomId: it.chatRoomId,
+            messageId: it.id,
+          ).ignore())
+      .asyncMap((it) => _triggerHook(QInterceptor.messageBeforeReceived, it))
+      .tap((m) => _setLastMessageId(m.id));
 
   late final Stream<QMessage> _messageRead$ = StreamGroup.mergeBroadcast([
     _synchronizeEvent().transform(syncMessageReadTransformerImpl),
@@ -388,7 +391,11 @@ class QiscusSDK implements IQiscusSDK {
       return v.map((v) => QChatRoomWithMessages(v.first, v.second.toList()));
     }).run(_dio);
 
-    return t2.runOrThrow();
+    return t2.tap((data) {
+      if (data.messages.isNotEmpty) {
+        _setLastMessageIdFromMessages(data.messages);
+      }
+    }).runOrThrow();
   }
 
   Future<String> getJWTNonce() async {
@@ -402,7 +409,10 @@ class QiscusSDK implements IQiscusSDK {
   }) async {
     var t2 = getNextMessagesImpl(roomId, messageId, limit: limit).run(_dio);
 
-    return t2.map((it) => it.toList()).runOrThrow();
+    return t2
+        .tap((it) => _setLastMessageIdFromMessages(it))
+        .map((it) => it.toList())
+        .runOrThrow();
   }
 
   Future<List<QParticipant>> getParticipants({
@@ -426,7 +436,9 @@ class QiscusSDK implements IQiscusSDK {
     required int messageId,
     int? limit,
   }) async {
-    var t2 = getPreviousMessagesImpl(roomId, messageId, limit: limit).run(_dio);
+    var t2 = getPreviousMessagesImpl(roomId, messageId, limit: limit)
+        .run(_dio)
+        .tap((v) => _setLastMessageIdFromMessages(v));
 
     return t2.map((it) => it.toList()).runOrThrow();
   }
@@ -660,11 +672,14 @@ class QiscusSDK implements IQiscusSDK {
       () => _triggerHook(QInterceptor.messageBeforeSent, message),
     );
     var t3 = t2.flatMap((message) => sendMessageImpl(message).run(_dio));
-    return t3.map((state) {
-      var res = state.run(_storage.messages);
-      _storage.messages = res.second.toSet();
-      return res.first;
-    }).runOrThrow();
+    return t3
+        .map((state) {
+          var res = state.run(_storage.messages);
+          _storage.messages = res.second.toSet();
+          return res.first;
+        })
+        .tap((m) => _setLastMessageId(m.id))
+        .runOrThrow();
   }
 
   void setCustomHeader(Map<String, String> headers) {
@@ -1147,11 +1162,29 @@ class QiscusSDK implements IQiscusSDK {
     );
     return sdk;
   }
+
+  void _setLastMessageId(int lastId) {
+    if (_storage.lastMessageId > lastId) return;
+
+    _storage.currentUser?.lastMessageId = lastId;
+    _storage.lastMessageId = lastId;
+  }
+
+  void _setLastMessageIdFromMessages(Iterable<QMessage> messages) {
+    var lastId = messages.sortWithDate((m) => m.timestamp).last.id;
+    _setLastMessageId(lastId);
+  }
 }
 
 extension _TaskEither<L extends String, R> on TaskEither<L, R> {
   Future<R> runOrThrow() async {
     return run().then((it) => it.toThrow());
+  }
+
+  TaskEither<L, R> tap(void Function(R) onRight) {
+    return map((v) {
+      return v;
+    });
   }
 }
 
