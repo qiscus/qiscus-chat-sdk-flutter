@@ -1117,6 +1117,39 @@ class QiscusSDK implements IQiscusSDK {
     );
   }
 
+  QMessage generateReplyMessage({
+    required int chatRoomId,
+    required String text,
+    required QMessage repliedMessage,
+    Json? extras,
+  }) {
+    var id = Random.secure().nextInt(10000);
+    return QMessage(
+      // Provided by user
+      chatRoomId: chatRoomId,
+      text: text,
+      extras: extras,
+      timestamp: DateTime.now(),
+      uniqueId: _generateUniqueId(),
+      //
+      id: id,
+      payload: {
+        'text': text,
+        'replied_comment_id': repliedMessage.id,
+        'replied_comment_message': repliedMessage.text,
+        'replied_comment_sender_email': repliedMessage.sender.id,
+        'replied_comment_sender_username': repliedMessage.sender.name,
+        'replied_comment_payload': repliedMessage.payload,
+        'replied_comment_type': repliedMessage.type.name,
+        'replied_comment_is_deleted': false,
+      },
+      previousMessageId: 0,
+      sender: currentUser!,
+      status: QMessageStatus.sending,
+      type: QMessageType.reply,
+    );
+  }
+
   // --- Hooks
   final Set<QHook> _hooks = {};
 
@@ -1176,7 +1209,7 @@ class QiscusSDK implements IQiscusSDK {
   }
 }
 
-extension _TaskEither<L extends String, R> on TaskEither<L, R> {
+extension _TaskEither<L extends QError, R> on TaskEither<L, R> {
   Future<R> runOrThrow() async {
     return run().then((it) => it.toThrow());
   }
@@ -1188,13 +1221,13 @@ extension _TaskEither<L extends String, R> on TaskEither<L, R> {
   }
 }
 
-extension _IOEither<L extends String, R> on IOEither<L, R> {
+extension _IOEither<L extends QError, R> on IOEither<L, R> {
   R runOrThrow() {
     return run().toThrow();
   }
 }
 
-extension _EitherX<L extends String, R> on Either<L, R> {
+extension _EitherX<L extends QError, R> on Either<L, R> {
   R toThrow() {
     return match(
       (l) => throw l,

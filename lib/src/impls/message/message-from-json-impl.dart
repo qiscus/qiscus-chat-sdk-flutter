@@ -15,8 +15,11 @@ QMessage messageFromJson(Json json) {
         return QMessageStatus.delivered;
     }
   }).getOrElse(() => QMessageStatus.sent);
+
   var type = Option.of(json['type'] as String?).map((type) {
     switch (type) {
+      case 'reply':
+        return QMessageType.reply;
       case 'file_attachment':
         return QMessageType.attachment;
       case 'text':
