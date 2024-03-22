@@ -4,12 +4,12 @@ import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/user/user-from-json-impl.dart';
 
-ReaderTaskEither<Dio, String, QUser> blockUserImpl(String userId) {
+ReaderTaskEither<Dio, QError, QUser> blockUserImpl(String userId) {
   return Reader((Dio dio) {
-    return TaskEither.tryCatch(() async {
+    return tryCatch(() async {
       var req = BlockUserRequest(userId: userId);
       return req(dio);
-    }, (e, _) => e.toString());
+    });
   });
 }
 

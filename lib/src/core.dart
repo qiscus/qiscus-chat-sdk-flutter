@@ -51,19 +51,17 @@ abstract class TopicBuilder {
   static String customEvent(int roomId) => 'r/$roomId/$roomId/e';
 }
 
-TaskEither<String, T> tryCatch<T>(Future<T> Function() fn) {
+TaskEither<QError, T> tryCatch<T>(Future<T> Function() fn) {
   return TaskEither.tryCatch(fn, (e, stack) {
     if (e is DioException) {
       var response = e.response;
-      print('response: $response');
+      return QError(response.toString(), stack);
     }
-    throw e;
-    // throw QError(e.toString(), stack);
-    // return e.toString();
+    throw QError(e.toString(), stack);
   });
 }
 
-Reader<R, TaskEither<String, T>> tryCR<R, T>(Future<T> Function(R r) fn) {
+Reader<R, TaskEither<QError, T>> tryCR<R, T>(Future<T> Function(R r) fn) {
   return Reader((r) {
     return tryCatch(() async {
       return fn(r);

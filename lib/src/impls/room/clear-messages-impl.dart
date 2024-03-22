@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 
-ReaderTaskEither<Dio, String, Unit> clearMessagesImpl(
+ReaderTaskEither<Dio, QError, Unit> clearMessagesImpl(
   List<String> roomUniqueIds,
 ) {
   return Reader((Dio dio) {

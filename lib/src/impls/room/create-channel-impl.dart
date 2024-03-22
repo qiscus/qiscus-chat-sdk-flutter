@@ -1,27 +1,24 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:fpdart/fpdart.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/room/room-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/room/room-from-json-impl.dart';
 
-ReaderTaskEither<Dio, String, QChatRoom> createChannelImpl(
+ReaderTaskEither<Dio, QError, QChatRoom> createChannelImpl(
   String uniqueId, {
   String? name,
   String? avatarUrl,
   Json? extras,
 }) {
-  return Reader((Dio dio) {
-    return TaskEither.tryCatch(() async {
-      var req = GetOrCreateChannelRequest(
-        uniqueId: uniqueId,
-        name: name,
-        avatarUrl: avatarUrl,
-        extras: extras,
-      );
-      return req(dio);
-    }, (e, _) => e.toString());
+  return tryCR((Dio dio) async {
+    var req = GetOrCreateChannelRequest(
+      uniqueId: uniqueId,
+      name: name,
+      avatarUrl: avatarUrl,
+      extras: extras,
+    );
+    return req(dio);
   });
 }
 

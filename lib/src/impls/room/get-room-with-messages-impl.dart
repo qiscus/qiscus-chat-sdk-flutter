@@ -6,7 +6,7 @@ import 'package:qiscus_chat_sdk/src/domain/room/room-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/message/message-from-json-impl.dart';
 import 'package:qiscus_chat_sdk/src/impls/room/room-from-json-impl.dart';
 
-ReaderTaskEither<Dio, String, Tuple2<QChatRoom, Iterable<QMessage>>>
+ReaderTaskEither<Dio, QError, Tuple2<QChatRoom, Iterable<QMessage>>>
     getRoomWithMessagesImpl(int roomId) {
   return Reader((dio) {
     return tryCatch(() async {

@@ -2,12 +2,12 @@ import 'package:fpdart/fpdart.dart';
 import 'package:dio/dio.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 
-ReaderTaskEither<Dio, String, String> getNonceImpl() {
+ReaderTaskEither<Dio, QError, String> getNonceImpl() {
   return Reader((dio) {
-    return TaskEither.tryCatch(() async {
+    return tryCatch(() async {
       var req = GetNonceRequest();
-      return req(dio);
-    }, (e, _) => e.toString());
+      return req.call(dio);
+    });
   });
 }
 

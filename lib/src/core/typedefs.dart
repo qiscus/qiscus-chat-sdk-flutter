@@ -11,4 +11,4 @@ typedef UserTypingHandler = void Function(String, int, bool);
 
 typedef ReaderTask<D, R> = Reader<D, Task<R>>;
 typedef ReaderTaskEither<D, L, R> = Reader<D, TaskEither<L, R>>;
-typedef RTE<R> = ReaderTaskEither<Dio, String, R>;
+typedef RTE<R> = ReaderTaskEither<Dio, QError, R>;

@@ -4,7 +4,7 @@ import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/message/message-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/message/message-from-json-impl.dart';
 
-ReaderTaskEither<Dio, String, Iterable<QMessage>> getNextMessagesImpl(
+ReaderTaskEither<Dio, QError, Iterable<QMessage>> getNextMessagesImpl(
   int roomId,
   int messageId, {
   int? limit,
@@ -23,7 +23,7 @@ ReaderTaskEither<Dio, String, Iterable<QMessage>> getNextMessagesImpl(
   });
 }
 
-ReaderTaskEither<Dio, String, Iterable<QMessage>> getPreviousMessagesImpl(
+ReaderTaskEither<Dio, QError, Iterable<QMessage>> getPreviousMessagesImpl(
   int roomId,
   int messageId, {
   int? limit,

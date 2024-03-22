@@ -6,16 +6,16 @@ import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/room/room-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/room/room-from-json-impl.dart';
 
-ReaderTaskEither<Dio, String, QChatRoom> chatUserImpl(String userId,
+ReaderTaskEither<Dio, QError, QChatRoom> chatUserImpl(String userId,
     [Json? extras]) {
   return Reader((Dio dio) {
-    return TaskEither.tryCatch(() async {
+    return tryCatch(() async {
       var req = ChatTargetRequest(
         userId: userId,
         extras: extras,
       );
       return req(dio);
-    }, (e, _) => e.toString());
+    });
   });
 }
 

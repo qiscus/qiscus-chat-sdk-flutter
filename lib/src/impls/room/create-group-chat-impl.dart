@@ -7,23 +7,21 @@ import 'package:qiscus_chat_sdk/src/domain/room/room-model.dart';
 
 import 'room-from-json-impl.dart';
 
-ReaderTaskEither<Dio, String, QChatRoom> createGroupChatImpl(
+Reader<Dio, TaskEither<QError, QChatRoom>> createGroupChatImpl(
   String name,
   List<String> userIds, {
   String? avatarUrl,
   Json? extras,
 }) {
-  return Reader((Dio dio) {
-    return TaskEither.tryCatch(() async {
-      var req = CreateGroupRequest(
-        name: name,
-        userIds: userIds,
-        avatarUrl: avatarUrl,
-        extras: extras,
-      );
+  return tryCR((Dio dio) async {
+    var req = CreateGroupRequest(
+      name: name,
+      userIds: userIds,
+      avatarUrl: avatarUrl,
+      extras: extras,
+    );
 
-      return req(dio);
-    }, (e, _) => e.toString());
+    return req.call(dio);
   });
 }
 

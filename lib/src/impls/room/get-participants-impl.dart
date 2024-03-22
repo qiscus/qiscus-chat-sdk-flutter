@@ -4,7 +4,7 @@ import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/user/participant-from-json-impl.dart';
 
-ReaderTaskEither<Dio, String, Iterable<QParticipant>> getParticipantsImpl(
+ReaderTaskEither<Dio, QError, Iterable<QParticipant>> getParticipantsImpl(
   String roomUniqueId, {
   int? page,
   int? limit,

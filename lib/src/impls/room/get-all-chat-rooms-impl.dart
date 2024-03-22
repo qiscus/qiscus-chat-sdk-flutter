@@ -4,7 +4,7 @@ import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/room/room-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/room/room-from-json-impl.dart';
 
-ReaderTaskEither<Dio, String, Iterable<QChatRoom>> getAllChatRoomsImpl({
+ReaderTaskEither<Dio, QError, Iterable<QChatRoom>> getAllChatRoomsImpl({
   bool? showParticipant,
   bool? showRemoved,
   bool? showEmpty,
@@ -12,7 +12,7 @@ ReaderTaskEither<Dio, String, Iterable<QChatRoom>> getAllChatRoomsImpl({
   int? page,
 }) {
   return Reader((Dio dio) {
-    return TaskEither.tryCatch(() async {
+    return tryCatch(() async {
       var req = GetAllRoomRequest(
         withParticipants: showParticipant,
         withEmptyRoom: showEmpty,
@@ -21,7 +21,7 @@ ReaderTaskEither<Dio, String, Iterable<QChatRoom>> getAllChatRoomsImpl({
         page: page,
       );
       return req(dio);
-    }, (e, _) => e.toString());
+    });
   });
 }
 

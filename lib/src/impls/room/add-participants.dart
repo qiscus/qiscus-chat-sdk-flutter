@@ -4,17 +4,17 @@ import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/user/participant-from-json-impl.dart';
 
-Reader<Dio, TaskEither<String, Iterable<QParticipant>>> addParticipantsImpl(
+Reader<Dio, TaskEither<QError, Iterable<QParticipant>>> addParticipantsImpl(
   int roomId,
   List<String> userIds,
 ) {
   return Reader(
-    (Dio dio) => TaskEither.tryCatch(() async {
+    (Dio dio) => tryCatch(() async {
       var req = AddParticipantRequest(roomId: roomId, userIds: userIds);
       var res = await req(dio);
 
       return res;
-    }, (e, _) => e.toString()),
+    }),
   );
 }
 

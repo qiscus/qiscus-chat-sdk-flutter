@@ -4,13 +4,13 @@ import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/message/message-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/message/message-from-json-impl.dart';
 
-ReaderTaskEither<Dio, String, Iterable<QMessage>> deleteMessagesImpl(
+ReaderTaskEither<Dio, QError, Iterable<QMessage>> deleteMessagesImpl(
     List<String> uniqueIds) {
   return Reader((Dio dio) {
-    return TaskEither.tryCatch(() async {
+    return tryCatch(() async {
       var req = DeleteMessagesRequest(uniqueIds: uniqueIds);
       return req(dio);
-    }, (e, _) => e.toString());
+    });
   });
 }
 

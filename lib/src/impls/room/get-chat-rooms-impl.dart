@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:qiscus_chat_sdk/src/domain/room/room-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/room/room-from-json-impl.dart';
 
-ReaderTaskEither<Dio, String, Iterable<QChatRoom>> getChatRoomsImpl({
+ReaderTaskEither<Dio, QError, Iterable<QChatRoom>> getChatRoomsImpl({
   Iterable<int>? roomIds,
   Iterable<String>? uniqueIds,
   int? page,
@@ -13,14 +13,14 @@ ReaderTaskEither<Dio, String, Iterable<QChatRoom>> getChatRoomsImpl({
 }) {
   return Reader((dio) {
     if ([roomIds, uniqueIds].every((it) => it == null)) {
-      return TaskEither<String, Iterable<QChatRoom>>.left(
-          'Please specify either `roomIds` or `uniqueIds`');
+      return TaskEither<QError, Iterable<QChatRoom>>.left(
+          QError('Please specify either `roomIds` or `uniqueIds`'));
     }
     if ([roomIds, uniqueIds].every((it) => it != null)) {
-      return TaskEither<String, Iterable<QChatRoom>>.left(
-          'Please specify either `roomIds` or `uniqueIds`');
+      return TaskEither<QError, Iterable<QChatRoom>>.left(
+          QError('Please specify either `roomIds` or `uniqueIds`'));
     }
-    return TaskEither.tryCatch(() async {
+    return tryCatch(() async {
       var req = GetRoomInfoRequest(
         roomIds: roomIds?.toList(),
         uniqueIds: uniqueIds?.toList(),
@@ -30,7 +30,7 @@ ReaderTaskEither<Dio, String, Iterable<QChatRoom>> getChatRoomsImpl({
       );
 
       return req(dio);
-    }, (e, _) => e.toString());
+    });
   });
 }
 

@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:fpdart/fpdart.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
+import '../core.dart';
+
 typedef MqttUpdatesData = List<MqttReceivedMessage<MqttMessage>>;
 typedef MqttUpdates = Stream<MqttUpdatesData>;
 
@@ -60,7 +62,7 @@ Reader<MqttClient, IO<Stream<QMqttMessage>>> mqttForTopic(
   });
 }
 
-Reader<MqttClient, IOEither<String, Unit>> mqttSubscribeTopic(
+Reader<MqttClient, IOEither<QError, Unit>> mqttSubscribeTopic(
   String topic,
 ) {
   return Reader((mqtt) {
@@ -69,7 +71,7 @@ Reader<MqttClient, IOEither<String, Unit>> mqttSubscribeTopic(
         mqtt.subscribe(topic, MqttQos.atLeastOnce);
       } on ConnectionException catch (_) {}
       return unit;
-    }, (e, _) => e.toString());
+    }, (e, st) => QError(e.toString(), st));
   });
 }
 
@@ -82,7 +84,7 @@ Reader<MqttClient, IOEither<String, Unit>> mqttUnsubscribeTopic(String topic) {
   });
 }
 
-Reader<MqttClient, IOEither<String, Unit>> mqttSendEvent(
+Reader<MqttClient, IOEither<QError, Unit>> mqttSendEvent(
   String topic,
   String payload,
 ) {
@@ -93,7 +95,7 @@ Reader<MqttClient, IOEither<String, Unit>> mqttSendEvent(
         mqtt.publishMessage(topic, MqttQos.atLeastOnce, p);
         return unit;
       },
-      (e, _) => e.toString(),
+      (e, st) => QError(e.toString(), st),
     );
   });
 }

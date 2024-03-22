@@ -4,15 +4,15 @@ import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
 import 'package:qiscus_chat_sdk/src/impls/user/user-from-json-impl.dart';
 
-ReaderTaskEither<Dio, String, Iterable<QUser>> getBlockedUsersImpl({
+ReaderTaskEither<Dio, QError, Iterable<QUser>> getBlockedUsersImpl({
   int? page,
   int? limit,
 }) {
   return Reader((dio) {
-    return TaskEither.tryCatch(() async {
+    return tryCatch(() async {
       var req = GetBlockedUsersRequest(page: page, limit: limit);
       return req(dio);
-    }, (e, _) => e.toString());
+    });
   });
 }
 
