@@ -1,9 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:fpdart/fpdart.dart';
 import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
 
 import '../../core.dart';
-part 'message-reply-model.dart';
 
 enum QMessageType {
   text,
