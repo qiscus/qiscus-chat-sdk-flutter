@@ -1,3 +1,7 @@
+# 2.1.0
+
+- added support for message with reply type
+
 # 2.0.12
 
 - fix not saving latest message id when loading room and getting new message
