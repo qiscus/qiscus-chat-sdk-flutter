@@ -1,3 +1,7 @@
+# 2.1.1
+
+- bugfix using the wrong message type when generating message reply
+
 # 2.1.0
 
 - added support for message with reply type
