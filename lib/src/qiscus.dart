@@ -1064,25 +1064,18 @@ class QiscusSDK implements IQiscusSDK {
     Json? extras,
     required Json payload,
   }) {
-    var id = Random.secure().nextInt(10000);
-    return QMessage(
-      // Provided by user
+    var message = generateMessage(
       chatRoomId: chatRoomId,
       text: text,
-      timestamp: DateTime.now(),
-      uniqueId: _generateUniqueId(),
       extras: extras,
-      payload: <String, dynamic>{
-        'type': type,
-        'content': payload,
-      },
-      //
-      id: id,
-      previousMessageId: 0,
-      sender: currentUser!,
-      status: QMessageStatus.sending,
-      type: QMessageType.custom,
     );
+    message.type = QMessageType.custom;
+    message.payload = {
+      'type': type,
+      'content': payload,
+    };
+
+    return message;
   }
 
   QMessage generateFileAttachmentMessage({
@@ -1094,27 +1087,20 @@ class QiscusSDK implements IQiscusSDK {
     int? size,
     Json? extras,
   }) {
-    var id = Random.secure().nextInt(10000);
-    return QMessage(
-      // Provided by user
+    var message = generateMessage(
       chatRoomId: chatRoomId,
       text: text,
-      timestamp: DateTime.now(),
-      uniqueId: _generateUniqueId(),
       extras: extras,
-      payload: <String, dynamic>{
-        'url': url,
-        'file_name': filename,
-        'size': size,
-        'caption': caption,
-      },
-      //
-      id: id,
-      previousMessageId: 0,
-      sender: currentUser!,
-      status: QMessageStatus.sending,
-      type: QMessageType.attachment,
     );
+    message.type = QMessageType.attachment;
+    message.payload = {
+      'url': url,
+      'file_name': filename,
+      'size': size,
+      'caption': caption,
+    };
+
+    return message;
   }
 
   QMessage generateReplyMessage({
@@ -1123,31 +1109,24 @@ class QiscusSDK implements IQiscusSDK {
     required QMessage repliedMessage,
     Json? extras,
   }) {
-    var id = Random.secure().nextInt(10000);
-    return QMessage(
-      // Provided by user
+    var message = generateMessage(
       chatRoomId: chatRoomId,
       text: text,
       extras: extras,
-      timestamp: DateTime.now(),
-      uniqueId: _generateUniqueId(),
-      //
-      id: id,
-      payload: {
-        'text': text,
-        'replied_comment_id': repliedMessage.id,
-        'replied_comment_message': repliedMessage.text,
-        'replied_comment_sender_email': repliedMessage.sender.id,
-        'replied_comment_sender_username': repliedMessage.sender.name,
-        'replied_comment_payload': repliedMessage.payload,
-        'replied_comment_type': repliedMessage.type.toString(),
-        'replied_comment_is_deleted': false,
-      },
-      previousMessageId: 0,
-      sender: currentUser!,
-      status: QMessageStatus.sending,
-      type: QMessageType.reply,
     );
+    message.type = QMessageType.reply;
+    message.payload = {
+      'text': text,
+      'replied_comment_id': repliedMessage.id,
+      'replied_comment_message': repliedMessage.text,
+      'replied_comment_sender_email': repliedMessage.sender.id,
+      'replied_comment_sender_username': repliedMessage.sender.name,
+      'replied_comment_payload': repliedMessage.payload,
+      'replied_comment_type': repliedMessage.type.toString(),
+      'replied_comment_is_deleted': false,
+    };
+
+    return message;
   }
 
   // --- Hooks
