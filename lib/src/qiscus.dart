@@ -1140,7 +1140,7 @@ class QiscusSDK implements IQiscusSDK {
         'replied_comment_sender_email': repliedMessage.sender.id,
         'replied_comment_sender_username': repliedMessage.sender.name,
         'replied_comment_payload': repliedMessage.payload,
-        'replied_comment_type': repliedMessage.type.name,
+        'replied_comment_type': repliedMessage.type.toString(),
         'replied_comment_is_deleted': false,
       },
       previousMessageId: 0,
