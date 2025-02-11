@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
 
 import '../../core.dart';
+import '../user/user-model.dart';
 
 enum QMessageType {
   text,
@@ -74,10 +74,13 @@ enum QMessageStatus {
   sending,
   sent,
   delivered,
-  read;
+  read,
+  failed;
 
   String toString() {
     switch (this) {
+      case failed:
+        return 'failed';
       case sending:
         return 'sending';
       case sent:

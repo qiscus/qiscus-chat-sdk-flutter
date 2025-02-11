@@ -63,6 +63,7 @@ class Storage with EquatableMixin {
     this.logLevel = QLogLevel.debug,
     this.messages = const {},
     this.rooms = const {},
+    this.configExtras = const {},
   });
 
   String? get userId => currentUser?.id;
