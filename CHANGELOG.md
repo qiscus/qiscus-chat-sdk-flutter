@@ -1,3 +1,7 @@
+# 2.2.0
+
+- added message status `failed`
+
 # 2.1.1
 
 - bugfix using the wrong message type when generating message reply
