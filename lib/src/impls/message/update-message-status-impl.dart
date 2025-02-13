@@ -24,6 +24,7 @@ RTE<Unit> updateMessageStatusImpl(
             lastDeliveredId: null,
           )(dio)
               .then((_) => unit);
+        case QMessageStatus.failed:
         case QMessageStatus.sending:
         case QMessageStatus.sent:
           return unit;
