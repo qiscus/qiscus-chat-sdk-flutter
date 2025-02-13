@@ -1,3 +1,7 @@
+# 2.2.1
+
+- fix missing handler on message update for `failed` message status
+
 # 2.2.0
 
 - added message status `failed`
