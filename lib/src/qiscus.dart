@@ -475,10 +475,9 @@ class QiscusSDK implements IQiscusSDK {
     return result;
   }
 
+  @Deprecated('This function is no longer working and will be removed in a future version')
   Future<int> getTotalUnreadCount() async {
-    var t2 = getTotalUnreadImpl().run(_dio);
-
-    return t2.runOrThrow();
+    throw UnsupportedError('getTotalUnreadCount is deprecated and no longer supported');
   }
 
   Future<QAccount> getUserData() async {
