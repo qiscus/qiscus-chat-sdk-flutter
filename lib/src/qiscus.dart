@@ -1127,6 +1127,25 @@ class QiscusSDK implements IQiscusSDK {
     return message;
   }
 
+  QMessage generateCarouselMessage({
+    required int chatRoomId,
+    required List<Json> cards,
+    String text = 'Carousel',
+    Json? extras,
+  }) {
+    var message = generateMessage(
+      chatRoomId: chatRoomId,
+      text: text,
+      extras: extras,
+    );
+    message.type = QMessageType.carousel;
+    message.payload = {
+      'cards': cards,
+    };
+
+    return message;
+  }
+
   // --- Hooks
   final Set<QHook> _hooks = {};
 

@@ -24,6 +24,8 @@ QMessage messageFromJson(Json json) {
         return QMessageType.attachment;
       case 'text':
         return QMessageType.text;
+      case 'carousel':
+        return QMessageType.carousel;
       case 'custom':
       default:
         return QMessageType.custom;

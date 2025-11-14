@@ -89,10 +89,12 @@ void main() {
     var type1 = QMessageType.attachment;
     var type2 = QMessageType.custom;
     var type3 = QMessageType.text;
+    var type4 = QMessageType.carousel;
 
     expect(type1.toString(), 'file_attachment');
     expect(type2.toString(), 'custom');
     expect(type3.toString(), 'text');
+    expect(type4.toString(), 'carousel');
   });
 
   test('QMessageStatus.toString', () {

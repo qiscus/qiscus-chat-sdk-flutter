@@ -7,7 +7,8 @@ enum QMessageType {
   text,
   custom,
   attachment,
-  reply;
+  reply,
+  carousel;
 
   @override
   String toString() {
@@ -20,6 +21,8 @@ enum QMessageType {
         return 'file_attachment';
       case reply:
         return 'reply';
+      case carousel:
+        return 'carousel';
     }
   }
 }
