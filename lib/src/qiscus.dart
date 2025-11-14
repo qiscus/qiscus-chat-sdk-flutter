@@ -40,7 +40,6 @@ import 'impls/room/get-chat-rooms-impl.dart';
 import 'impls/room/get-file-list-impl.dart';
 import 'impls/room/get-participants-impl.dart';
 import 'impls/room/get-room-with-messages-impl.dart';
-import 'impls/room/get-total-unread-count-impl.dart';
 import 'impls/room/on-room-cleared.dart';
 import 'impls/room/publish-custom-event-impl.dart';
 import 'impls/room/remove-participant-impl.dart';
