@@ -84,9 +84,15 @@ class QiscusSDK implements IQiscusSDK {
 
   late final _mqttUpdates = mqttUpdates()
       .run(_mqtt)
-      .run()
       .asBroadcastStream()
       .transform(mqttExpandTransformer);
+
+  Stream<QMqttMessage> _getMqttUpdates() {
+    return mqttUpdates()
+        .map((s) => s.asBroadcastStream())
+        .map((s) => s.transform(mqttExpandTransformer))
+        .run(_mqtt);
+  }
 
   late final StreamTransformer<Unit, bool> _authenticatedTransformer =
       StreamTransformer.fromHandlers(handleData: (_, sink) async {
@@ -169,35 +175,38 @@ class QiscusSDK implements IQiscusSDK {
 
   late final StreamController<QMessage> _messageReceivedSubs$ =
       StreamController();
-  late final Stream<QMessage> _messageReceived$ = StreamGroup.mergeBroadcast([
-    _messageReceivedSubs$.stream,
-    _synchronize(),
-    _mqttUpdates.transform(mqttMessageReceivedTransformer),
-  ])
-      .tap((it) => markAsDelivered(
-            roomId: it.chatRoomId,
-            messageId: it.id,
-          ).ignore())
-      .asyncMap((it) => _triggerHook(QInterceptor.messageBeforeReceived, it))
-      .tap((m) => _setLastMessageId(m.id));
 
-  late final Stream<QMessage> _messageRead$ = StreamGroup.mergeBroadcast([
-    _synchronizeEvent().transform(syncMessageReadTransformerImpl),
-    _mqttUpdates.transform(mqttMessageReadTransformerImpl),
-  ])
-      .map((it) => it.run(_storage.messages))
-      .tap((it) => _storage.messages = it.second.toSet())
-      .map((it) => it.first)
-      .transform(nonNullTransformer());
-
-  late final Stream<QMessage> _messageDelivered$ = StreamGroup.mergeBroadcast([
-    _synchronizeEvent().transform(syncMessageDeliveredTransformerImpl),
-    _mqttUpdates.transform(mqttMessageDeliveredTransformerImpl),
-  ])
-      .map((it) => it.run(_storage.messages))
-      .tap((it) => _storage.messages = it.second.toSet())
-      .map((it) => it.first)
-      .transform(nonNullTransformer());
+  Stream<QMessage> _getMessageReceivedStream() => StreamGroup.mergeBroadcast([
+        _messageReceivedSubs$.stream,
+        _synchronize(),
+        _getMqttUpdates().transform(mqttMessageReceivedTransformer),
+      ])
+          .tap((it) => markAsDelivered(
+                roomId: it.chatRoomId,
+                messageId: it.id,
+              ).ignore())
+          .asyncMap(
+              (it) => _triggerHook(QInterceptor.messageBeforeReceived, it))
+          .tap((m) => _setLastMessageId(m.id));
+  Stream<QMessage> _getMessageReadStream() => StreamGroup.mergeBroadcast([
+        _synchronizeEvent().transform(syncMessageReadTransformerImpl),
+        _getMqttUpdates().transform(mqttMessageReadTransformerImpl),
+      ])
+          .map((it) => it.run(_storage.messages))
+          .tap((it) => _storage.messages = it.second.toSet())
+          .map((it) => it.first)
+          .transform(nonNullTransformer());
+  Stream<QMessage> _getMessageDeliveredStream() => StreamGroup.mergeBroadcast([
+        _synchronizeEvent().transform(syncMessageDeliveredTransformerImpl),
+        _getMqttUpdates().transform(mqttMessageDeliveredTransformerImpl),
+      ])
+          .map((it) => it.run(_storage.messages))
+          .tap((it) => _storage.messages = it.second.toSet())
+          .map((it) => it.first)
+          .transform(nonNullTransformer());
+  late Stream<QMessage> _messageReceived$ = _getMessageReceivedStream();
+  late Stream<QMessage> _messageRead$ = _getMessageReadStream();
+  late Stream<QMessage> _messageDelivered$ = _getMessageDeliveredStream();
 
   late final Stream<QMessage> _messageDeleted$ = StreamGroup.mergeBroadcast([
     _synchronizeEvent().transform(syncMessageDeletedTransformerImpl),
@@ -798,6 +807,12 @@ class QiscusSDK implements IQiscusSDK {
 
   Future<void> _doOnConnected(void Function() cb) async {
     try {
+      // getMqttConnectionState
+      //     .map((state) => state.tap((s) => print('---> @mqtt.state($s)')))
+      //     .map((s) => s.takeWhile((_) => _mqtt.updates != null))
+      //     .map((s) => s.listen(null))
+      //     .run(_mqtt);
+
       await _connected().timeout(const Duration(seconds: 1)).then((_) {
         if (_mqttIsConnected) {
           cb();
@@ -806,6 +821,7 @@ class QiscusSDK implements IQiscusSDK {
     } catch (_) {}
   }
 
+  Stream? _updates;
   Future<void> _connectMqtt() async {
     if (_storage.isRealtimeEnabled) {
       await _mqtt.connect().ignoreAwaited();
@@ -820,6 +836,23 @@ class QiscusSDK implements IQiscusSDK {
       r2.run(_mqtt).runOrThrow();
       r3.run(_mqtt).runOrThrow();
     });
+
+    _mqtt.onConnected = () {
+      print('---> @mqtt.connected');
+      if (_updates != null) {
+        var isEquals = _updates == _mqtt.updates;
+        print('---> @@ is mqtt.updates equals? $isEquals');
+      }
+      _updates = _mqtt.updates;
+      _messageReceived$ = _getMessageReceivedStream();
+      _messageRead$ = _getMessageReadStream();
+      _messageDelivered$ = _getMessageDeliveredStream();
+    };
+    _mqtt.onDisconnected = () => print('---> @mqtt.disconnected');
+    _mqtt.onSubscribed = (topic) => print('---> @mqtt.subscribed($topic)');
+    _mqtt.onUnsubscribed = (topic) => print('---> @mqtt.unsubscribed($topic)');
+    _mqtt.onSubscribeFail =
+        (topic) => print('---> @mqtt.subscribeFail($topic)');
   }
 
   Debug get debug => Debug(
@@ -959,7 +992,7 @@ class QiscusSDK implements IQiscusSDK {
     });
 
     // ignore: unawaited_futures
-    _dio
+    unawaited(_dio
         .post<Json>(
           uploadUrl,
           data: formData,
@@ -978,7 +1011,7 @@ class QiscusSDK implements IQiscusSDK {
         )
         .catchError(
           (Object err, StackTrace trace) => controller.addError(err, trace),
-        );
+        ));
 
     yield* controller.stream;
   }

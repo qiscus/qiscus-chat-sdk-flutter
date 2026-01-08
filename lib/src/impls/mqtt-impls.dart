@@ -37,17 +37,19 @@ Reader<MqttClient, IO<Stream<bool>>> mqttConnectionState() {
   });
 }
 
-Reader<MqttClient, IO<MqttUpdates>> mqttUpdates() {
-  return Reader((mqtt) {
-    return mqttConnectionState() //
-        .run(mqtt)
-        // .map((it) => _restartSubscription(it, () => mqtt.updates!))
-        .map((it) async* {
-      await it.where((it) => it == true).first;
-      yield* mqtt.updates!;
-    });
-  });
-}
+final getMqttConnectionState = Reader((MqttClient mqtt) {
+  return Stream.periodic(const Duration(milliseconds: 100))
+      .asyncExpand((_) => mqtt.connectionStatus == null
+          ? null
+          : Stream.value(mqtt.connectionStatus!.state))
+      .distinct()
+      .tap((state) => print('---> @qiscus-mqtt.state($state)'));
+});
+
+Reader<MqttClient, MqttUpdates> mqttUpdates() => getMqttConnectionState.flatMap(
+    (connection) => Reader((MqttClient mqtt) => connection
+        .asyncExpand((state) => mqtt.updates)
+        .tap((_) => print('---> @qiscus-mqtt.update changed'))));
 
 Reader<MqttClient, IO<Stream<QMqttMessage>>> mqttForTopic(
   String topic,
