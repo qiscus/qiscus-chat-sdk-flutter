@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../core.dart';
 
-class QUser with EquatableMixin {
+class QUser {
   const QUser({
     required this.id,
     required this.name,
@@ -14,9 +14,6 @@ class QUser with EquatableMixin {
   final String name;
   final String? avatarUrl;
   final Map<String, Object?>? extras;
-
-  @override
-  List<Object?> get props => [id];
 }
 
 class QAccount extends QUser {

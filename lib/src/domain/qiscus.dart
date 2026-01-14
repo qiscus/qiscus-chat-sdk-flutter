@@ -6,7 +6,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 
 import '../core.dart';
-import '../debug.dart';
 import 'domains.dart';
 
 abstract class IQiscusSDK {
@@ -225,8 +224,6 @@ abstract class IQiscusSDK {
   });
 
   Future<QAccount> setUserWithIdentityToken({required String token});
-
-  Debug get debug;
 
   void subscribeChatRoom(QChatRoom room);
 

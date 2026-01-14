@@ -8,7 +8,7 @@ const defaultAccInterval = 1000;
 const defaultSyncInterval = 5000;
 const defaultSyncIntervalWhenConnected = 30000;
 
-class Storage with EquatableMixin {
+class Storage {
   String? appId;
   String? version;
   String? token;
@@ -67,35 +67,6 @@ class Storage with EquatableMixin {
   });
 
   String? get userId => currentUser?.id;
-
-  @override
-  bool get stringify => true;
-
-  @override
-  List<Object?> get props => [
-        appId,
-        version,
-        token,
-        currentUser,
-        customHeaders,
-        baseUrl,
-        brokerUrl,
-        brokerLbUrl,
-        uploadUrl,
-        syncInterval,
-        syncIntervalWhenConnected,
-        accSyncInterval,
-        debugEnabled,
-        brokerLbEnabled,
-        lastMessageId,
-        lastEventId,
-        enableEventReport,
-        isRealtimeEnabled,
-        isRealtimeCheckEnabled,
-        logLevel,
-        messages,
-        rooms,
-      ];
 }
 
 extension StorageX on Storage {
@@ -105,4 +76,11 @@ extension StorageX on Storage {
     messages = {};
     rooms = {};
   }
+
+  void setLastMessageId(int messageId) {
+    lastMessageId = messageId;
+    currentUser?.lastMessageId = messageId;
+  }
+
+  bool get isLogin => currentUser != null && token != null;
 }

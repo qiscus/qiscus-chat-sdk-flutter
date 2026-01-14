@@ -1,5 +1,3 @@
-import 'package:equatable/equatable.dart';
-
 import '../../core.dart';
 import '../user/user-model.dart';
 
@@ -24,7 +22,7 @@ enum QMessageType {
   }
 }
 
-class QMessage with EquatableMixin {
+class QMessage {
   int id;
   int chatRoomId;
   int previousMessageId;
@@ -65,9 +63,6 @@ class QMessage with EquatableMixin {
       ' timestamp=$timestamp,'
       ' previousMessageId=$previousMessageId'
       ')';
-
-  @override
-  List<Object?> get props => [id, chatRoomId, sender, uniqueId];
 }
 
 enum QMessageStatus {
