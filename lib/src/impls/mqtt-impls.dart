@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:async/async.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
@@ -14,6 +15,11 @@ class QMqttMessage {
 
   final String topic;
   final String payload;
+
+  @override
+  String toString() {
+    return '{ topic: ($topic), payload: ($payload) }';
+  }
 }
 
 StreamTransformer<MqttUpdatesData, QMqttMessage> mqttExpandTransformer =
@@ -38,18 +44,37 @@ Reader<MqttClient, IO<Stream<bool>>> mqttConnectionState() {
 }
 
 final getMqttConnectionState = Reader((MqttClient mqtt) {
-  return Stream.periodic(const Duration(milliseconds: 100))
-      .asyncExpand((_) => mqtt.connectionStatus == null
-          ? null
-          : Stream.value(mqtt.connectionStatus!.state))
-      .distinct()
-      .tap((state) => print('---> @qiscus-mqtt.state($state)'));
+  return Stream.periodic(const Duration(milliseconds: 300),
+      (_) => mqtt.connectionStatus?.state).distinct();
 });
 
-Reader<MqttClient, MqttUpdates> mqttUpdates() => getMqttConnectionState.flatMap(
-    (connection) => Reader((MqttClient mqtt) => connection
-        .asyncExpand((state) => mqtt.updates)
-        .tap((_) => print('---> @qiscus-mqtt.update changed'))));
+Stream<List<MqttReceivedMessage<MqttMessage>>> mqttUpdate1(MqttClient mqtt) {
+  StreamSubscription? subs;
+  var controller = StreamController<List<MqttReceivedMessage<MqttMessage>>>();
+  mqtt.onConnected = () {
+    Timer.periodic(const Duration(milliseconds: 300), (timer) {
+      if (mqtt.updates == null) {
+      } else {
+        timer.cancel();
+        subs?.cancel();
+        subs = mqtt.updates!.listen(
+          (v) => controller.add(v),
+          onDone: () => controller.close(),
+          onError: (error) => controller.addError(error),
+        );
+      }
+    });
+  };
+  mqtt.onDisconnected = () {
+    subs?.cancel();
+  };
+
+  return controller.stream;
+}
+
+Reader<MqttClient, MqttUpdates> mqttUpdates() {
+  return Reader((mqtt) => mqttUpdate1(mqtt));
+}
 
 Reader<MqttClient, IO<Stream<QMqttMessage>>> mqttForTopic(
   String topic,
