@@ -1,3 +1,7 @@
+# 2.2.2
+
+- fix not getting any new events after closing and opening realtime connection
+
 # 2.2.1
 
 - fix missing handler on message update for `failed` message status
