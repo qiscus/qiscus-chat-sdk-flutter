@@ -5,14 +5,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:async/async.dart';
 import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
 import 'app_config/app_config.dart';
 import 'core.dart';
-import 'debug.dart';
 import 'domain/commons.dart';
 import 'domain/message/message-model.dart';
 import 'domain/qiscus.dart';
@@ -20,11 +18,6 @@ import 'domain/room/room-model.dart';
 import 'domain/user/user-model.dart';
 import 'impls/message/delete-messages-impl.dart';
 import 'impls/message/get-message-impl.dart';
-import 'impls/message/on-message-deleted-impl.dart';
-import 'impls/message/on-message-delivered-impl.dart';
-import 'impls/message/on-message-read-impl.dart';
-import 'impls/message/on-message-received-impl.dart';
-import 'impls/message/on-message-updated-impl.dart';
 import 'impls/message/send-message-impl.dart';
 import 'impls/message/update-message-impl.dart';
 import 'impls/message/update-message-status-impl.dart';
@@ -41,7 +34,6 @@ import 'impls/room/get-file-list-impl.dart';
 import 'impls/room/get-participants-impl.dart';
 import 'impls/room/get-room-with-messages-impl.dart';
 import 'impls/room/get-total-unread-count-impl.dart';
-import 'impls/room/on-room-cleared.dart';
 import 'impls/room/publish-custom-event-impl.dart';
 import 'impls/room/remove-participant-impl.dart';
 import 'impls/room/update-chat-room-impl.dart';
@@ -51,18 +43,14 @@ import 'impls/user/get-blocked-users-impl.dart';
 import 'impls/user/get-nonce-impl.dart';
 import 'impls/user/get-user-data-impl.dart';
 import 'impls/user/get-users-impl.dart';
-import 'impls/user/is-authenticated-impl.dart';
-import 'impls/user/on-user-presence-impl.dart';
-import 'impls/user/on-user-typing-impl.dart';
 import 'impls/user/publish-online-presence-impl.dart';
 import 'impls/user/publish-user-typing-impl.dart';
 import 'impls/user/register-device-token-impl.dart';
 import 'impls/user/set-user-impl.dart';
 import 'impls/user/unblock-user-impl.dart';
 import 'impls/user/update-user-impl.dart';
-
-typedef StateTransformer<T>
-    = StreamTransformer<QMqttMessage, State<Iterable<T>, T>>;
+import 'realtime.dart';
+import 'utils.dart';
 
 class QiscusSDK implements IQiscusSDK {
   static final instance = QiscusSDK();
@@ -71,6 +59,7 @@ class QiscusSDK implements IQiscusSDK {
   late final Logger _logger = Logger(_storage);
   late final Dio _dio = getDio.run(Tuple2(_storage, _logger));
   late final MqttClient _mqtt = getMqttClient(_storage);
+
   MqttClient get mqtt => _mqtt;
   String? get appId => _storage.appId;
   QAccount? get currentUser => _storage.currentUser;
@@ -82,154 +71,60 @@ class QiscusSDK implements IQiscusSDK {
     caseSensitive: false,
   );
 
-  late final _mqttUpdates = mqttUpdates()
-      .run(_mqtt)
-      .asBroadcastStream()
-      .transform(mqttExpandTransformer);
-
-  Stream<QMqttMessage> _getMqttUpdates() {
-    return mqttUpdates()
-        .map((s) => s.asBroadcastStream())
-        .map((s) => s.transform(mqttExpandTransformer))
-        .run(_mqtt);
-  }
-
-  late final StreamTransformer<Unit, bool> _authenticatedTransformer =
-      StreamTransformer.fromHandlers(handleData: (_, sink) async {
-    var isLoggedIn = await waitTillAuthenticatedImpl.run(_deps).run();
-    sink.add(isLoggedIn);
-  });
-
-  Duration _interval() {
-    if (_storage.token == null) return _storage.syncInterval;
-    return _mqtt.connectionStatus?.state == MqttConnectionState.connected
-        ? _storage.syncIntervalWhenConnected
-        : _storage.syncInterval;
-  }
-
-  Stream<Unit> _interval$() async* {
-    var accumulator = 0.milliseconds;
-    var acc$ = Stream.periodic(
-      _storage.accSyncInterval,
-      (_) => _storage.accSyncInterval,
-    );
-
-    await for (var it in acc$) {
-      accumulator += it;
-      var interval = _interval();
-      var shouldSync = accumulator >= interval;
-
-      if (shouldSync) {
-        yield unit;
-        accumulator = 0.milliseconds;
-      }
-    }
-  }
-
-  Stream<QMessage> _synchronize() async* {
-    var stream = _interval$().transform<bool>(_authenticatedTransformer);
-
-    await for (var _ in stream) {
-      if (_storage.isSyncEnabled && isLogin) {
-        try {
-          var lastMessageId =
-              _storage.currentUser?.lastMessageId ?? _storage.lastMessageId;
-          var _data = await synchronizeImpl(lastMessageId.toString())
-              .run(_dio)
-              .runOrThrow();
-
-          if (_data.second.isNotEmpty || _data.first != 0) {
-            _storage.currentUser?.lastMessageId = _data.first;
-            _storage.lastMessageId = _data.first;
-          }
-          for (var message in _data.second) {
-            yield message;
-          }
-        } catch (_) {}
-      }
-    }
-  }
-
-  Stream<QRealtimeEvent> _synchronizeEvent() async* {
-    var stream = _interval$().transform(_authenticatedTransformer);
-    await for (var _ in stream) {
-      if (_storage.isSyncEventEnabled && isLogin) {
-        try {
-          var lastEventId =
-              _storage.currentUser?.lastEventId ?? _storage.lastEventId;
-          var data =
-              await synchronizeEventImpl(lastEventId).run(_dio).runOrThrow();
-
-          if (data.second.isNotEmpty || data.first != 0) {
-            _storage.currentUser?.lastEventId = data.first;
-            _storage.lastEventId = data.first;
-          }
-
-          for (var event in data.second) {
-            yield event;
-          }
-        } catch (_) {}
-      }
-    }
-  }
-
   late final StreamController<QMessage> _messageReceivedSubs$ =
       StreamController();
 
-  Stream<QMessage> _getMessageReceivedStream() => StreamGroup.mergeBroadcast([
-        _messageReceivedSubs$.stream,
-        _synchronize(),
-        _getMqttUpdates().transform(mqttMessageReceivedTransformer),
-      ])
-          .tap((it) => markAsDelivered(
-                roomId: it.chatRoomId,
-                messageId: it.id,
-              ).ignore())
-          .asyncMap(
-              (it) => _triggerHook(QInterceptor.messageBeforeReceived, it))
-          .tap((m) => _setLastMessageId(m.id));
-  Stream<QMessage> _getMessageReadStream() => StreamGroup.mergeBroadcast([
-        _synchronizeEvent().transform(syncMessageReadTransformerImpl),
-        _getMqttUpdates().transform(mqttMessageReadTransformerImpl),
-      ])
-          .map((it) => it.run(_storage.messages))
-          .tap((it) => _storage.messages = it.second.toSet())
-          .map((it) => it.first)
-          .transform(nonNullTransformer());
-  Stream<QMessage> _getMessageDeliveredStream() => StreamGroup.mergeBroadcast([
-        _synchronizeEvent().transform(syncMessageDeliveredTransformerImpl),
-        _getMqttUpdates().transform(mqttMessageDeliveredTransformerImpl),
-      ])
-          .map((it) => it.run(_storage.messages))
-          .tap((it) => _storage.messages = it.second.toSet())
-          .map((it) => it.first)
-          .transform(nonNullTransformer());
-  late Stream<QMessage> _messageReceived$ = _getMessageReceivedStream();
-  late Stream<QMessage> _messageRead$ = _getMessageReadStream();
-  late Stream<QMessage> _messageDelivered$ = _getMessageDeliveredStream();
+  Stream<QMessage> _getMessageReceivedStream() {
+    return getMessageReceivedStream(
+      dio: _dio,
+      mqtt: _mqtt,
+      storage: _storage,
+      markAsDelivered: markAsDelivered,
+      messageReceivedSubs$: _messageReceivedSubs$,
+      triggerHook: _triggerHook,
+    );
+  }
 
-  late final Stream<QMessage> _messageDeleted$ = StreamGroup.mergeBroadcast([
-    _synchronizeEvent().transform(syncMessageDeletedTransformerImpl),
-    _mqttUpdates.transform(mqttMessageDeletedTransformerImpl)
-  ])
-      .map((state) => state.run(_storage.messages))
-      .tap((it) => _storage.messages = it.second.toSet())
-      .map((it) => it.first)
-      .transform(nonNullTransformer());
-  late final Stream<QMessage> _messageUpdated$ = _mqttUpdates
-      .transform(mqttMessageUpdatedTransformerImpl)
-      .map((state) => state.run(_storage.messages))
-      .tap((it) => _storage.messages = it.second.toSet())
-      .map((it) => it.first);
+  Stream<QMessage> _getMessageReadStream() {
+    return getMessageReadStream(
+      dio: _dio,
+      mqtt: _mqtt,
+      storage: _storage,
+    );
+  }
+
+  Stream<QMessage> _getMessageDeliveredStream() => getMessageDeliveredStream(
+        dio: _dio,
+        mqtt: _mqtt,
+        storage: _storage,
+      );
+  Stream<QMessage> _getMessageDeletedStream() => getMessageDeletedStream(
+        mqtt: _mqtt,
+        dio: _dio,
+        storage: _storage,
+      );
+
+  Stream<QMessage> _getMessageUpdatedStream() => getMessageUpdatedStream(
+        mqtt: _mqtt,
+        storage: _storage,
+      );
+
+  late final Stream<QMessage> _messageReceived$ = _getMessageReceivedStream();
+  late final Stream<QMessage> _messageRead$ = _getMessageReadStream();
+  late final Stream<QMessage> _messageDelivered$ = _getMessageDeliveredStream();
+  late final Stream<QMessage> _messageDeleted$ = _getMessageDeletedStream();
+  late final Stream<QMessage> _messageUpdated$ = _getMessageUpdatedStream();
   late final Stream<QUserTyping> _userTyping$ =
-      _mqttUpdates.transform(mqttUserTypingTransformerImpl);
-  late final Stream<QUserPresence> _userPresence$ =
-      _mqttUpdates.transform(mqttUserPresenceTransformerImpl);
+      getUserTypingStream(mqtt: _mqtt);
 
-  late final Stream<int> _roomCleared$ = StreamGroup.mergeBroadcast([
-    _synchronizeEvent().transform(syncRoomClearedTransformerImpl),
-    _mqttUpdates.transform(mqttRoomClearedTransformerImpl),
-  ]);
+  late final Stream<QUserPresence> _userPresence$ =
+      getUserPresenceStream(mqtt: _mqtt);
+
+  late final Stream<int> _roomCleared$ = getRoomClearedStream(
+    dio: _dio,
+    mqtt: _mqtt,
+    storage: _storage,
+  );
 
   Stream<MqttConnectionState?> _connection$() async* {
     yield* Stream.periodic(
@@ -764,8 +659,8 @@ class QiscusSDK implements IQiscusSDK {
           _storage = data.second;
           return data.first;
         })
-        .runOrThrow()
-        .tap((_) => _connectMqtt());
+        .tap((_) => _connectMqtt())
+        .runOrThrow();
   }
 
   Future<QAccount> setUserWithIdentityToken({required String token}) {
@@ -776,8 +671,8 @@ class QiscusSDK implements IQiscusSDK {
           _storage = data.second;
           return data.first;
         })
-        .runOrThrow()
-        .tap((_) => _connectMqtt());
+        .tap((_) => _connectMqtt())
+        .runOrThrow();
   }
 
   Stream<MqttConnectionState> _connectionState() async* {
@@ -807,12 +702,6 @@ class QiscusSDK implements IQiscusSDK {
 
   Future<void> _doOnConnected(void Function() cb) async {
     try {
-      // getMqttConnectionState
-      //     .map((state) => state.tap((s) => print('---> @mqtt.state($s)')))
-      //     .map((s) => s.takeWhile((_) => _mqtt.updates != null))
-      //     .map((s) => s.listen(null))
-      //     .run(_mqtt);
-
       await _connected().timeout(const Duration(seconds: 1)).then((_) {
         if (_mqttIsConnected) {
           cb();
@@ -821,7 +710,6 @@ class QiscusSDK implements IQiscusSDK {
     } catch (_) {}
   }
 
-  Stream? _updates;
   Future<void> _connectMqtt() async {
     if (_storage.isRealtimeEnabled) {
       await _mqtt.connect().ignoreAwaited();
@@ -836,29 +724,7 @@ class QiscusSDK implements IQiscusSDK {
       r2.run(_mqtt).runOrThrow();
       r3.run(_mqtt).runOrThrow();
     });
-
-    _mqtt.onConnected = () {
-      print('---> @mqtt.connected');
-      if (_updates != null) {
-        var isEquals = _updates == _mqtt.updates;
-        print('---> @@ is mqtt.updates equals? $isEquals');
-      }
-      _updates = _mqtt.updates;
-      _messageReceived$ = _getMessageReceivedStream();
-      _messageRead$ = _getMessageReadStream();
-      _messageDelivered$ = _getMessageDeliveredStream();
-    };
-    _mqtt.onDisconnected = () => print('---> @mqtt.disconnected');
-    _mqtt.onSubscribed = (topic) => print('---> @mqtt.subscribed($topic)');
-    _mqtt.onUnsubscribed = (topic) => print('---> @mqtt.unsubscribed($topic)');
-    _mqtt.onSubscribeFail =
-        (topic) => print('---> @mqtt.subscribeFail($topic)');
   }
-
-  Debug get debug => Debug(
-        mqtt: _mqtt,
-        interval: _interval$(),
-      );
 
   void subscribeChatRoom(QChatRoom room) async {
     await _doOnConnected(() {
@@ -1221,30 +1087,9 @@ class QiscusSDK implements IQiscusSDK {
   }
 }
 
-extension _TaskEither<L extends QError, R> on TaskEither<L, R> {
-  Future<R> runOrThrow() async {
-    return run().then((it) => it.toThrow());
-  }
-
-  TaskEither<L, R> tap(void Function(R) onRight) {
-    return map((v) {
-      return v;
-    });
-  }
-}
-
 extension _IOEither<L extends QError, R> on IOEither<L, R> {
   R runOrThrow() {
     return run().toThrow();
-  }
-}
-
-extension _EitherX<L extends QError, R> on Either<L, R> {
-  R toThrow() {
-    return match(
-      (l) => throw l,
-      (r) => r,
-    );
   }
 }
 
