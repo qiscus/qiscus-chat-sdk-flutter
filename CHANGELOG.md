@@ -1,3 +1,7 @@
+# 2.2.3
+
+- fix not firing events if there are multiple listeners
+
 # 2.2.2
 
 - fix not getting any new events after closing and opening realtime connection
