@@ -52,7 +52,7 @@ import 'impls/user/update-user-impl.dart';
 import 'realtime.dart';
 import 'utils.dart';
 
-class QiscusSDK implements IQiscusSDK {
+class QiscusSDK with QRealtimeService implements IQiscusSDK {
   static final instance = QiscusSDK();
   var _storage = Storage();
   Tuple2<MqttClient, Storage> get _deps => Tuple2(_mqtt, _storage);
@@ -60,6 +60,7 @@ class QiscusSDK implements IQiscusSDK {
   late final Dio _dio = getDio.run(Tuple2(_storage, _logger));
   late final MqttClient _mqtt = getMqttClient(_storage);
 
+  Dio get dio => _dio;
   MqttClient get mqtt => _mqtt;
   String? get appId => _storage.appId;
   QAccount? get currentUser => _storage.currentUser;
@@ -74,57 +75,18 @@ class QiscusSDK implements IQiscusSDK {
   late final StreamController<QMessage> _messageReceivedSubs$ =
       StreamController();
 
-  Stream<QMessage> _getMessageReceivedStream() {
-    return getMessageReceivedStream(
-      dio: _dio,
-      mqtt: _mqtt,
-      storage: _storage,
-      markAsDelivered: markAsDelivered,
-      messageReceivedSubs$: _messageReceivedSubs$,
-      triggerHook: _triggerHook,
-    );
-  }
-
-  Stream<QMessage> _getMessageReadStream() {
-    return getMessageReadStream(
-      dio: _dio,
-      mqtt: _mqtt,
-      storage: _storage,
-    );
-  }
-
-  Stream<QMessage> _getMessageDeliveredStream() => getMessageDeliveredStream(
-        dio: _dio,
-        mqtt: _mqtt,
-        storage: _storage,
-      );
-  Stream<QMessage> _getMessageDeletedStream() => getMessageDeletedStream(
-        mqtt: _mqtt,
-        dio: _dio,
-        storage: _storage,
-      );
-
-  Stream<QMessage> _getMessageUpdatedStream() => getMessageUpdatedStream(
-        mqtt: _mqtt,
-        storage: _storage,
-      );
-
-  late final Stream<QMessage> _messageReceived$ = _getMessageReceivedStream();
-  late final Stream<QMessage> _messageRead$ = _getMessageReadStream();
-  late final Stream<QMessage> _messageDelivered$ = _getMessageDeliveredStream();
-  late final Stream<QMessage> _messageDeleted$ = _getMessageDeletedStream();
-  late final Stream<QMessage> _messageUpdated$ = _getMessageUpdatedStream();
-  late final Stream<QUserTyping> _userTyping$ =
-      getUserTypingStream(mqtt: _mqtt);
-
-  late final Stream<QUserPresence> _userPresence$ =
-      getUserPresenceStream(mqtt: _mqtt);
-
-  late final Stream<int> _roomCleared$ = getRoomClearedStream(
-    dio: _dio,
-    mqtt: _mqtt,
-    storage: _storage,
+  late final Stream<QMessage> _messageReceived$ = getMessageReceivedStream(
+    markAsDelivered: markAsDelivered,
+    messageReceivedSubs$: _messageReceivedSubs$,
+    triggerHook: _triggerHook,
   );
+  late final Stream<QMessage> _messageRead$ = getMessageReadStream();
+  late final Stream<QMessage> _messageDelivered$ = getMessageDeliveredStream();
+  late final Stream<QMessage> _messageDeleted$ = getMessageDeletedStream();
+  late final Stream<QMessage> _messageUpdated$ = getMessageUpdatedStream();
+  late final Stream<QUserTyping> _userTyping$ = getUserTypingStream();
+  late final Stream<QUserPresence> _userPresence$ = getUserPresenceStream();
+  late final Stream<int> _roomCleared$ = getRoomClearedStream();
 
   Stream<MqttConnectionState?> _connection$() async* {
     yield* Stream.periodic(

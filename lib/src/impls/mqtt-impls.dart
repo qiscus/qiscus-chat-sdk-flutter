@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:async/async.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
@@ -48,19 +47,29 @@ final getMqttConnectionState = Reader((MqttClient mqtt) {
       (_) => mqtt.connectionStatus?.state).distinct();
 });
 
-Stream<List<MqttReceivedMessage<MqttMessage>>> mqttUpdate1(MqttClient mqtt) {
-  StreamSubscription? subs;
-  var controller = StreamController<List<MqttReceivedMessage<MqttMessage>>>();
+Stream<MqttUpdatesData> mqttUpdate2(MqttClient mqtt) {
+  StreamSubscription<MqttUpdatesData>? subs;
+  var listeners = <MultiStreamController<MqttUpdatesData>>{};
+  var stream = Stream<MqttUpdatesData>.multi((controller) {
+    listeners.add(controller);
+    controller.onCancel = () => listeners.remove(controller);
+  });
+
   mqtt.onConnected = () {
     Timer.periodic(const Duration(milliseconds: 300), (timer) {
-      if (mqtt.updates == null) {
-      } else {
+      if (mqtt.updates != null) {
         timer.cancel();
         subs?.cancel();
         subs = mqtt.updates!.listen(
-          (v) => controller.add(v),
-          onDone: () => controller.close(),
-          onError: (error) => controller.addError(error),
+          (v) {
+            listeners.forEach((l) => l.addSync(v));
+          },
+          onError: (err, stack) {
+            listeners.forEach((l) => l.addErrorSync(err, stack));
+          },
+          onDone: () {
+            listeners.forEach((l) => l.closeSync());
+          },
         );
       }
     });
@@ -69,11 +78,11 @@ Stream<List<MqttReceivedMessage<MqttMessage>>> mqttUpdate1(MqttClient mqtt) {
     subs?.cancel();
   };
 
-  return controller.stream;
+  return stream;
 }
 
 Reader<MqttClient, MqttUpdates> mqttUpdates() {
-  return Reader((mqtt) => mqttUpdate1(mqtt));
+  return Reader((mqtt) => mqttUpdate2(mqtt));
 }
 
 Reader<MqttClient, IO<Stream<QMqttMessage>>> mqttForTopic(

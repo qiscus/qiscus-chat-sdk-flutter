@@ -20,198 +20,171 @@ import 'impls/user/on-user-presence-impl.dart';
 import 'impls/user/on-user-typing-impl.dart';
 import 'utils.dart';
 
-Duration _interval({
-  required Storage storage,
-  required MqttClient mqtt,
-}) {
-  if (storage.token == null) return storage.syncInterval;
-  return mqtt.connectionStatus?.state == MqttConnectionState.connected
-      ? storage.syncIntervalWhenConnected
-      : storage.syncInterval;
-}
+mixin QRealtimeService {
+  MqttClient get mqtt;
+  Storage get storage;
+  Dio get dio;
 
-Stream<void> interval$({
-  required Storage storage,
-  required MqttClient mqtt,
-}) async* {
-  var accumulator = Duration(milliseconds: 0);
-  var acc$ = Stream.periodic(
-    storage.accSyncInterval,
-    (_) => storage.accSyncInterval,
-  );
+  late final Stream<QMqttMessage> _mqttUpdates =
+      mqttUpdates().map((s) => s.transform(mqttExpandTransformer)).run(mqtt);
 
-  await for (var it in acc$) {
-    accumulator += it;
-    var interval = _interval(storage: storage, mqtt: mqtt);
-    var shouldSync = accumulator >= interval;
+  Duration _interval() {
+    if (storage.token == null) return storage.syncInterval;
+    return mqtt.connectionStatus?.state == MqttConnectionState.connected
+        ? storage.syncIntervalWhenConnected
+        : storage.syncInterval;
+  }
 
-    if (shouldSync) {
-      yield null;
-      accumulator = Duration(milliseconds: 0);
+  Stream<void> interval$() async* {
+    var accumulator = Duration(milliseconds: 0);
+    var acc$ = Stream.periodic(
+      storage.accSyncInterval,
+      (_) => storage.accSyncInterval,
+    );
+
+    await for (var it in acc$) {
+      accumulator += it;
+      var interval = _interval();
+      var shouldSync = accumulator >= interval;
+
+      if (shouldSync) {
+        yield null;
+        accumulator = Duration(milliseconds: 0);
+      }
     }
   }
-}
 
-StreamTransformer<void, bool> _authenticatedTransformer(
-  Tuple2<MqttClient, Storage> _deps,
-) =>
-    StreamTransformer.fromHandlers(handleData: (_, sink) async {
+  StreamTransformer<void, bool> _authenticatedTransformer(
+    Tuple2<MqttClient, Storage> _deps,
+  ) {
+    return StreamTransformer.fromHandlers(handleData: (_, sink) async {
       var isLoggedIn = await waitTillAuthenticatedImpl.run(_deps).run();
       sink.add(isLoggedIn);
     });
+  }
 
-Stream<QMessage> synchronize({
-  required Storage storage,
-  required MqttClient mqtt,
-  required Dio dio,
-}) async* {
-  var stream = interval$(
-    mqtt: mqtt,
-    storage: storage,
-  ).transform<bool>(_authenticatedTransformer(Tuple2(mqtt, storage)));
-  var isLogin = storage.isLogin;
+  Stream<QMessage> _synchronize() async* {
+    var stream = interval$()
+        .transform<bool>(_authenticatedTransformer(Tuple2(mqtt, storage)));
+    var isLogin = storage.isLogin;
 
-  await for (var _ in stream) {
-    if (storage.isSyncEnabled && isLogin) {
-      try {
-        var lastMessageId =
-            storage.currentUser?.lastMessageId ?? storage.lastMessageId;
-        var _data = await synchronizeImpl(lastMessageId.toString())
-            .run(dio)
-            .runOrThrow();
+    await for (var _ in stream) {
+      if (storage.isSyncEnabled && isLogin) {
+        try {
+          var lastMessageId =
+              storage.currentUser?.lastMessageId ?? storage.lastMessageId;
+          var _data = await synchronizeImpl(lastMessageId.toString())
+              .run(dio)
+              .runOrThrow();
 
-        if (_data.second.isNotEmpty || _data.first != 0) {
-          storage.setLastMessageId(_data.first);
-        }
-        for (var message in _data.second) {
-          yield message;
-        }
-      } catch (_) {}
+          if (_data.second.isNotEmpty || _data.first != 0) {
+            storage.setLastMessageId(_data.first);
+          }
+          for (var message in _data.second) {
+            yield message;
+          }
+        } catch (_) {}
+      }
     }
   }
-}
 
-Stream<QMqttMessage> getMqttUpdates(MqttClient mqtt) =>
-    mqttUpdates().map((s) => s.transform(mqttExpandTransformer)).run(mqtt);
+  Stream<QRealtimeEvent> _synchronizeEvent() async* {
+    var stream =
+        interval$().transform(_authenticatedTransformer(Tuple2(mqtt, storage)));
 
-Stream<QMessage> getMessageReceivedStream({
-  required MqttClient mqtt,
-  required Dio dio,
-  required Storage storage,
-  required StreamController<QMessage> messageReceivedSubs$,
-  required Future<void> Function({required int roomId, required int messageId})
-      markAsDelivered,
-  required Future<T> Function<T>(QInterceptor, T) triggerHook,
-}) {
-  return StreamGroup.mergeBroadcast([
-    messageReceivedSubs$.stream,
-    synchronize(dio: dio, mqtt: mqtt, storage: storage),
-    getMqttUpdates(mqtt).transform(mqttMessageReceivedTransformer),
-  ])
-      .distinct((m1, m2) => m1.id == m2.id)
-      .tap((it) =>
-          markAsDelivered(roomId: it.chatRoomId, messageId: it.id).ignore())
-      .asyncMap((it) => triggerHook(QInterceptor.messageBeforeReceived, it))
-      .tap((m) => storage.setLastMessageId(m.id));
-}
+    await for (var _ in stream) {
+      if (storage.isSyncEventEnabled && storage.isLogin) {
+        try {
+          var lastEventId =
+              storage.currentUser?.lastEventId ?? storage.lastEventId;
+          var data =
+              await synchronizeEventImpl(lastEventId).run(dio).runOrThrow();
 
-Stream<QMessage> getMessageReadStream({
-  required Dio dio,
-  required MqttClient mqtt,
-  required Storage storage,
-}) =>
-    StreamGroup.mergeBroadcast([
-      synchronizeEvent(dio: dio, storage: storage, mqtt: mqtt)
-          .transform(syncMessageReadTransformerImpl),
-      getMqttUpdates(mqtt).transform(mqttMessageReadTransformerImpl),
+          if (data.second.isNotEmpty || data.first != 0) {
+            storage.currentUser?.lastEventId = data.first;
+            storage.lastEventId = data.first;
+          }
+
+          for (var event in data.second) {
+            yield event;
+          }
+        } catch (_) {}
+      }
+    }
+  }
+
+  Stream<QMessage> getMessageReceivedStream({
+    required StreamController<QMessage> messageReceivedSubs$,
+    required Future<void> Function(
+            {required int roomId, required int messageId})
+        markAsDelivered,
+    required Future<T> Function<T>(QInterceptor, T) triggerHook,
+  }) {
+    return StreamGroup.mergeBroadcast([
+      messageReceivedSubs$.stream,
+      _synchronize(),
+      _mqttUpdates.transform(mqttMessageReceivedTransformer),
+    ])
+        .distinct((m1, m2) => m1.id == m2.id)
+        .tap((it) =>
+            markAsDelivered(roomId: it.chatRoomId, messageId: it.id).ignore())
+        .asyncMap((it) => triggerHook(QInterceptor.messageBeforeReceived, it))
+        .tap((m) => storage.setLastMessageId(m.id));
+  }
+
+  Stream<QMessage> getMessageReadStream() {
+    return StreamGroup.mergeBroadcast([
+      _synchronizeEvent().transform(syncMessageReadTransformerImpl),
+      _mqttUpdates.transform(mqttMessageReadTransformerImpl),
     ])
         .map((it) => it.run(storage.messages))
         .tap((it) => storage.messages = it.second.toSet())
         .map((it) => it.first)
         .transform(nonNullTransformer());
+  }
 
-Stream<QMessage> getMessageDeliveredStream({
-  required MqttClient mqtt,
-  required Dio dio,
-  required Storage storage,
-}) =>
-    StreamGroup.mergeBroadcast([
-      synchronizeEvent(mqtt: mqtt, dio: dio, storage: storage)
-          .transform(syncMessageDeliveredTransformerImpl),
-      getMqttUpdates(mqtt).transform(mqttMessageDeliveredTransformerImpl),
+  Stream<QMessage> getMessageDeliveredStream() {
+    return StreamGroup.mergeBroadcast([
+      _synchronizeEvent().transform(syncMessageDeliveredTransformerImpl),
+      _mqttUpdates.transform(mqttMessageDeliveredTransformerImpl),
     ])
         .map((it) => it.run(storage.messages))
         .tap((it) => storage.messages = it.second.toSet())
         .map((it) => it.first)
         .transform(nonNullTransformer());
-
-Stream<QRealtimeEvent> synchronizeEvent({
-  required MqttClient mqtt,
-  required Storage storage,
-  required Dio dio,
-}) async* {
-  var stream = interval$(mqtt: mqtt, storage: storage)
-      .transform(_authenticatedTransformer(Tuple2(mqtt, storage)));
-
-  await for (var _ in stream) {
-    if (storage.isSyncEventEnabled && storage.isLogin) {
-      try {
-        var lastEventId =
-            storage.currentUser?.lastEventId ?? storage.lastEventId;
-        var data =
-            await synchronizeEventImpl(lastEventId).run(dio).runOrThrow();
-
-        if (data.second.isNotEmpty || data.first != 0) {
-          storage.currentUser?.lastEventId = data.first;
-          storage.lastEventId = data.first;
-        }
-
-        for (var event in data.second) {
-          yield event;
-        }
-      } catch (_) {}
-    }
   }
-}
 
-Stream<QMessage> getMessageDeletedStream({
-  required MqttClient mqtt,
-  required Dio dio,
-  required Storage storage,
-}) =>
-    StreamGroup.mergeBroadcast([
-      synchronizeEvent(mqtt: mqtt, storage: storage, dio: dio)
-          .transform(syncMessageDeletedTransformerImpl),
-      getMqttUpdates(mqtt).transform(mqttMessageDeletedTransformerImpl)
+  Stream<QMessage> getMessageDeletedStream() {
+    return StreamGroup.mergeBroadcast([
+      _synchronizeEvent().transform(syncMessageDeletedTransformerImpl),
+      _mqttUpdates.transform(mqttMessageDeletedTransformerImpl)
     ])
         .map((state) => state.run(storage.messages))
         .tap((it) => storage.messages = it.second.toSet())
         .map((it) => it.first)
         .transform(nonNullTransformer());
+  }
 
-Stream<QMessage> getMessageUpdatedStream({
-  required MqttClient mqtt,
-  required Storage storage,
-}) =>
-    getMqttUpdates(mqtt)
+  Stream<QMessage> getMessageUpdatedStream() {
+    return _mqttUpdates
         .transform(mqttMessageUpdatedTransformerImpl)
         .map((state) => state.run(storage.messages))
         .tap((it) => storage.messages = it.second.toSet())
         .map((it) => it.first);
+  }
 
-Stream<QUserTyping> getUserTypingStream({required MqttClient mqtt}) =>
-    getMqttUpdates(mqtt).transform(mqttUserTypingTransformerImpl);
+  Stream<QUserTyping> getUserTypingStream() {
+    return _mqttUpdates.transform(mqttUserTypingTransformerImpl);
+  }
 
-Stream<QUserPresence> getUserPresenceStream({required MqttClient mqtt}) =>
-    getMqttUpdates(mqtt).transform(mqttUserPresenceTransformerImpl);
+  Stream<QUserPresence> getUserPresenceStream() {
+    return _mqttUpdates.transform(mqttUserPresenceTransformerImpl);
+  }
 
-Stream<int> getRoomClearedStream({
-  required Dio dio,
-  required MqttClient mqtt,
-  required Storage storage,
-}) =>
-    StreamGroup.mergeBroadcast([
-      synchronizeEvent(dio: dio, mqtt: mqtt, storage: storage)
-          .transform(syncRoomClearedTransformerImpl),
-      getMqttUpdates(mqtt).transform(mqttRoomClearedTransformerImpl),
+  Stream<int> getRoomClearedStream() {
+    return StreamGroup.mergeBroadcast([
+      _synchronizeEvent().transform(syncRoomClearedTransformerImpl),
+      _mqttUpdates.transform(mqttRoomClearedTransformerImpl),
     ]);
+  }
+}
