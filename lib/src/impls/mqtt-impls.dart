@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
@@ -167,4 +168,55 @@ Stream<O> _restartSubscription<O>(
   );
 
   return controller.stream;
+}
+
+class QMqttCredentials {
+  final String url;
+  final String username;
+  final String password;
+
+  const QMqttCredentials({
+    required this.url,
+    required this.username,
+    required this.password,
+  });
+}
+
+class GetMqttCredentialRequest extends IApiRequest<Option<QMqttCredentials>> {
+  @override
+  format(Json json) {
+    var node = Option.tryCatch(() {
+      return json['results'] as Map<String, String>;
+    }).flatMap((result) {
+      return Option.Do((_) {
+        var url = _(Option.fromNullable(result['url']));
+        var username = _(Option.fromNullable(result['username']));
+        var password = _(Option.fromNullable(result['password']));
+        return QMqttCredentials(
+          url: url,
+          username: username,
+          password: password,
+        );
+      });
+    });
+
+    return node;
+  }
+
+  @override
+  IRequestMethod get method => IRequestMethod.get;
+
+  @override
+  String get url => '/api/v2/sdk/mqtt_config';
+}
+
+Reader<Dio, TaskEither<QError, Option<QMqttCredentials>>> getMqttNode() {
+  return Reader((dio) {
+    return TaskEither.tryCatch(() async {
+      var req = GetMqttCredentialRequest();
+      return req(dio);
+    }, (_, __) {
+      return QError('Failed getting a new mqtt url');
+    });
+  });
 }
