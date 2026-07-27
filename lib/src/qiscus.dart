@@ -793,15 +793,24 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   }
 
   void synchronize({String? lastMessageId}) async {
-    await synchronizeImpl(lastMessageId).run(_dio).map((r) {
-      _storage.lastMessageId = r.first;
+    var result = await synchronizeImpl(lastMessageId).run(_dio).map((r) {
+      // Guard `r.first != 0`: tanpa ini sebuah respons kosong menyetel
+      // `lastMessageId` kembali ke 0, sehingga sinkronisasi berikutnya
+      // menarik ulang riwayat dari awal.
+      if (r.first != 0) _storage.lastMessageId = r.first;
       r.second.forEach((m) => _messageReceivedSubs$.sink.add(m));
       return r;
     }).run();
+
+    result.match(realtimeErrors$.add, (_) {});
   }
 
   void synchronizeEvent({String? lastEventId}) async {
-    await synchronizeEventImpl(int.tryParse(lastEventId ?? '')).run(_dio).run();
+    var result = await synchronizeEventImpl(int.tryParse(lastEventId ?? ''))
+        .run(_dio)
+        .run();
+
+    result.match(realtimeErrors$.add, (_) {});
   }
 
   Future<QUser> unblockUser({required String userId}) {

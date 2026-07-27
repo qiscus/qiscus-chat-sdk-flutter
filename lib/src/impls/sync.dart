@@ -5,14 +5,22 @@ import 'package:qiscus_chat_sdk/src/domain/message/message-model.dart';
 
 import 'message/message-from-json-impl.dart';
 
+// Kedua impl di bawah dulu membungkus request-nya dengan
+// `.catchError(() => Tuple2(0, []))`, sehingga kegagalan HTTP jadi tidak bisa
+// dibedakan dari "tidak ada pesan baru". Dua akibatnya:
+//
+//   1. Penanganan error di `_synchronize()` (lib/src/realtime.dart) jadi dead
+//      code - jalur cadangan bisa gagal terus tanpa jejak apa pun.
+//   2. `QiscusSDK.synchronize()` memakai `r.first` tanpa guard, jadi satu
+//      request gagal menyetel `lastMessageId` kembali ke 0.
+//
+// Sekarang kegagalan dibiarkan naik sebagai Left/exception; pemanggilnya yang
+// memutuskan cara pulih.
+
 RTE<Tuple2<int, Iterable<QMessage>>> synchronizeImpl([String? lastMessageId]) {
   var req = SynchronizeRequest(lastMessageId: lastMessageId);
   return Reader((dio) {
-    return tryCatch(() {
-      return req
-          .call(dio)
-          .catchError((Object e) => const Tuple2(0, <QMessage>[]));
-    });
+    return tryCatch(() => req.call(dio));
   });
 }
 
@@ -20,11 +28,7 @@ RTE<Tuple2<int, Iterable<QRealtimeEvent>>> synchronizeEventImpl(
     [int? lastEventId]) {
   var req = SynchronizeEventRequest(lastEventId: lastEventId);
   return Reader((dio) {
-    return tryCatch(() {
-      return req
-          .call(dio)
-          .catchError((Object _) async => Tuple2(0, <QRealtimeEvent>[]));
-    });
+    return tryCatch(() => req.call(dio));
   });
 }
 
