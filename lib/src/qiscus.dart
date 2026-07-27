@@ -568,9 +568,24 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
     _storage.customHeaders = headers;
   }
 
-  /// Set [period] (in milliseconds) in which sync and sync_event run
+  /// Set [period] (in milliseconds) in which sync and sync_event run while the
+  /// realtime connection is DOWN.
+  ///
+  /// While MQTT reports itself as connected the SDK uses
+  /// [setSyncIntervalWhenConnected] instead, so lowering this value alone has
+  /// no effect on a connection that is up but not delivering.
   void setSyncInterval(double period) {
     _storage.syncInterval = period.ceil().milliseconds;
+  }
+
+  /// Set [period] (in milliseconds) in which sync and sync_event run while the
+  /// realtime connection reports itself as connected. Defaults to 30s.
+  ///
+  /// Lower this if you want a tighter safety net against a connection that is
+  /// established but silently not delivering; the cost is one extra `/sync`
+  /// request per period per user.
+  void setSyncIntervalWhenConnected(double period) {
+    _storage.syncIntervalWhenConnected = period.ceil().milliseconds;
   }
 
   Future<void> setup(String appId) {
