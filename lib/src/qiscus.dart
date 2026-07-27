@@ -419,6 +419,22 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
     return _mqttDisconnected;
   }
 
+  /// Kegagalan pada lapisan realtime yang sebelumnya ditelan diam-diam:
+  /// sinkronisasi REST yang gagal, dan aksi realtime yang di-skip karena
+  /// koneksi MQTT tidak kunjung siap.
+  ///
+  /// Stream ini bersifat diagnostik - SDK tetap mencoba pulih sendiri. Aksi
+  /// yang wajar dari sisi aplikasi: catat ke logging, dan bila error terus
+  /// berulang, panggil [synchronize] secara manual atau tampilkan indikator
+  /// koneksi ke user.
+  ///
+  /// ```dart
+  /// qiscus.onRealtimeError().listen((e) => logger.warn(e.message));
+  /// ```
+  Stream<QError> onRealtimeError() {
+    return realtimeErrors$.stream;
+  }
+
   Stream<QMessage> onMessageDeleted() {
     return _messageDeleted$;
   }
@@ -662,14 +678,38 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   bool get _mqttIsConnected =>
       _mqtt.connectionStatus?.state == MqttConnectionState.connected;
 
+  /// Batas tunggu koneksi MQTT siap sebelum sebuah aksi realtime dilepas.
+  ///
+  /// Sebelumnya 1 detik. Nilai itu terlalu ketat untuk jaringan seluler:
+  /// handshake TLS ke broker sering lebih dari 1 detik, dan begitu lewat
+  /// batas, `cb` di-skip DIAM-DIAM tanpa retry. Karena `_connectMqtt()`
+  /// membungkus SELURUH subscribe topik user (`messageNew`, `messageUpdated`,
+  /// `notification`) di dalam `_doOnConnected`, timeout ini bisa membuat
+  /// aplikasi tidak pernah subscribe apa pun sejak login - bukan hanya
+  /// bermasalah setelah reconnect.
+  static const _connectedTimeout = Duration(seconds: 10);
+
   Future<void> _doOnConnected(void Function() cb) async {
     try {
-      await _connected().timeout(const Duration(seconds: 1)).then((_) {
+      await _connected().timeout(_connectedTimeout).then((_) {
         if (_mqttIsConnected) {
           cb();
         }
       }).ignoreAwaited();
-    } catch (_) {}
+    } on TimeoutException catch (error, stackTrace) {
+      realtimeErrors$.add(
+        QError(
+          'Timed out after ${_connectedTimeout.inSeconds}s waiting for the'
+          ' realtime connection; the pending realtime action was skipped.'
+          ' ($error)',
+          stackTrace,
+        ),
+      );
+    } catch (error, stackTrace) {
+      realtimeErrors$.add(
+        QError('Realtime action failed: $error', stackTrace),
+      );
+    }
   }
 
   Future<void> _connectMqtt() async {

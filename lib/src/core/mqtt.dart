@@ -18,9 +18,27 @@ MqttClient getMqttClient(Storage storage) {
         ..websocketProtocols = ['mqtt']
         ..secure = true
         ..autoReconnect = true
+        // Tanpa keep alive, `mqtt_client` tidak pernah mengirim PINGREQ
+        // ("Keep alive is defaulted to off" - dokumentasi MqttClient.keepAlivePeriod).
+        // Akibatnya client tidak bisa mendeteksi broker yang berhenti merespons
+        // selama socket TCP-nya masih ESTABLISHED (zombie connection).
+        ..keepAlivePeriod = defaultKeepAlivePeriod
+        // Keep alive saja tidak cukup: tanpa ini, PINGREQ yang tidak dibalas
+        // dibiarkan menggantung selamanya. Dengan ini client memutus paksa
+        // dirinya sendiri lalu auto reconnect berjalan.
+        ..disconnectOnNoResponsePeriod = defaultNoPingResponsePeriod
+        // Default-nya memang true sejak v8.0.0, di-set eksplisit supaya
+        // perilaku re-subscribe tidak berubah diam-diam saat upgrade.
+        ..resubscribeOnAutoReconnect = true
       //
       ;
 }
+
+/// Interval PINGREQ ke broker, dalam detik.
+const defaultKeepAlivePeriod = 60;
+
+/// Batas tunggu PINGRESP sebelum client memutus dirinya sendiri, dalam detik.
+const defaultNoPingResponsePeriod = 30;
 
 String getClientId({String? appId, String? userId, int? millis}) {
   var clientId = 'flutter';
@@ -42,6 +60,10 @@ MqttConnectMessage getConnectionMessage(String clientId, String userId) {
         ..withWillTopic('u/$userId/s')
         ..withWillMessage('0')
         ..withWillRetain()
+        // Nilai keep alive juga harus ikut di CONNECT packet, kalau tidak
+        // broker memakai 0 (nonaktif) dan LWT `u/$userId/s` tidak akan pernah
+        // ditembakkan saat client mati diam-diam - presence user nyangkut online.
+        ..keepAliveFor(defaultKeepAlivePeriod)
       //
       ;
 }

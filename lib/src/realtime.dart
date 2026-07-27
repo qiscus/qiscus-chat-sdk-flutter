@@ -28,6 +28,14 @@ mixin QRealtimeService {
   late final Stream<QMqttMessage> _mqttUpdates =
       mqttUpdates().map((s) => s.transform(mqttExpandTransformer)).run(mqtt);
 
+  /// Kegagalan pada jalur sinkronisasi REST (jalur cadangan saat MQTT mati).
+  ///
+  /// Sebelumnya semua error di sini ditelan `catch (_) {}`, sehingga aplikasi
+  /// tidak punya cara apa pun untuk tahu bahwa jalur cadangannya sendiri
+  /// sedang gagal.
+  final StreamController<QError> realtimeErrors$ =
+      StreamController<QError>.broadcast();
+
   Duration _interval() {
     if (storage.token == null) return storage.syncInterval;
     return mqtt.connectionStatus?.state == MqttConnectionState.connected
@@ -66,10 +74,19 @@ mixin QRealtimeService {
   Stream<QMessage> _synchronize() async* {
     var stream = interval$()
         .transform<bool>(_authenticatedTransformer(Tuple2(mqtt, storage)));
-    var isLogin = storage.isLogin;
 
     await for (var _ in stream) {
-      if (storage.isSyncEnabled && isLogin) {
+      // `storage.isLogin` WAJIB dibaca di dalam loop.
+      //
+      // Sebelumnya nilainya dibaca sekali di luar loop dan disimpan ke
+      // variabel lokal. Stream ini dibuat saat aplikasi pertama kali
+      // memasang listener `onMessageReceived()` - yang pada mayoritas
+      // aplikasi terjadi SEBELUM `setUser()` selesai. Akibatnya nilainya
+      // terkunci `false` selamanya dan sinkronisasi REST tidak pernah jalan
+      // seumur hidup proses, menghapus satu-satunya jaring pengaman saat
+      // MQTT bermasalah. Bandingkan `_synchronizeEvent()` di bawah, yang
+      // sejak awal sudah membacanya di dalam loop.
+      if (storage.isSyncEnabled && storage.isLogin) {
         try {
           var lastMessageId =
               storage.currentUser?.lastMessageId ?? storage.lastMessageId;
@@ -83,7 +100,11 @@ mixin QRealtimeService {
           for (var message in _data.second) {
             yield message;
           }
-        } catch (_) {}
+        } catch (error, stackTrace) {
+          realtimeErrors$.add(
+            QError('Message synchronization failed: $error', stackTrace),
+          );
+        }
       }
     }
   }
@@ -108,7 +129,11 @@ mixin QRealtimeService {
           for (var event in data.second) {
             yield event;
           }
-        } catch (_) {}
+        } catch (error, stackTrace) {
+          realtimeErrors$.add(
+            QError('Event synchronization failed: $error', stackTrace),
+          );
+        }
       }
     }
   }
