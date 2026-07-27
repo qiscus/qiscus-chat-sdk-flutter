@@ -47,7 +47,9 @@ void main() {
     expect(s.brokerUrl, 'realtime-bdg.qiscus.com');
     expect(s.isRealtimeEnabled, false);
     expect(s.isRealtimeCheckEnabled, false);
-    expect(s.configExtras, null);
+    // `'extras': ''` tidak bisa di-decode jadi Json, jadi hydrate melewatinya
+    // dan nilai default `Storage.configExtras` yang bertahan - bukan null.
+    expect(s.configExtras, <String, Object?>{});
     expect(s.syncInterval, const Duration(seconds: 5));
     expect(s.syncIntervalWhenConnected, const Duration(seconds: 30));
 

@@ -12,7 +12,7 @@ part of 'room-with-messages.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$QChatRoom {
@@ -28,7 +28,9 @@ mixin _$QChatRoom {
   QRoomType get type => throw _privateConstructorUsedError;
   List<QMessage> get messages => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of QChatRoom
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $QChatRoomCopyWith<QChatRoom> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -62,6 +64,8 @@ class _$QChatRoomCopyWithImpl<$Res, $Val extends QChatRoom>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of QChatRoom
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -127,10 +131,11 @@ class _$QChatRoomCopyWithImpl<$Res, $Val extends QChatRoom>
 }
 
 /// @nodoc
-abstract class _$$_QChatRoomCopyWith<$Res> implements $QChatRoomCopyWith<$Res> {
-  factory _$$_QChatRoomCopyWith(
-          _$_QChatRoom value, $Res Function(_$_QChatRoom) then) =
-      __$$_QChatRoomCopyWithImpl<$Res>;
+abstract class _$$QChatRoomImplCopyWith<$Res>
+    implements $QChatRoomCopyWith<$Res> {
+  factory _$$QChatRoomImplCopyWith(
+          _$QChatRoomImpl value, $Res Function(_$QChatRoomImpl) then) =
+      __$$QChatRoomImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -148,13 +153,15 @@ abstract class _$$_QChatRoomCopyWith<$Res> implements $QChatRoomCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_QChatRoomCopyWithImpl<$Res>
-    extends _$QChatRoomCopyWithImpl<$Res, _$_QChatRoom>
-    implements _$$_QChatRoomCopyWith<$Res> {
-  __$$_QChatRoomCopyWithImpl(
-      _$_QChatRoom _value, $Res Function(_$_QChatRoom) _then)
+class __$$QChatRoomImplCopyWithImpl<$Res>
+    extends _$QChatRoomCopyWithImpl<$Res, _$QChatRoomImpl>
+    implements _$$QChatRoomImplCopyWith<$Res> {
+  __$$QChatRoomImplCopyWithImpl(
+      _$QChatRoomImpl _value, $Res Function(_$QChatRoomImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of QChatRoom
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -170,7 +177,7 @@ class __$$_QChatRoomCopyWithImpl<$Res>
     Object? type = null,
     Object? messages = null,
   }) {
-    return _then(_$_QChatRoom(
+    return _then(_$QChatRoomImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -221,8 +228,8 @@ class __$$_QChatRoomCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_QChatRoom implements _QChatRoom {
-  const _$_QChatRoom(
+class _$QChatRoomImpl implements _QChatRoom {
+  const _$QChatRoomImpl(
       {required this.id,
       required this.uniqueId,
       required this.name,
@@ -291,10 +298,10 @@ class _$_QChatRoom implements _QChatRoom {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_QChatRoom &&
+            other is _$QChatRoomImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.uniqueId, uniqueId) ||
                 other.uniqueId == uniqueId) &&
@@ -329,11 +336,13 @@ class _$_QChatRoom implements _QChatRoom {
       type,
       const DeepCollectionEquality().hash(_messages));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of QChatRoom
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$_QChatRoomCopyWith<_$_QChatRoom> get copyWith =>
-      __$$_QChatRoomCopyWithImpl<_$_QChatRoom>(this, _$identity);
+  _$$QChatRoomImplCopyWith<_$QChatRoomImpl> get copyWith =>
+      __$$QChatRoomImplCopyWithImpl<_$QChatRoomImpl>(this, _$identity);
 }
 
 abstract class _QChatRoom implements QChatRoom {
@@ -348,7 +357,7 @@ abstract class _QChatRoom implements QChatRoom {
       final int totalParticipants,
       final List<QParticipant> participants,
       final QRoomType type,
-      final List<QMessage> messages}) = _$_QChatRoom;
+      final List<QMessage> messages}) = _$QChatRoomImpl;
 
   @override
   int get id;
@@ -372,8 +381,11 @@ abstract class _QChatRoom implements QChatRoom {
   QRoomType get type;
   @override
   List<QMessage> get messages;
+
+  /// Create a copy of QChatRoom
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
-  _$$_QChatRoomCopyWith<_$_QChatRoom> get copyWith =>
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$QChatRoomImplCopyWith<_$QChatRoomImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
