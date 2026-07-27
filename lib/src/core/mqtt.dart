@@ -60,11 +60,11 @@ MqttConnectMessage getConnectionMessage(String clientId, String userId) {
         ..withWillTopic('u/$userId/s')
         ..withWillMessage('0')
         ..withWillRetain()
-        // Nilai keep alive juga harus ikut di CONNECT packet, kalau tidak
-        // broker memakai 0 (nonaktif) dan LWT `u/$userId/s` tidak akan pernah
-        // ditembakkan saat client mati diam-diam - presence user nyangkut online.
-        ..keepAliveFor(defaultKeepAlivePeriod)
-      //
+      // Keep alive TIDAK perlu di-set di sini. `MqttClient.connect()` selalu
+      // menimpa `connectMessage.variableHeader.keepAlive` dengan
+      // `client.keepAlivePeriod`, bahkan untuk connection message yang kita
+      // pasang sendiri (mqtt_client 9.8.1, mqtt_client.dart:320). Cukup set
+      // `keepAlivePeriod` di `getMqttClient()`.
       ;
 }
 
