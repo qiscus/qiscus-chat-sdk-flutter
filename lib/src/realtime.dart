@@ -28,13 +28,12 @@ mixin QRealtimeService {
   late final Stream<QMqttMessage> _mqttUpdates =
       mqttUpdates().map((s) => s.transform(mqttExpandTransformer)).run(mqtt);
 
-  /// BUKAN API publik - jangan dipakai dari luar package ini, dan jangan
-  /// dokumentasikan sebagai fitur. Belum ada accessor publik yang membacanya.
+  /// Kegagalan pada jalur sinkronisasi REST - jalur cadangan yang dipakai saat
+  /// koneksi realtime tidak mengirimkan apa pun.
   ///
-  /// Sebelumnya kegagalan di jalur sinkronisasi REST ditelan `catch (_) {}`,
-  /// yang membuat jalur cadangan bisa gagal terus tanpa jejak. Sink ini
-  /// menampungnya supaya error punya tujuan yang jelas alih-alih hilang, dan
-  /// supaya bisa diuji.
+  /// Sebelumnya semua error di sini ditelan `catch (_) {}`, sehingga aplikasi
+  /// tidak punya cara apa pun untuk tahu bahwa jalur cadangannya sendiri
+  /// sedang gagal.
   final StreamController<QError> realtimeErrors$ =
       StreamController<QError>.broadcast();
 

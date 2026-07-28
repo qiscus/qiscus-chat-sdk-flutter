@@ -145,6 +145,13 @@ abstract class IQiscusSDK {
 
   Stream<void> onDisconnected();
 
+  /// Realtime-layer failures that were previously swallowed: failed REST syncs,
+  /// and realtime actions skipped because the realtime connection never became
+  /// ready.
+  ///
+  /// Diagnostic only - the SDK still recovers on its own.
+  Stream<QError> onRealtimeError();
+
   Stream<QMessage> onMessageDeleted();
 
   Stream<QMessage> onMessageDelivered();
@@ -204,6 +211,10 @@ abstract class IQiscusSDK {
   /// Set [period] (in milliseconds) in which sync and sync_event run while the
   /// realtime connection is down.
   void setSyncInterval(double period);
+
+  /// Set [period] (in milliseconds) in which sync and sync_event run while the
+  /// realtime connection reports itself as connected. Defaults to 30s.
+  void setSyncIntervalWhenConnected(double period);
 
   Future<void> setup(String appId);
 
