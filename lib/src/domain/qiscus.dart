@@ -146,7 +146,8 @@ abstract class IQiscusSDK {
   Stream<void> onDisconnected();
 
   /// Realtime-layer failures that were previously swallowed: failed REST syncs,
-  /// and realtime actions skipped because MQTT never became ready.
+  /// and realtime actions skipped because the realtime connection never became
+  /// ready.
   ///
   /// Diagnostic only - the SDK still recovers on its own.
   Stream<QError> onRealtimeError();

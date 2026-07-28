@@ -1,15 +1,20 @@
 # 2.2.4
 
 - fix new messages not arriving in realtime while the user stays in a room.
-  Four separate defects had to be fixed for this: the REST sync fallback never
-  ran because `isLogin` was latched before login; the MQTT listener was never
-  reattached after an auto reconnect; the app-facing message stream was closed
-  permanently when the internal MQTT stream completed; and the 1s connect
-  timeout silently skipped every topic subscribe on slow mobile networks
+  Two defects combined to cause it: the 1s connect timeout silently skipped
+  every channel registration when the TLS handshake was slower than that, with
+  no retry, so nothing was ever delivered over the realtime connection; and the
+  REST sync fallback never ran because `isLogin` was read once before login and
+  latched to `false` for the process lifetime. With both paths dead, messages
+  only showed up on room re-entry
+- harden the realtime listener so it is reattached on every reconnect path, and
+  no longer close the app-facing message stream when the internal stream
+  completes
 - fix `synchronize()` resetting `lastMessageId` to 0 when the request failed,
   which made the next sync refetch history from the start
-- enable MQTT keepalive so a broker that stopped responding is detected instead
-  of leaving the client on an established but dead socket
+- enable keepalive on the realtime connection so a server that stopped
+  responding is detected instead of leaving the client on an established but
+  dead socket
 - add `onRealtimeError()` to surface realtime failures that were previously
   swallowed
 - add `setSyncIntervalWhenConnected()`; `setSyncInterval()` only affects the

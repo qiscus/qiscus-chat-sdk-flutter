@@ -18,26 +18,27 @@ MqttClient getMqttClient(Storage storage) {
         ..websocketProtocols = ['mqtt']
         ..secure = true
         ..autoReconnect = true
-        // Tanpa keep alive, `mqtt_client` tidak pernah mengirim PINGREQ
-        // ("Keep alive is defaulted to off" - dokumentasi MqttClient.keepAlivePeriod).
-        // Akibatnya client tidak bisa mendeteksi broker yang berhenti merespons
-        // selama socket TCP-nya masih ESTABLISHED (zombie connection).
+        // Keep alive default-nya mati. Tanpa ini client tidak pernah mengirim
+        // ping berkala, sehingga realtime server yang berhenti merespons tidak
+        // bisa dibedakan dari yang sehat selama socket TCP-nya masih
+        // ESTABLISHED.
         ..keepAlivePeriod = defaultKeepAlivePeriod
-        // Keep alive saja tidak cukup: tanpa ini, PINGREQ yang tidak dibalas
+        // Keep alive saja tidak cukup: tanpa ini, ping yang tidak dibalas
         // dibiarkan menggantung selamanya. Dengan ini client memutus paksa
         // dirinya sendiri lalu auto reconnect berjalan.
         ..disconnectOnNoResponsePeriod = defaultNoPingResponsePeriod
-        // Default-nya memang true sejak v8.0.0, di-set eksplisit supaya
-        // perilaku re-subscribe tidak berubah diam-diam saat upgrade.
+        // Sudah default, di-set eksplisit supaya perilaku re-subscribe tidak
+        // berubah diam-diam saat dependensi di-upgrade.
         ..resubscribeOnAutoReconnect = true
       //
       ;
 }
 
-/// Interval PINGREQ ke broker, dalam detik.
+/// Interval ping keep alive ke realtime server, dalam detik.
 const defaultKeepAlivePeriod = 60;
 
-/// Batas tunggu PINGRESP sebelum client memutus dirinya sendiri, dalam detik.
+/// Batas tunggu balasan ping sebelum client memutus dirinya sendiri, dalam
+/// detik.
 const defaultNoPingResponsePeriod = 30;
 
 String getClientId({String? appId, String? userId, int? millis}) {
@@ -60,11 +61,10 @@ MqttConnectMessage getConnectionMessage(String clientId, String userId) {
         ..withWillTopic('u/$userId/s')
         ..withWillMessage('0')
         ..withWillRetain()
-      // Keep alive TIDAK perlu di-set di sini. `MqttClient.connect()` selalu
-      // menimpa `connectMessage.variableHeader.keepAlive` dengan
-      // `client.keepAlivePeriod`, bahkan untuk connection message yang kita
-      // pasang sendiri (mqtt_client 9.8.1, mqtt_client.dart:320). Cukup set
-      // `keepAlivePeriod` di `getMqttClient()`.
+      // Keep alive TIDAK perlu di-set di sini. Saat connect, nilai keep alive
+      // pada connection message selalu ditimpa dengan `keepAlivePeriod` milik
+      // client - termasuk untuk connection message yang kita pasang sendiri.
+      // Cukup set `keepAlivePeriod` di `getMqttClient()`.
       ;
 }
 

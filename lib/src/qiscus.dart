@@ -421,7 +421,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
 
   /// Kegagalan pada lapisan realtime yang sebelumnya ditelan diam-diam:
   /// sinkronisasi REST yang gagal, dan aksi realtime yang di-skip karena
-  /// koneksi MQTT tidak kunjung siap.
+  /// koneksi ke realtime server tidak kunjung siap.
   ///
   /// Stream ini bersifat diagnostik - SDK tetap mencoba pulih sendiri. Aksi
   /// yang wajar dari sisi aplikasi: catat ke logging, dan bila error terus
@@ -571,7 +571,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   /// Set [period] (in milliseconds) in which sync and sync_event run while the
   /// realtime connection is DOWN.
   ///
-  /// While MQTT reports itself as connected the SDK uses
+  /// While the realtime connection reports itself as connected the SDK uses
   /// [setSyncIntervalWhenConnected] instead, so lowering this value alone has
   /// no effect on a connection that is up but not delivering.
   void setSyncInterval(double period) {
@@ -693,15 +693,15 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   bool get _mqttIsConnected =>
       _mqtt.connectionStatus?.state == MqttConnectionState.connected;
 
-  /// Batas tunggu koneksi MQTT siap sebelum sebuah aksi realtime dilepas.
+  /// Batas tunggu koneksi realtime siap sebelum sebuah aksi realtime dilepas.
   ///
   /// Sebelumnya 1 detik. Nilai itu terlalu ketat untuk jaringan seluler:
-  /// handshake TLS ke broker sering lebih dari 1 detik, dan begitu lewat
-  /// batas, `cb` di-skip DIAM-DIAM tanpa retry. Karena `_connectMqtt()`
-  /// membungkus SELURUH subscribe topik user (`messageNew`, `messageUpdated`,
-  /// `notification`) di dalam `_doOnConnected`, timeout ini bisa membuat
-  /// aplikasi tidak pernah subscribe apa pun sejak login - bukan hanya
-  /// bermasalah setelah reconnect.
+  /// handshake TLS ke realtime server sering lebih dari 1 detik, dan begitu
+  /// lewat batas, `cb` di-skip DIAM-DIAM tanpa retry. Karena `_connectMqtt()`
+  /// membungkus SELURUH pendaftaran channel milik user di dalam
+  /// `_doOnConnected`, timeout ini bisa membuat aplikasi tidak pernah
+  /// mendaftar ke channel apa pun sejak login - bukan hanya bermasalah setelah
+  /// reconnect.
   static const _connectedTimeout = Duration(seconds: 10);
 
   Future<void> _doOnConnected(void Function() cb) async {

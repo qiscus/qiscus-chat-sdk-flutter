@@ -31,15 +31,15 @@ void main() {
     expect(client.clientIdentifier, startsWith('flutter_appId_userId'));
   });
 
-  test('mqtt client detects a broker that stopped responding', () {
+  test('mqtt client detects a realtime server that stopped responding', () {
     var client = getMqttClient(Storage());
 
-    // Tanpa keep alive, client tidak pernah mengirim PINGREQ dan tidak bisa
-    // membedakan broker yang diam dari broker yang sehat selama socket TCP-nya
-    // masih ESTABLISHED - inilah zombie connection.
+    // Tanpa keep alive, client tidak pernah mengirim ping berkala dan tidak
+    // bisa membedakan realtime server yang diam dari yang sehat selama socket
+    // TCP-nya masih ESTABLISHED.
     expect(client.keepAlivePeriod, defaultKeepAlivePeriod);
-    // Keep alive saja tidak cukup: tanpa ini, PINGREQ yang tak dibalas
-    // menggantung selamanya alih-alih memicu auto reconnect.
+    // Keep alive saja tidak cukup: tanpa ini, ping yang tak dibalas menggantung
+    // selamanya alih-alih memicu auto reconnect.
     expect(client.disconnectOnNoResponsePeriod, defaultNoPingResponsePeriod);
     expect(client.autoReconnect, isTrue);
     expect(client.resubscribeOnAutoReconnect, isTrue);

@@ -28,7 +28,8 @@ mixin QRealtimeService {
   late final Stream<QMqttMessage> _mqttUpdates =
       mqttUpdates().map((s) => s.transform(mqttExpandTransformer)).run(mqtt);
 
-  /// Kegagalan pada jalur sinkronisasi REST (jalur cadangan saat MQTT mati).
+  /// Kegagalan pada jalur sinkronisasi REST - jalur cadangan yang dipakai saat
+  /// koneksi realtime tidak mengirimkan apa pun.
   ///
   /// Sebelumnya semua error di sini ditelan `catch (_) {}`, sehingga aplikasi
   /// tidak punya cara apa pun untuk tahu bahwa jalur cadangannya sendiri
@@ -84,8 +85,8 @@ mixin QRealtimeService {
       // aplikasi terjadi SEBELUM `setUser()` selesai. Akibatnya nilainya
       // terkunci `false` selamanya dan sinkronisasi REST tidak pernah jalan
       // seumur hidup proses, menghapus satu-satunya jaring pengaman saat
-      // MQTT bermasalah. Bandingkan `_synchronizeEvent()` di bawah, yang
-      // sejak awal sudah membacanya di dalam loop.
+      // koneksi realtime bermasalah. Bandingkan `_synchronizeEvent()` di
+      // bawah, yang sejak awal sudah membacanya di dalam loop.
       if (storage.isSyncEnabled && storage.isLogin) {
         try {
           var lastMessageId =
