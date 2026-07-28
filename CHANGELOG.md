@@ -15,10 +15,6 @@
 - enable keepalive on the realtime connection so a server that stopped
   responding is detected instead of leaving the client on an established but
   dead socket
-- add `onRealtimeError()` to surface realtime failures that were previously
-  swallowed
-- add `setSyncIntervalWhenConnected()`; `setSyncInterval()` only affects the
-  interval used while the realtime connection is down
 
 # 2.2.3
 
