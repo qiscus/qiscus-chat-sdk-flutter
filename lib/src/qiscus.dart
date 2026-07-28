@@ -697,7 +697,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   ///
   /// Sebelumnya 1 detik. Nilai itu terlalu ketat untuk jaringan seluler:
   /// handshake TLS ke realtime server sering lebih dari 1 detik, dan begitu
-  /// lewat batas, `cb` di-skip DIAM-DIAM tanpa retry. Karena `_connectMqtt()`
+  /// lewat batas, `cb` di-skip DIAM-DIAM tanpa retry. Karena rutin connect-nya
   /// membungkus SELURUH pendaftaran channel milik user di dalam
   /// `_doOnConnected`, timeout ini bisa membuat aplikasi tidak pernah
   /// mendaftar ke channel apa pun sejak login - bukan hanya bermasalah setelah
@@ -746,7 +746,6 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   void subscribeChatRoom(QChatRoom room) async {
     await _doOnConnected(() {
       var roomId = room.id.toString();
-      // var state = _mqtt.connectionStatus?.state.toString();
       var subs1 =
           mqttSubscribeTopic(TopicBuilder.messageRead(roomId)).run(_mqtt);
       var subs2 =

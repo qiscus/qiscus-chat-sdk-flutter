@@ -64,7 +64,7 @@ MqttConnectMessage getConnectionMessage(String clientId, String userId) {
       // Keep alive TIDAK perlu di-set di sini. Saat connect, nilai keep alive
       // pada connection message selalu ditimpa dengan `keepAlivePeriod` milik
       // client - termasuk untuk connection message yang kita pasang sendiri.
-      // Cukup set `keepAlivePeriod` di `getMqttClient()`.
+      // Cukup set `keepAlivePeriod` pada client-nya saja.
       ;
 }
 

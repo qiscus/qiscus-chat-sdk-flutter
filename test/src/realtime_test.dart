@@ -21,7 +21,7 @@ class RealtimeHost with QRealtimeService {
   final Dio dio;
 }
 
-/// `mqtt.updates` selalu null, jadi jalur MQTT tidak pernah menghasilkan apa
+/// `updates` selalu null, jadi jalur realtime tidak pernah menghasilkan apa
 /// pun - test ini khusus menguji jalur cadangan sinkronisasi REST.
 class DeadMqttClient extends MqttClient {
   DeadMqttClient() : super('localhost', 'test-client');
