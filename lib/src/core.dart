@@ -13,6 +13,7 @@ import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:qiscus_chat_sdk/src/domain/message/message-model.dart';
 import 'package:qiscus_chat_sdk/src/domain/room/room-model.dart';
 import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
+import 'package:qiscus_chat_sdk/src/version.dart';
 
 part 'core/api_request.dart';
 part 'core/constants.dart';

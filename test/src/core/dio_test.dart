@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
@@ -56,6 +58,25 @@ void main() {
       expect(o.path, contains('val3[]=1&val3[]=2&val3[]=3'));
     });
     authInterceptors.onRequest(o2, h3);
+  });
+
+  test('sdk version header follows pubspec version', () {
+    var pubspec = File('pubspec.yaml').readAsStringSync();
+    var version = RegExp(r'^version:\s*(\S+)', multiLine: true)
+        .firstMatch(pubspec)!
+        .group(1);
+    expect(sdkVersion, version);
+
+    var s = Storage();
+    var l = Logger(s);
+    var d = getDio.run(Tuple2(s, l));
+    var h = Handler((o) {
+      expect(o.headers['qiscus-sdk-version'], 'flutter-$version');
+    });
+    d.interceptors
+        .whereType<InterceptorsWrapper>()
+        .first
+        .onRequest(RequestOptions(path: '/'), h);
   });
 
   test('custom headers', () {
