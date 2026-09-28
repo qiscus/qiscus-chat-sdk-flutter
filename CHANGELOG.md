@@ -1,3 +1,9 @@
+# 2.2.5
+
+- fix the `qiscus-sdk-version` request header reporting `flutter-2.2.1` since
+  2.2.1; it is now generated from the package version, so it always matches
+  the published release
+
 # 2.2.4
 
 - fix new messages not arriving in realtime while the user stays in a room.
