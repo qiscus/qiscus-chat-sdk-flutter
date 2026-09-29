@@ -1,4 +1,4 @@
-# Unreleased
+# 2.2.6
 
 - fix `onMessageReceived()` delivering messages duplicated or out of order,
   and messages reappearing after a sync cycle. The stream only dropped a
