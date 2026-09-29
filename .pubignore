@@ -1,0 +1,25 @@
+# Files and directories created by pub
+.dart_tool/
+.packages
+# Remove the following pattern if you wish to check in your lock file
+pubspec.lock
+
+# Conventional directory for build outputs
+build/
+
+# Directory created by dartdoc
+doc/api/
+
+/.idea
+/qiscus_chat_sdk.iml
+/coverage/html
+/coverage/test
+/test/.test_coverage.dart
+/test/**/*.vm.json
+/example/
+/coverage/
+/bin/
+.DS_Store
+
+# Not part of the published package: headless e2e harness (holds sample-app credentials)
+/tool/
