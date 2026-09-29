@@ -31,3 +31,17 @@ extension EitherX<L extends QError, R> on Either<L, R> {
 
 typedef StateTransformer<T>
     = StreamTransformer<QMqttMessage, State<Iterable<T>, T>>;
+
+extension QMessageOrderX on Iterable<QMessage> {
+  /// Urut naik berdasarkan `timestamp` (terlama dulu).
+  ///
+  /// `List.sort` tidak stabil, jadi `id` dipakai hanya sebagai penentu urutan
+  /// tetap untuk pesan dengan timestamp yang sama.
+  List<QMessage> sortedByTimestamp() {
+    return toList()
+      ..sort((a, b) {
+        var byTime = a.timestamp.compareTo(b.timestamp);
+        return byTime != 0 ? byTime : a.id.compareTo(b.id);
+      });
+  }
+}

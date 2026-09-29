@@ -77,7 +77,15 @@ extension StorageX on Storage {
     rooms = {};
   }
 
+  /// Menggeser cursor pesan terakhir, dan hanya ke depan.
+  ///
+  /// Pesan bisa tiba tidak berurutan (batch sync datang menurun, pesan lama
+  /// menyalip lewat jalur lain). Kalau cursor ikut mundur, sync berikutnya
+  /// menarik ulang pesan yang sudah diterima.
   void setLastMessageId(int messageId) {
+    var current = currentUser?.lastMessageId ?? lastMessageId;
+    if (messageId <= current) return;
+
     lastMessageId = messageId;
     currentUser?.lastMessageId = messageId;
   }

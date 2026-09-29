@@ -1,3 +1,17 @@
+# Unreleased
+
+- fix `onMessageReceived()` delivering messages duplicated or out of order,
+  and messages reappearing after a sync cycle. The stream only dropped a
+  duplicate when it directly followed the same id (`5,7,6,8,10,9,6` passed
+  with `6` twice), and the `lastMessageId` cursor could move backwards when a
+  message arrived late, so the next sync refetched almost the whole last batch
+- messages are now delivered once per id, the cursor only moves forward, and
+  each sync batch is delivered oldest first by `timestamp` (the server sends
+  it newest first). Apps that relied on that newest-first batch order will now
+  see it reversed
+- document that `onMessageReceived()` does not guarantee order across the
+  realtime and sync paths; apps should sort by `QMessage.timestamp`
+
 # 2.2.5
 
 - fix the `qiscus-sdk-version` request header reporting `flutter-2.2.1` since

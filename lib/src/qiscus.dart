@@ -447,6 +447,13 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
     return _messageRead$;
   }
 
+  /// Pesan baru untuk user yang sedang login.
+  ///
+  /// Urutan event TIDAK dijamin sama dengan urutan kirim per room. Pesan bisa
+  /// datang lewat realtime dan lewat sinkronisasi berkala yang saling menyalip.
+  /// SDK menjamin satu id hanya dikirim sekali, dan pesan dari satu batch sync
+  /// dikirim terlama dulu (berdasarkan `timestamp`). Untuk tampilan, urutkan
+  /// sendiri berdasarkan `QMessage.timestamp`.
   Stream<QMessage> onMessageReceived() {
     return _messageReceived$;
   }
@@ -812,7 +819,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
       // `lastMessageId` kembali ke 0, sehingga sinkronisasi berikutnya
       // menarik ulang riwayat dari awal.
       if (r.first != 0) _storage.lastMessageId = r.first;
-      r.second.forEach((m) => _messageReceivedSubs$.sink.add(m));
+      r.second.sortedByTimestamp().forEach(_messageReceivedSubs$.sink.add);
       return r;
     }).run();
 

@@ -98,7 +98,9 @@ mixin QRealtimeService {
           if (_data.second.isNotEmpty || _data.first != 0) {
             storage.setLastMessageId(_data.first);
           }
-          for (var message in _data.second) {
+          // Server mengirim batch dengan urutan menurun. Urutkan naik per
+          // timestamp supaya aplikasi menerima pesan terlama lebih dulu.
+          for (var message in _data.second.sortedByTimestamp()) {
             yield message;
           }
         } catch (error, stackTrace) {
@@ -146,12 +148,16 @@ mixin QRealtimeService {
         markAsDelivered,
     required Future<T> Function<T>(QInterceptor, T) triggerHook,
   }) {
+    // Dedupe per id, bukan `distinct`: `distinct` hanya membandingkan dengan
+    // event sebelumnya, jadi `5,7,6,8,10,9,6` lolos semua (6 dobel). Pesan yang
+    // sama datang dari MQTT dan dari sync, dan sync bisa mengirim ulang batch.
+    var seen = _SeenMessageIds();
     return StreamGroup.mergeBroadcast([
       messageReceivedSubs$.stream,
       _synchronize(),
       _mqttUpdates.transform(mqttMessageReceivedTransformer),
     ])
-        .distinct((m1, m2) => m1.id == m2.id)
+        .where((m) => seen.add(m.id))
         .tap((it) =>
             markAsDelivered(roomId: it.chatRoomId, messageId: it.id).ignore())
         .asyncMap((it) => triggerHook(QInterceptor.messageBeforeReceived, it))
@@ -212,5 +218,21 @@ mixin QRealtimeService {
       _synchronizeEvent().transform(syncRoomClearedTransformerImpl),
       _mqttUpdates.transform(mqttRoomClearedTransformerImpl),
     ]);
+  }
+}
+
+/// Id pesan yang sudah diteruskan ke aplikasi. Dibatasi supaya tidak tumbuh
+/// tanpa batas selama proses hidup; pesan lebih lama dari batas ini sudah
+/// tertutup oleh cursor `lastMessageId`.
+class _SeenMessageIds {
+  static const _maxSize = 2000;
+
+  final _ids = <int>{};
+
+  /// `true` bila [id] baru (belum pernah dilihat).
+  bool add(int id) {
+    if (!_ids.add(id)) return false;
+    if (_ids.length > _maxSize) _ids.remove(_ids.first);
+    return true;
   }
 }
