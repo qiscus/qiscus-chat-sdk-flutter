@@ -50,55 +50,45 @@ final getMqttConnectionState = Reader((MqttClient mqtt) {
 
 Stream<MqttUpdatesData> mqttUpdate2(MqttClient mqtt) {
   StreamSubscription<MqttUpdatesData>? subs;
-  Timer? attachTimer;
   var listeners = <MultiStreamController<MqttUpdatesData>>{};
+
+  void detach() {
+    subs?.cancel();
+    subs = null;
+  }
+
+  // mqtt_client creates updates before invoking either connection callback.
+  // Attach immediately; polling can outlive a disconnected SDK indefinitely.
+  // Cancel first so repeated callbacks never stack source subscriptions.
+  void attach() {
+    if (listeners.isEmpty) return;
+    var updates = mqtt.updates;
+    if (updates == null) return;
+    detach();
+    subs = updates.listen(
+      (v) {
+        listeners.forEach((l) => l.addSync(v));
+      },
+      onError: (Object err, StackTrace stack) {
+        listeners.forEach((l) => l.addErrorSync(err, stack));
+      },
+      // Only the source ended. Keep consumers open for the next connection.
+      onDone: () => subs = null,
+    );
+  }
+
   var stream = Stream<MqttUpdatesData>.multi((controller) {
     listeners.add(controller);
-    controller.onCancel = () => listeners.remove(controller);
+    controller.onCancel = () {
+      listeners.remove(controller);
+      if (listeners.isEmpty) detach();
+    };
+    // Also handles late consumers and listening again after cancellation.
+    if (subs == null &&
+        mqtt.connectionStatus?.state == MqttConnectionState.connected) {
+      attach();
+    }
   });
-
-  // Menyambungkan (ulang) listener internal ke stream update dari realtime
-  // server.
-  //
-  // Idempoten: `attachTimer?.cancel()` membuang timer poll yang belum sempat
-  // jalan, dan `subs?.cancel()` melepas subscription lama sebelum yang baru
-  // dipasang. Jadi berapa kali pun ini dipanggil, hanya ada SATU subscription
-  // pada satu waktu dan event tidak pernah dobel. Stream sumbernya adalah
-  // broadcast stream, yang melepas listener secara sinkron saat `cancel()`,
-  // jadi tidak ada celah pengiriman ganda di antara cancel dan listen.
-  void attach() {
-    attachTimer?.cancel();
-    attachTimer = Timer.periodic(const Duration(milliseconds: 300), (timer) {
-      var updates = mqtt.updates;
-      if (updates == null) return;
-
-      timer.cancel();
-      attachTimer = null;
-      subs?.cancel();
-      subs = updates.listen(
-        (v) {
-          listeners.forEach((l) => l.addSync(v));
-        },
-        onError: (Object err, StackTrace stack) {
-          listeners.forEach((l) => l.addErrorSync(err, stack));
-        },
-        onDone: () {
-          // JANGAN tutup controller milik consumer di sini.
-          //
-          // Sebelumnya baris ini memanggil `l.closeSync()`, yang menutup
-          // stream `onMessageReceived()` milik aplikasi secara PERMANEN begitu
-          // stream internal selesai - setelah itu tidak ada reconnect yang
-          // bisa menghidupkannya lagi, aplikasi harus restart. Stream consumer
-          // hanya boleh ditutup lewat `clearUser()`.
-          //
-          // Pada versi dependensi saat ini stream sumbernya tidak pernah
-          // ditutup, jadi jalur ini praktis tidak terpanggil dan bug lamanya
-          // laten. Tetap dijaga karena versi lain bisa berbeda.
-          subs = null;
-        },
-      );
-    });
-  }
 
   mqtt.onConnected = attach;
 
@@ -116,12 +106,7 @@ Stream<MqttUpdatesData> mqttUpdate2(MqttClient mqtt) {
   // Catatan: dengan `autoReconnect = true`, `onDisconnected` hanya dipanggil
   // pada disconnect yang disengaja (mis. `clearUser()`), bukan pada putus
   // koneksi mendadak. Jadi ini murni jalur pembersihan.
-  mqtt.onDisconnected = () {
-    attachTimer?.cancel();
-    attachTimer = null;
-    subs?.cancel();
-    subs = null;
-  };
+  mqtt.onDisconnected = detach;
 
   return stream;
 }

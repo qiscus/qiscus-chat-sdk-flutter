@@ -1,3 +1,11 @@
+# 2.2.7
+
+- fix realtime delivery when the first application listener is attached after
+  login/connection; initialize MQTT bridge callbacks before connecting, attach
+  late listeners immediately, and release the bridge's source subscription when
+  its last bridge consumer cancels or on disconnect, without polling or closing
+  consumer streams on reconnect
+
 # 2.2.6
 
 - fix `onMessageReceived()` delivering messages duplicated or out of order,

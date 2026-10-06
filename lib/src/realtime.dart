@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:freezed_annotation/freezed_annotation.dart' show protected;
 import 'package:mqtt_client/mqtt_client.dart';
 
 import 'core.dart';
@@ -27,6 +28,13 @@ mixin QRealtimeService {
 
   late final Stream<QMqttMessage> _mqttUpdates =
       mqttUpdates().map((s) => s.transform(mqttExpandTransformer)).run(mqtt);
+
+  // mqtt_client snapshots callbacks at connect. Initialize only the bridge,
+  // leaving application message/receipt/typing streams lazy.
+  @protected
+  void initializeMqttUpdates() {
+    _mqttUpdates;
+  }
 
   /// Kegagalan pada jalur sinkronisasi REST - jalur cadangan yang dipakai saat
   /// koneksi realtime tidak mengirimkan apa pun.

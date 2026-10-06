@@ -23,3 +23,8 @@ doc/api/
 
 # Not part of the published package: headless e2e harness (holds sample-app credentials)
 /tool/
+
+# Local investigation artifacts are not part of the published SDK
+/HANDOFF-realtime-message-stuck.md
+/apply-klikdokter-fix.fish
+/klikdokter-realtime-fix.patch

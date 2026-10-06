@@ -736,6 +736,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
 
   Future<void> _connectMqtt() async {
     if (_storage.isRealtimeEnabled) {
+      initializeMqttUpdates();
       await _mqtt.connect().ignoreAwaited();
     }
 
@@ -955,6 +956,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
 
     try {
       storage.isRealtimeManuallyClosed = false;
+      initializeMqttUpdates();
       await _mqtt.connect().timeout(const Duration(seconds: 1));
       return true;
     } catch (_) {
