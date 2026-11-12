@@ -1,3 +1,23 @@
+# Unreleased
+
+- fix messages missed by realtime never being fetched by sync: the global
+  sync cursor was also advanced by `getChatRoomWithMessages`,
+  `getNextMessagesById`, `getPreviousMessagesById` and `sendMessage`, so
+  opening another room (or sending) skipped unreceived messages of other
+  rooms. The cursor now only moves on sync results and received messages.
+  Messages of an opened room can now also arrive via `onMessageReceived()`
+  when realtime missed them; dedupe by id
+- `synchronize()` without arguments now uses the current cursor, updates
+  `currentUser.lastMessageId` too, and never moves the cursor backwards
+- fix `onMessageDelivered()`/`onMessageRead()`/`onMessageDeleted()` dropping
+  events for messages not sent in the current process: loaded and received
+  messages are now tracked (bounded to the 2000 most recent), a late delivered
+  receipt no longer downgrades a read message, and sync-event deletions no
+  longer emit delivered receipts as deletions
+- sync messages/events and reconnect realtime when the app returns to the
+  foreground; add `handleAppResumed()` and
+  `enableAutoSyncOnResume(enable:)` (on by default)
+
 # 2.2.7
 
 - fix realtime delivery when the first application listener is attached after
