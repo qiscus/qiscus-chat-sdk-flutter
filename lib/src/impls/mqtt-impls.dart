@@ -90,7 +90,13 @@ Stream<MqttUpdatesData> mqttUpdate2(MqttClient mqtt) {
     }
   });
 
-  mqtt.onConnected = attach;
+  // Rantai callback yang sudah terpasang (mis. milik MqttConnectionTracker),
+  // jangan ditimpa.
+  var prevOnConnected = mqtt.onConnected;
+  mqtt.onConnected = () {
+    attach();
+    prevOnConnected?.call();
+  };
 
   // `onConnected` TIDAK dipanggil pada jalur auto reconnect - jalur itu punya
   // callback sendiri.
@@ -101,12 +107,20 @@ Stream<MqttUpdatesData> mqttUpdate2(MqttClient mqtt) {
   // detail internal dependensi, bukan bagian dari kontrak publiknya; kalau
   // suatu versi mulai membangunnya ulang, tanpa baris ini SDK jadi buta
   // permanen setelah reconnect. Aman dipasang karena `attach()` idempoten.
-  mqtt.onAutoReconnected = attach;
+  var prevOnAutoReconnected = mqtt.onAutoReconnected;
+  mqtt.onAutoReconnected = () {
+    attach();
+    prevOnAutoReconnected?.call();
+  };
 
   // Catatan: dengan `autoReconnect = true`, `onDisconnected` hanya dipanggil
   // pada disconnect yang disengaja (mis. `clearUser()`), bukan pada putus
   // koneksi mendadak. Jadi ini murni jalur pembersihan.
-  mqtt.onDisconnected = detach;
+  var prevOnDisconnected = mqtt.onDisconnected;
+  mqtt.onDisconnected = () {
+    detach();
+    prevOnDisconnected?.call();
+  };
 
   return stream;
 }

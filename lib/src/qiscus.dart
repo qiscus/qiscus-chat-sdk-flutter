@@ -60,6 +60,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   late final Logger _logger = Logger(_storage);
   late final Dio _dio = getDio.run(Tuple2(_storage, _logger));
   late final MqttClient _mqtt = getMqttClient(_storage);
+  late final MqttConnectionTracker _mqttTracker = MqttConnectionTracker(_mqtt);
 
   Dio get dio => _dio;
   MqttClient get mqtt => _mqtt;
@@ -693,14 +694,12 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
     }
     if (_mqttIsConnected) return;
 
-    // `connectionHandler` ditandai @protected oleh mqtt_client, tapi hanya
-    // dari sana bisa dibedakan "belum pernah connect" dari "auto reconnect
-    // sedang berjalan". Memanggil `connect()` saat auto reconnect berjalan
-    // membuat dua koneksi dengan client id yang sama yang saling menendang.
-    // ignore: invalid_use_of_protected_member
-    var handler = _mqtt.connectionHandler;
-    // ignore: invalid_use_of_protected_member
-    if (handler == null || !handler.initialConnectionComplete) {
+    // Status dilacak SDK sendiri lewat callback publik mqtt_client; lihat
+    // [MqttConnectionTracker]. Memanggil `connect()` saat auto reconnect
+    // berjalan membuat dua koneksi dengan client id yang sama yang saling
+    // menendang.
+    _mqttTracker.install();
+    if (!_mqttTracker.hasConnected) {
       // Belum pernah connect, connect awal gagal (`faulted`), atau sudah
       // disconnect. mqtt_client hanya auto reconnect setelah koneksi pertama
       // sukses, jadi tanpa ini kondisi ini tidak pernah pulih sendiri.
@@ -708,7 +707,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
         return; // connect awal masih berjalan, punya timeout sendiri
       }
       _connectMqtt().ignore();
-    } else if (!handler.autoReconnectInProgress) {
+    } else if (!_mqttTracker.autoReconnectInProgress) {
       if (_mqtt.autoReconnect) {
         _mqtt.doAutoReconnect();
       } else {
@@ -861,6 +860,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   Future<void> _connectMqtt() async {
     if (_storage.isRealtimeEnabled) {
       initializeMqttUpdates();
+      _mqttTracker.install(); // sebelum connect: callback di-snapshot
       await _mqtt.connect().ignoreAwaited();
     }
 

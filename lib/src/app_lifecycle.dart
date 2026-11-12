@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart'
     show AppLifecycleState, WidgetsBinding, WidgetsBindingObserver;
+import 'package:mqtt_client/mqtt_client.dart' show MqttClient;
 
 /// `WidgetsBinding` yang sedang aktif, atau `null` bila belum ada.
 ///
@@ -82,5 +83,72 @@ class AppResumeSync with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) trigger();
+  }
+}
+
+/// Status koneksi realtime yang dimiliki SDK, diturunkan dari callback PUBLIK
+/// [MqttClient] (`onConnected`, `onAutoReconnect`, `onAutoReconnected`,
+/// `onDisconnected`).
+///
+/// Dipakai untuk membedakan tiga keadaan saat resume tanpa membaca field
+/// `@protected` milik mqtt_client (`connectionHandler`,
+/// `initialConnectionComplete`, `autoReconnectInProgress`):
+///  - belum pernah connect sukses -> mqtt_client tidak pernah retry sendiri,
+///    jadi SDK harus menjalankan jalur connect normalnya;
+///  - pernah connect lalu putus -> mqtt_client auto reconnect; SDK hanya
+///    memicunya bila belum berjalan (dua connect bersamaan membuat dua client
+///    dengan client id sama yang saling menendang);
+///  - sedang terhubung -> tidak ada yang dikerjakan.
+class MqttConnectionTracker {
+  MqttConnectionTracker(this._client);
+
+  final MqttClient _client;
+  bool _installed = false;
+  bool _hasConnected = false;
+  bool _autoReconnecting = false;
+
+  /// `true` bila koneksi pernah sukses sejak connect/disconnect sengaja
+  /// terakhir.
+  bool get hasConnected => _hasConnected;
+
+  /// `true` selama mqtt_client sedang menjalankan auto reconnect.
+  bool get autoReconnectInProgress => _autoReconnecting;
+
+  /// Pasang hook ke callback client. Idempoten. Callback yang sudah ada
+  /// DIRANTAI (dipanggil setelah hook ini), tidak ditimpa.
+  ///
+  /// mqtt_client mengambil snapshot callback saat `connect()`, jadi ini harus
+  /// dipanggil SEBELUM connect.
+  void install() {
+    if (_installed) return;
+    _installed = true;
+
+    var onConnected = _client.onConnected;
+    _client.onConnected = () {
+      _hasConnected = true;
+      _autoReconnecting = false;
+      onConnected?.call();
+    };
+
+    var onAutoReconnect = _client.onAutoReconnect;
+    _client.onAutoReconnect = () {
+      _autoReconnecting = true;
+      onAutoReconnect?.call();
+    };
+
+    var onAutoReconnected = _client.onAutoReconnected;
+    _client.onAutoReconnected = () {
+      _autoReconnecting = false;
+      onAutoReconnected?.call();
+    };
+
+    // Dengan `autoReconnect = true` callback ini hanya terpanggil pada
+    // disconnect yang disengaja: riwayat koneksi dimulai dari awal lagi.
+    var onDisconnected = _client.onDisconnected;
+    _client.onDisconnected = () {
+      _hasConnected = false;
+      _autoReconnecting = false;
+      onDisconnected?.call();
+    };
   }
 }
