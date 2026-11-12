@@ -249,9 +249,7 @@ void main() {
         sdk.onMessageRead().listen((m) => read.add(m.id)),
         sdk.onMessageDeleted().listen((m) => deleted.add(m.id)),
       ];
-      // Jangan di-await: `cancel()` pada stream delivered/read tidak pernah
-      // selesai (lihat message_status_test.dart).
-      addTearDown(() => subs.forEach((s) => unawaited(s.cancel())));
+      addTearDown(() => Future.wait(subs.map((s) => s.cancel())));
 
       server.events.addAll([
         _receipt(41, 'delivered', 1),
@@ -295,7 +293,7 @@ void main() {
         ..events.add(_receipt(30, 'read', 1));
 
       var sub = sdk.onMessageRead().listen((_) {});
-      addTearDown(() => unawaited(sub.cancel()));
+      addTearDown(sub.cancel);
       sdk.storage.isSyncEventEnabled = true;
 
       await _waitFor(() => server.path('sync_event').length >= 2);
