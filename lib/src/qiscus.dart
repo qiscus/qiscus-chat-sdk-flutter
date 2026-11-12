@@ -257,11 +257,10 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
       return v.map((v) => QChatRoomWithMessages(v.first, v.second.toList()));
     }).run(_dio);
 
-    return t2.tap((data) {
-      if (data.messages.isNotEmpty) {
-        _setLastMessageIdFromMessages(data.messages);
-      }
-    }).runOrThrow();
+    // Jangan geser cursor sync di sini: cursor itu global untuk semua room.
+    // Membuka room B yang berisi pesan lebih baru dulu membuat sync melewatkan
+    // pesan room lain yang belum diterima lewat realtime.
+    return t2.runOrThrow();
   }
 
   Future<String> getJWTNonce() async {
@@ -275,10 +274,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   }) async {
     var t2 = getNextMessagesImpl(roomId, messageId, limit: limit).run(_dio);
 
-    return t2
-        .tap((it) => _setLastMessageIdFromMessages(it))
-        .map((it) => it.toList())
-        .runOrThrow();
+    return t2.map((it) => it.toList()).runOrThrow();
   }
 
   Future<List<QParticipant>> getParticipants({
@@ -302,9 +298,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
     required int messageId,
     int? limit,
   }) async {
-    var t2 = getPreviousMessagesImpl(roomId, messageId, limit: limit)
-        .run(_dio)
-        .tap((v) => _setLastMessageIdFromMessages(v));
+    var t2 = getPreviousMessagesImpl(roomId, messageId, limit: limit).run(_dio);
 
     return t2.map((it) => it.toList()).runOrThrow();
   }
@@ -567,7 +561,9 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
           _storage.messages = res.second.toSet();
           return res.first;
         })
-        .tap((m) => _setLastMessageId(m.id))
+        // Bukan menggeser cursor sync (itu melewatkan pesan room lain yang
+        // belum tersinkron); cukup tandai supaya sync tidak mengirimnya ulang.
+        .tap((m) => registerSentMessageId(m.id))
         .runOrThrow();
   }
 
@@ -815,11 +811,17 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   }
 
   void synchronize({String? lastMessageId}) async {
-    var result = await synchronizeImpl(lastMessageId).run(_dio).map((r) {
-      // Guard `r.first != 0`: tanpa ini sebuah respons kosong menyetel
-      // `lastMessageId` kembali ke 0, sehingga sinkronisasi berikutnya
-      // menarik ulang riwayat dari awal.
-      if (r.first != 0) _storage.lastMessageId = r.first;
+    // Tanpa argumen, pakai cursor yang sama dengan loop sync. Dulu `null`
+    // diteruskan apa adanya sehingga parameter `last_received_comment_id`
+    // hilang dari request dan cursor diabaikan.
+    var cursor = lastMessageId ??
+        (_storage.currentUser?.lastMessageId ?? _storage.lastMessageId)
+            .toString();
+    var result = await synchronizeImpl(cursor).run(_dio).map((r) {
+      // `setLastMessageId` hanya maju dan ikut memperbarui
+      // `currentUser.lastMessageId`, yang dibaca lebih dulu oleh loop sync.
+      // Respons kosong (0) atau id lama tidak memundurkan cursor.
+      _storage.setLastMessageId(r.first);
       r.second.sortedByTimestamp().forEach(_messageReceivedSubs$.sink.add);
       return r;
     }).run();
@@ -1106,18 +1108,6 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
       syncIntervalWhenConnected: syncIntervalWhenConnected,
     );
     return sdk;
-  }
-
-  void _setLastMessageId(int lastId) {
-    if (_storage.lastMessageId > lastId) return;
-
-    _storage.currentUser?.lastMessageId = lastId;
-    _storage.lastMessageId = lastId;
-  }
-
-  void _setLastMessageIdFromMessages(Iterable<QMessage> messages) {
-    var lastId = messages.sortWithDate((m) => m.timestamp).last.id;
-    _setLastMessageId(lastId);
   }
 }
 

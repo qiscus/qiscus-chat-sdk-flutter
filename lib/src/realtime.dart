@@ -45,6 +45,20 @@ mixin QRealtimeService {
   final StreamController<QError> realtimeErrors$ =
       StreamController<QError>.broadcast();
 
+  /// Id pesan yang dikirim aplikasi dari perangkat ini lewat `sendMessage()`.
+  ///
+  /// Dulu `sendMessage()` menggeser cursor sync ke id pesan yang baru dikirim,
+  /// sehingga sync tidak pernah mengirim pesan sendiri ke `onMessageReceived()`
+  /// (tapi juga melewatkan pesan orang lain yang belum tersinkron). Cursor kini
+  /// hanya digeser oleh sync dan stream pesan masuk; set ini menjaga perilaku
+  /// lama: pesan sendiri tidak dikirim ulang lewat jalur sync.
+  final _sentMessageIds = _SeenMessageIds();
+
+  @protected
+  void registerSentMessageId(int messageId) {
+    _sentMessageIds.add(messageId);
+  }
+
   Duration _interval() {
     if (storage.token == null) return storage.syncInterval;
     return mqtt.connectionStatus?.state == MqttConnectionState.connected
@@ -161,8 +175,8 @@ mixin QRealtimeService {
     // sama datang dari MQTT dan dari sync, dan sync bisa mengirim ulang batch.
     var seen = _SeenMessageIds();
     return StreamGroup.mergeBroadcast([
-      messageReceivedSubs$.stream,
-      _synchronize(),
+      messageReceivedSubs$.stream.where(_isNotSentHere),
+      _synchronize().where(_isNotSentHere),
       _mqttUpdates.transform(mqttMessageReceivedTransformer),
     ])
         .where((m) => seen.add(m.id))
@@ -171,6 +185,9 @@ mixin QRealtimeService {
         .asyncMap((it) => triggerHook(QInterceptor.messageBeforeReceived, it))
         .tap((m) => storage.setLastMessageId(m.id));
   }
+
+  bool _isNotSentHere(QMessage message) =>
+      !_sentMessageIds.contains(message.id);
 
   Stream<QMessage> getMessageReadStream() {
     return StreamGroup.mergeBroadcast([
@@ -243,4 +260,6 @@ class _SeenMessageIds {
     if (_ids.length > _maxSize) _ids.remove(_ids.first);
     return true;
   }
+
+  bool contains(int id) => _ids.contains(id);
 }
