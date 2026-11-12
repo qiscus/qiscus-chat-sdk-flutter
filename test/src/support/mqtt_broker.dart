@@ -45,6 +45,26 @@ class TestMqttBroker {
     }
   }
 
+  /// Publish [payload] apa adanya (bukan JSON) ke [topic], dikirim ke peer
+  /// yang subscribe [filter] (default: [topic]). Receipt Qiscus berformat
+  /// `id:uniqueId` dan datang di topic konkret seperti `r/1/5/user/d`,
+  /// sedangkan SDK subscribe memakai wildcard `r/1/+/+/d`.
+  Future<void> publishRaw(String topic, String payload,
+      {String? filter}) async {
+    final topicBytes = utf8.encode(topic);
+    final bytes = [
+      topicBytes.length >> 8,
+      topicBytes.length & 255,
+      ...topicBytes,
+      ...utf8.encode(payload),
+    ];
+    final match = filter ?? topic;
+    for (final peer in peers.where((peer) => peer.topics.contains(match))) {
+      peer.send(0x30, bytes);
+      await peer.socket.flush();
+    }
+  }
+
   Future<void> close() async {
     await _connections.cancel();
     for (final peer in peers.toList()) {

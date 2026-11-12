@@ -15,7 +15,9 @@ final StreamTransformer<QMqttMessage, State<Iterable<QMessage>, QMessage>>
     var message = messageFromJson(json);
 
     sink.add(State((messages) {
-      return Tuple2(message, messages);
+      // Simpan versi terbaru supaya event status berikutnya memakai isi yang
+      // sudah diedit (`Storage.messages` membuang duplikat per id).
+      return Tuple2(message, [...messages, message]);
     }));
   }
 });

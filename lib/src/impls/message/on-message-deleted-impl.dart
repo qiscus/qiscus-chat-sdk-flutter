@@ -19,8 +19,13 @@ StreamTransformer<QMessageDeletedEvent, State<Iterable<QMessage>, QMessage?>>
     _eventReceiveProcess = StreamTransformer.fromHandlers(
   handleData: (data, sink) {
     sink.add(State((Iterable<QMessage> messages) {
-      var message =
-          messages.firstWhere((it) => it.uniqueId == data.messageUniqueId);
+      // `firstWhere` tanpa `orElse` melempar StateError ke stream aplikasi
+      // untuk pesan yang tidak dikenal; pesan tak dikenal cukup dibuang
+      // (`nonNullTransformer` di realtime.dart).
+      var message = messages
+          .where((it) => it.uniqueId == data.messageUniqueId)
+          .head
+          .toNullable();
       var _messages =
           messages.where((it) => it.uniqueId != data.messageUniqueId);
       return Tuple2(message, _messages);
@@ -32,10 +37,12 @@ var _syncEventReceived =
     StreamTransformer<QRealtimeEvent, QMessageDeletedEvent>.fromHandlers(
   handleData: (event, sink) {
     event.flow(
-      messageDeleted: (_) {},
-      messageDelivered: (e) {
-        sink.add(QMessageDeletedEvent(e.messageId, e.messageUniqueId));
+      // Dulu event `delivered` yang dipetakan ke sini, sehingga setiap receipt
+      // delivered dari sync_event muncul sebagai pesan terhapus.
+      messageDeleted: (e) {
+        sink.add(QMessageDeletedEvent(e.roomId, e.messageUniqueId));
       },
+      messageDelivered: (_) {},
       roomCleared: (_) {},
       unknown: (_) {},
       messageRead: (_) {},
