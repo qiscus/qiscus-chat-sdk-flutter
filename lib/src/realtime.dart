@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:async/async.dart';
 import 'package:dio/dio.dart';
-import 'package:fpdart/fpdart.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' show protected;
 import 'package:mqtt_client/mqtt_client.dart';
 
 import 'core.dart';
 import 'domain/domains.dart';
+import 'impls/message/message-receipt-impl.dart';
 import 'impls/message/on-message-deleted-impl.dart';
 import 'impls/message/on-message-delivered-impl.dart';
 import 'impls/message/on-message-read-impl.dart';
@@ -16,7 +16,6 @@ import 'impls/message/on-message-updated-impl.dart';
 import 'impls/mqtt-impls.dart';
 import 'impls/room/on-room-cleared.dart';
 import 'impls/sync.dart';
-import 'impls/user/is-authenticated-impl.dart';
 import 'impls/user/on-user-presence-impl.dart';
 import 'impls/user/on-user-typing-impl.dart';
 import 'utils.dart';
@@ -66,100 +65,90 @@ mixin QRealtimeService {
         : storage.syncInterval;
   }
 
-  Stream<void> interval$() async* {
+  // Bukan `async*`: generator `async*` yang sedang menunggu di `await for`
+  // baru berhenti (dan `cancel()`-nya baru selesai) saat mencapai `yield`
+  // berikutnya. Stream.periodic berhenti seketika saat di-cancel.
+  Stream<void> interval$() {
     var accumulator = Duration(milliseconds: 0);
-    var acc$ = Stream.periodic(
+    return Stream.periodic(
       storage.accSyncInterval,
       (_) => storage.accSyncInterval,
-    );
-
-    await for (var it in acc$) {
+    ).where((it) {
       accumulator += it;
-      var interval = _interval();
-      var shouldSync = accumulator >= interval;
-
-      if (shouldSync) {
-        yield null;
-        accumulator = Duration(milliseconds: 0);
-      }
-    }
-  }
-
-  StreamTransformer<void, bool> _authenticatedTransformer(
-    Tuple2<MqttClient, Storage> _deps,
-  ) {
-    return StreamTransformer.fromHandlers(handleData: (_, sink) async {
-      var isLoggedIn = await waitTillAuthenticatedImpl.run(_deps).run();
-      sink.add(isLoggedIn);
+      if (accumulator < _interval()) return false;
+      accumulator = Duration(milliseconds: 0);
+      return true;
     });
   }
 
-  Stream<QMessage> _synchronize() async* {
-    var stream = interval$()
-        .transform<bool>(_authenticatedTransformer(Tuple2(mqtt, storage)));
+  /// Satu putaran sync REST tiap interval, hanya selama ada listener.
+  ///
+  /// Dulu ini generator `async*` dengan `await for`. `cancel()` pada generator
+  /// seperti itu baru selesai saat body mencapai `yield` berikutnya - padahal
+  /// loop ini jarang (atau, untuk sync event yang default-nya mati, tidak
+  /// pernah) `yield`. Ditambah `StreamGroup.mergeBroadcast` sengaja tidak
+  /// meng-cancel stream single-subscription saat listener terakhir pergi,
+  /// sehingga loop dan request HTTP-nya jalan terus seumur proses. Sekarang
+  /// stream-nya broadcast (di-cancel oleh `mergeBroadcast`) dan berhenti
+  /// seketika: `asyncExpand` + `Stream.fromFuture` tidak menunggu `yield`.
+  Stream<QMessage> _synchronize() {
+    return _whileListened(() => interval$()
+        // `storage.isLogin` WAJIB dibaca tiap putaran, bukan sekali saat stream
+        // dibuat: stream ini biasanya dibuat SEBELUM `setUser()` selesai, dan
+        // nilai yang terkunci `false` mematikan sync REST seumur proses.
+        .where((_) => storage.isSyncEnabled && storage.isLogin)
+        .asyncExpand((_) =>
+            Stream.fromFuture(_synchronizeOnce()).expand((it) => it)));
+  }
 
-    await for (var _ in stream) {
-      // `storage.isLogin` WAJIB dibaca di dalam loop.
-      //
-      // Sebelumnya nilainya dibaca sekali di luar loop dan disimpan ke
-      // variabel lokal. Stream ini dibuat saat aplikasi pertama kali
-      // memasang listener `onMessageReceived()` - yang pada mayoritas
-      // aplikasi terjadi SEBELUM `setUser()` selesai. Akibatnya nilainya
-      // terkunci `false` selamanya dan sinkronisasi REST tidak pernah jalan
-      // seumur hidup proses, menghapus satu-satunya jaring pengaman saat
-      // koneksi realtime bermasalah. Bandingkan `_synchronizeEvent()` di
-      // bawah, yang sejak awal sudah membacanya di dalam loop.
-      if (storage.isSyncEnabled && storage.isLogin) {
-        try {
-          var lastMessageId =
-              storage.currentUser?.lastMessageId ?? storage.lastMessageId;
-          var _data = await synchronizeImpl(lastMessageId.toString())
-              .run(dio)
-              .runOrThrow();
+  Future<List<QMessage>> _synchronizeOnce() async {
+    try {
+      var lastMessageId =
+          storage.currentUser?.lastMessageId ?? storage.lastMessageId;
+      var _data =
+          await synchronizeImpl(lastMessageId.toString()).run(dio).runOrThrow();
 
-          if (_data.second.isNotEmpty || _data.first != 0) {
-            storage.setLastMessageId(_data.first);
-          }
-          // Server mengirim batch dengan urutan menurun. Urutkan naik per
-          // timestamp supaya aplikasi menerima pesan terlama lebih dulu.
-          for (var message in _data.second.sortedByTimestamp()) {
-            yield message;
-          }
-        } catch (error, stackTrace) {
-          realtimeErrors$.add(
-            QError('Message synchronization failed: $error', stackTrace),
-          );
-        }
+      if (_data.second.isNotEmpty || _data.first != 0) {
+        storage.setLastMessageId(_data.first);
       }
+      // Server mengirim batch dengan urutan menurun. Urutkan naik per
+      // timestamp supaya aplikasi menerima pesan terlama lebih dulu.
+      return _data.second.sortedByTimestamp();
+    } catch (error, stackTrace) {
+      realtimeErrors$.add(
+        QError('Message synchronization failed: $error', stackTrace),
+      );
+      return [];
     }
   }
 
-  Stream<QRealtimeEvent> _synchronizeEvent() async* {
-    var stream =
-        interval$().transform(_authenticatedTransformer(Tuple2(mqtt, storage)));
+  /// Satu loop `sync_event` bersama untuk stream read/delivered/deleted/
+  /// cleared. Dulu tiap stream punya loop sendiri yang sama-sama menggeser
+  /// `lastEventId`, sehingga event yang diambil satu loop terlewat oleh loop
+  /// lain. Lihat juga [_synchronize] soal cancel.
+  late final Stream<QRealtimeEvent> _syncEvent$ = _whileListened(() =>
+      interval$()
+          .where((_) => storage.isSyncEventEnabled && storage.isLogin)
+          .asyncExpand((_) =>
+              Stream.fromFuture(_synchronizeEventOnce()).expand((it) => it)));
 
-    await for (var _ in stream) {
-      if (storage.isSyncEventEnabled && storage.isLogin) {
-        try {
-          var lastEventId =
-              storage.currentUser?.lastEventId ?? storage.lastEventId;
-          var data =
-              await synchronizeEventImpl(lastEventId).run(dio).runOrThrow();
+  Stream<QRealtimeEvent> _synchronizeEvent() => _syncEvent$;
 
-          if (data.second.isNotEmpty || data.first != 0) {
-            storage.currentUser?.lastEventId = data.first;
-            storage.lastEventId = data.first;
-          }
+  Future<List<QRealtimeEvent>> _synchronizeEventOnce() async {
+    try {
+      var lastEventId = storage.currentUser?.lastEventId ?? storage.lastEventId;
+      var data = await synchronizeEventImpl(lastEventId).run(dio).runOrThrow();
 
-          for (var event in data.second) {
-            yield event;
-          }
-        } catch (error, stackTrace) {
-          realtimeErrors$.add(
-            QError('Event synchronization failed: $error', stackTrace),
-          );
-        }
+      if (data.second.isNotEmpty || data.first != 0) {
+        storage.currentUser?.lastEventId = data.first;
+        storage.lastEventId = data.first;
       }
+      return data.second.toList();
+    } catch (error, stackTrace) {
+      realtimeErrors$.add(
+        QError('Event synchronization failed: $error', stackTrace),
+      );
+      return [];
     }
   }
 
@@ -205,24 +194,35 @@ mixin QRealtimeService {
     return StreamGroup.mergeBroadcast([
       _synchronizeEvent().transform(syncMessageReadTransformerImpl),
       _mqttUpdates.transform(mqttMessageReadTransformerImpl),
-    ])
-        .map((it) => it.run(storage.messages))
-        .tap((it) => storage.messages = it.second.toSet())
-        .map((it) => it.first)
-        .transform(nonNullTransformer())
-        .where(_isOwnMessage);
+    ]).transform(_applyReceipts());
   }
 
   Stream<QMessage> getMessageDeliveredStream() {
     return StreamGroup.mergeBroadcast([
       _synchronizeEvent().transform(syncMessageDeliveredTransformerImpl),
       _mqttUpdates.transform(mqttMessageDeliveredTransformerImpl),
-    ])
-        .map((it) => it.run(storage.messages))
-        .tap((it) => storage.messages = it.second.toSet())
-        .map((it) => it.first)
-        .transform(nonNullTransformer())
-        .where(_isOwnMessage);
+    ]).transform(_applyReceipts());
+  }
+
+  /// Terapkan tiap receipt ke store (dengan cascade, lihat
+  /// [applyMessageReceipt]) dan emit satu event per pesan yang statusnya
+  /// berubah, terlama dulu.
+  ///
+  /// Penerapan wajib terjadi sekali per receipt, jadi memakai `asyncMap`: pada
+  /// stream broadcast ia hanya subscribe sekali ke sumbernya, sedangkan
+  /// `map`/`expand` dijalankan ulang per listener - listener kedua tidak akan
+  /// melihat perubahan apa pun bila penerapannya ada di sana.
+  StreamTransformer<MessageReceipt, QMessage> _applyReceipts() {
+    return StreamTransformer.fromBind((receipts) {
+      return receipts
+          .asyncMap((receipt) => applyMessageReceipt(
+                storage.messages,
+                receipt,
+                currentUserId: storage.currentUser?.id,
+              ))
+          .expand((it) => it)
+          .where(_isOwnMessage);
+    });
   }
 
   Stream<QMessage> getMessageDeletedStream() {
@@ -258,6 +258,30 @@ mixin QRealtimeService {
       _mqttUpdates.transform(mqttRoomClearedTransformerImpl),
     ]);
   }
+}
+
+/// Stream broadcast yang menjalankan [source] hanya selama ada listener:
+/// di-listen saat listener pertama datang, di-cancel saat listener terakhir
+/// pergi, dan dibuat ulang bila ada listener lagi.
+///
+/// `StreamGroup.mergeBroadcast` hanya meng-cancel stream anggota yang
+/// broadcast; stream single-subscription dibiarkan jalan terus.
+Stream<T> _whileListened<T>(Stream<T> Function() source) {
+  StreamSubscription<T>? subscription;
+  late StreamController<T> controller;
+  controller = StreamController<T>.broadcast(
+    onListen: () {
+      subscription = source().listen(
+        controller.add,
+        onError: controller.addError,
+      );
+    },
+    onCancel: () {
+      subscription?.cancel().ignore();
+      subscription = null;
+    },
+  );
+  return controller.stream;
 }
 
 /// Id pesan yang sudah diteruskan ke aplikasi. Dibatasi supaya tidak tumbuh

@@ -50,10 +50,13 @@ extension DurationX on int {
   Duration get s => seconds;
 }
 
+// Bukan generator `async*`: `cancel()` pada generator yang sedang menunggu di
+// `await for` baru selesai saat body mencapai `yield` berikutnya, yaitu saat
+// event non-null berikutnya datang - bisa tidak pernah. `cancel()` pada
+// `onMessageDeleted()` (dan dulu delivered/read) jadi menggantung. `where`
+// juga mempertahankan sifat broadcast stream sumbernya.
 StreamTransformer<T?, T> nonNullTransformer<T extends Object>() {
-  return StreamTransformer.fromBind((stream) async* {
-    await for (var data in stream) {
-      if (data != null) yield data;
-    }
-  });
+  return StreamTransformer.fromBind(
+    (stream) => stream.where((data) => data != null).map((data) => data!),
+  );
 }

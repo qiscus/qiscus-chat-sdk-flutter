@@ -10,6 +10,7 @@ import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/impls/message/message-from-json-impl.dart';
+import 'package:qiscus_chat_sdk/src/impls/message/message-receipt-impl.dart';
 import 'package:qiscus_chat_sdk/src/impls/message/on-message-deleted-impl.dart';
 import 'package:qiscus_chat_sdk/src/impls/sync.dart';
 import 'package:test/test.dart';
@@ -19,8 +20,11 @@ import 'support/mqtt_broker.dart';
 const _userId = 'listener-id';
 const _token = 'loopback-token';
 
-Map<String, Object?> _comment(int id, {String sender = _userId}) => {
+Map<String, Object?> _comment(int id,
+        {String sender = _userId, int room = 1}) =>
+    {
       ...mqttComment(id),
+      'room_id': room,
       'email': sender,
       'username': '$sender-name',
     };
@@ -67,9 +71,14 @@ class _Fixture {
   /// Komentar yang dikembalikan oleh `get_room_by_id` dan `load_comments`.
   List<Map<String, Object?>> comments = [];
 
+  /// Jumlah request per path (tanpa query), mis. `sync` dan `sync_event`.
+  final requests = <String, int>{};
+
   Map<String, Object?>? _respond(RequestOptions request) {
     // GET membawa query di path (mis. `get_room_by_id?id=1`).
-    switch (request.path.split('?').first) {
+    final path = request.path.split('?').first;
+    requests[path] = (requests[path] ?? 0) + 1;
+    switch (path) {
       case 'login_or_register':
         return {
           'results': {
@@ -104,6 +113,15 @@ class _Fixture {
         };
       case 'update_comment_status':
         return {'results': <String, Object?>{}};
+      case 'sync':
+        return {
+          'results': {
+            'meta': {'last_received_comment_id': 0},
+            'comments': <Object?>[],
+          }
+        };
+      case 'sync_event':
+        return {'events': <Object?>[]};
     }
     return null;
   }
@@ -136,11 +154,8 @@ class _Fixture {
   }
 
   Future<void> close() async {
-    // Jangan di-await: `cancel()` pada stream delivered/read tidak pernah
-    // selesai (sudah begitu sebelum perbaikan ini; `_synchronizeEvent()`).
-    for (final subscription in subscriptions) {
-      unawaited(subscription.cancel());
-    }
+    await Future.wait(subscriptions.map((it) => it.cancel()))
+        .timeout(const Duration(seconds: 2));
     sdk.mqtt.autoReconnect = false;
     await sdk.clearUser();
     sdk.dio.close(force: true);
@@ -194,9 +209,13 @@ void main() {
       await fixture.receipt('r', 5);
       await waitFor(() => read.isNotEmpty);
       await fixture.receipt('d', 5);
-      await waitFor(() => delivered.isNotEmpty);
+      // Penanda: receipt sesudahnya pasti sudah diproses setelah yang ini.
+      await fixture.receipt('d', 6);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
-      expect(delivered.single.status, QMessageStatus.read);
+      // Event hanya untuk perubahan status: delivered yang telat tidak
+      // mengubah apa-apa, jadi tidak di-emit lagi.
+      expect(delivered, isEmpty);
       expect(data.messages.single.status, QMessageStatus.read);
     });
 
@@ -217,13 +236,14 @@ void main() {
       final previous =
           await fixture.sdk.getPreviousMessagesById(roomId: 1, messageId: 5);
 
-      await fixture.receipt('d', 6);
+      // Urutan 4 lalu 6: receipt 6 akan ikut menaikkan 4 (cascade).
       await fixture.receipt('d', 4);
+      await fixture.receipt('d', 6);
       await waitFor(() => delivered.length == 2);
-      expect(delivered.map((m) => m.id), [6, 4]);
+      expect(delivered.map((m) => m.id), [4, 6]);
       // Instance yang dikembalikan ke aplikasi adalah instance yang di-update.
-      expect(identical(delivered[0], next.single), isTrue);
-      expect(identical(delivered[1], previous.single), isTrue);
+      expect(identical(delivered[0], previous.single), isTrue);
+      expect(identical(delivered[1], next.single), isTrue);
     });
 
     test('loading the same message twice keeps a single store entry', () async {
@@ -286,6 +306,191 @@ void main() {
       expect(delivered.single.id, 9);
       expect(delivered.single.status, QMessageStatus.delivered);
     });
+  });
+
+  group('receipt cascade', () {
+    QMessage stored(_Fixture fixture, int id) =>
+        fixture.sdk.storage.messages.singleWhere((m) => m.id == id);
+
+    Future<_Fixture> loaded() async {
+      final fixture = _Fixture(await TestMqttBroker.start());
+      addTearDown(fixture.close);
+      await fixture.login();
+      fixture.comments = [
+        _comment(3),
+        _comment(4, sender: 'other-user'),
+        _comment(5),
+        _comment(6),
+        _comment(7),
+      ];
+      final data = await fixture.sdk.getChatRoomWithMessages(roomId: 1);
+      // Pesan sendiri di room lain dengan id lebih kecil.
+      fixture.sdk.storage.messages = {
+        ...fixture.sdk.storage.messages,
+        messageFromJson(_comment(2, room: 2)),
+      };
+      await fixture.subscribeRoom(data.room);
+      return fixture;
+    }
+
+    test('read for X marks earlier own messages of the room read, oldest first',
+        () async {
+      final fixture = await loaded();
+      final read = fixture.collect(fixture.sdk.onMessageRead());
+
+      await fixture.receipt('r', 6);
+      await waitFor(() => read.length >= 3);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(read.map((m) => m.id), [3, 5, 6]);
+      expect(read.every((m) => m.status == QMessageStatus.read), isTrue);
+      expect(stored(fixture, 7).status, QMessageStatus.sent);
+      // Pesan orang lain dan pesan di room lain tidak tersentuh.
+      expect(stored(fixture, 4).status, QMessageStatus.sent);
+      expect(stored(fixture, 2).status, QMessageStatus.sent);
+    });
+
+    test('a receipt for an unknown message still cascades to known ones',
+        () async {
+      final fixture = await loaded();
+      final delivered = fixture.collect(fixture.sdk.onMessageDelivered());
+
+      await fixture.receipt('d', 10);
+      await waitFor(() => delivered.length >= 4);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(delivered.map((m) => m.id), [3, 5, 6, 7]);
+      expect(stored(fixture, 4).status, QMessageStatus.sent);
+      expect(stored(fixture, 2).status, QMessageStatus.sent);
+    });
+
+    test('never downgrades and never emits the same transition twice',
+        () async {
+      final fixture = await loaded();
+      final delivered = fixture.collect(fixture.sdk.onMessageDelivered());
+      final read = fixture.collect(fixture.sdk.onMessageRead());
+
+      await fixture.receipt('r', 5);
+      await waitFor(() => read.length >= 2);
+      await fixture.receipt('d', 7);
+      await waitFor(() => delivered.length >= 2);
+      // Duplikat: receipt yang sama datang lagi (mis. MQTT + sync_event).
+      await fixture.receipt('r', 5);
+      await fixture.receipt('d', 7);
+      await fixture.receipt('r', 7);
+      await waitFor(() => read.length >= 4);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(delivered.map((m) => m.id), [6, 7]);
+      expect(read.map((m) => m.id), [3, 5, 6, 7]);
+      for (final id in [3, 5, 6, 7]) {
+        expect(stored(fixture, id).status, QMessageStatus.read);
+      }
+    });
+
+    test('a receipt published by the current user changes nothing', () async {
+      final fixture = await loaded();
+      final read = fixture.collect(fixture.sdk.onMessageRead());
+
+      // `markAsRead` user sendiri (mis. dari perangkat lain) bukan bukti
+      // lawan bicara sudah membaca pesan user.
+      await fixture.receipt('r', 7, by: _userId);
+      await fixture.receipt('r', 3);
+      await waitFor(() => read.isNotEmpty);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(read.map((m) => m.id), [3]);
+      expect(stored(fixture, 7).status, QMessageStatus.sent);
+    });
+
+    test('sync events cascade within their room', () {
+      final mine = [
+        for (final id in [3, 5, 7]) messageFromJson(_comment(id)),
+        messageFromJson(_comment(4, sender: 'other-user')),
+        messageFromJson(_comment(2, room: 2)),
+      ];
+
+      final read = applyMessageReceipt(
+        mine,
+        MessageReceipt.fromRealtimeEvent(MessageReadEvent(
+          userId: 'other-user',
+          roomId: 1,
+          messageId: 5,
+          messageUniqueId: 'unique-5',
+        ))!,
+        currentUserId: _userId,
+      );
+      expect(read.map((m) => m.id), [3, 5]);
+
+      final delivered = applyMessageReceipt(
+        mine,
+        MessageReceipt.fromRealtimeEvent(MessageDeliveredEvent(
+          userId: 'other-user',
+          roomId: 1,
+          messageId: 7,
+          messageUniqueId: 'unique-7',
+        ))!,
+        currentUserId: _userId,
+      );
+      expect(delivered.map((m) => m.id), [7]);
+      expect(mine.map((m) => m.status), [
+        QMessageStatus.read,
+        QMessageStatus.read,
+        QMessageStatus.delivered,
+        QMessageStatus.sent,
+        QMessageStatus.sent,
+      ]);
+    });
+  });
+
+  test('cancel() completes promptly and stops the sync loops', () async {
+    final fixture = _Fixture(await TestMqttBroker.start());
+    addTearDown(fixture.close);
+    fixture.sdk.storage
+      ..isSyncEnabled = true
+      ..isSyncEventEnabled = true
+      ..accSyncInterval = const Duration(milliseconds: 20)
+      ..syncInterval = const Duration(milliseconds: 40)
+      ..syncIntervalWhenConnected = const Duration(milliseconds: 40);
+    final subscriptions = [
+      fixture.sdk.onMessageReceived().listen((_) {}),
+      fixture.sdk.onMessageDelivered().listen((_) {}),
+      fixture.sdk.onMessageRead().listen((_) {}),
+      fixture.sdk.onMessageDeleted().listen((_) {}),
+      fixture.sdk.onChatRoomCleared().listen((_) {}),
+    ];
+    await fixture.login();
+    await waitFor(() =>
+        (fixture.requests['sync'] ?? 0) > 1 &&
+        (fixture.requests['sync_event'] ?? 0) > 1);
+
+    for (final subscription in subscriptions) {
+      await subscription.cancel().timeout(const Duration(seconds: 2));
+    }
+    // Request yang sudah terlanjur jalan boleh selesai.
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    final sync = fixture.requests['sync'];
+    final syncEvent = fixture.requests['sync_event'];
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    expect(fixture.requests['sync'], sync);
+    expect(fixture.requests['sync_event'], syncEvent);
+  });
+
+  test('status streams can be listened to more than once', () async {
+    final fixture = _Fixture(await TestMqttBroker.start());
+    addTearDown(fixture.close);
+    final first = fixture.collect(fixture.sdk.onMessageDelivered());
+    final second = fixture.collect(fixture.sdk.onMessageDelivered());
+    await fixture.login();
+
+    fixture.comments = [_comment(5)];
+    final data = await fixture.sdk.getChatRoomWithMessages(roomId: 1);
+    await fixture.subscribeRoom(data.room);
+
+    await fixture.receipt('d', 5);
+    await waitFor(() => first.isNotEmpty && second.isNotEmpty);
+    expect(first.single, same(second.single));
   });
 
   test('a message from onMessageReceived can later be deleted', () async {

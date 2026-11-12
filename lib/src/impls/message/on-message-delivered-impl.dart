@@ -4,88 +4,38 @@ import 'package:fpdart/fpdart.dart';
 import 'package:mqtt_client/mqtt_client.dart' hide MessageReceived;
 import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/message/message-model.dart';
+import 'package:qiscus_chat_sdk/src/impls/message/message-receipt-impl.dart';
 import 'package:qiscus_chat_sdk/src/impls/mqtt-impls.dart';
 import 'package:qiscus_chat_sdk/src/impls/sync.dart';
 
-Reader<MqttClient, IO<Stream<State<Iterable<QMessage>, QMessage?>>>>
-    onMessageDeliveredImpl(int roomId) {
+// Di sini receipt hanya diubah jadi [MessageReceipt]. Penerapannya ke store,
+// termasuk cascade ke pesan sebelumnya di room yang sama, ada di
+// `applyMessageReceipt` karena butuh id user yang sedang login.
+
+Reader<MqttClient, IO<Stream<MessageReceipt>>> onMessageDeliveredImpl(
+    int roomId) {
   return mqttForTopic(
     TopicBuilder.messageDelivered(roomId.toString()),
   ).map((io) {
     return io.map((stream) {
-      return stream
-          .map((it) => it.payload)
-          .transform(_mqttMessageDeliveredTransformerImpl)
-          .transform(_mqttEventReceived);
+      return stream.transform(mqttMessageDeliveredTransformerImpl);
     });
   });
 }
 
-StreamTransformer<QMessageDeliveredEvent, State<Iterable<QMessage>, QMessage?>>
-    _mqttEventReceived = StreamTransformer.fromHandlers(
-  handleData: (data, sink) {
-    sink.add(State((Iterable<QMessage> messages) {
-      var message = messages //
-          .where((item) =>
-              item.uniqueId == data.messageUniqueId ||
-              item.id == data.messageId)
-          .head
-          .map((it) {
-        // Jangan turunkan status: receipt delivered bisa datang SETELAH read
-        // (mis. lewat sync event atau urutan MQTT yang tertukar).
-        if (it.status != QMessageStatus.read) {
-          it.status = QMessageStatus.delivered;
-        }
-        return it;
-      }).toNullable();
-      return Tuple2(message, messages);
-    }));
-  },
-);
-
-var mqttMessageDeliveredTransformerImpl = StreamTransformer<QMqttMessage,
-    State<Iterable<QMessage>, QMessage?>>.fromBind((stream) {
+var mqttMessageDeliveredTransformerImpl =
+    StreamTransformer<QMqttMessage, MessageReceipt>.fromBind((stream) {
   return stream
       .where((it) => reDelivery.hasMatch(it.topic))
-      .map((it) => it.payload)
-      .transform(_mqttMessageDeliveredTransformerImpl)
-      .transform(_mqttEventReceived);
+      .map((it) => MessageReceipt.fromMqtt(it.topic, it.payload))
+      .where((it) => it != null)
+      .map((it) => it!);
 });
 
-var _syncEventReceived =
-    StreamTransformer<QRealtimeEvent, QMessageDeliveredEvent>.fromHandlers(
-  handleData: (data, sink) {
-    data.flow(
-      messageDeleted: (_) {},
-      messageDelivered: (e) =>
-          sink.add(QMessageDeliveredEvent(e.messageId, e.messageUniqueId)),
-      roomCleared: (_) {},
-      unknown: (_) {},
-      messageRead: (_) {},
-    );
-  },
-);
-var syncMessageDeliveredTransformerImpl = StreamTransformer<QRealtimeEvent,
-    State<Iterable<QMessage>, QMessage?>>.fromBind((stream) {
-  return stream //
-      .transform(_syncEventReceived)
-      .transform(_mqttEventReceived);
+var syncMessageDeliveredTransformerImpl =
+    StreamTransformer<QRealtimeEvent, MessageReceipt>.fromBind((stream) {
+  return stream
+      .map(MessageReceipt.fromRealtimeEvent)
+      .where((it) => it?.status == QMessageStatus.delivered)
+      .map((it) => it!);
 });
-
-final _mqttMessageDeliveredTransformerImpl =
-StreamTransformer<String, QMessageDeliveredEvent>.fromHandlers(
-  handleData: (item, sink) {
-    var payload = item.split(':');
-    var commentId = int.parse(payload[0]);
-    var commentUniqueId = payload[1];
-
-    sink.add(QMessageDeliveredEvent(commentId, commentUniqueId));
-  },
-);
-
-class QMessageDeliveredEvent {
-  const QMessageDeliveredEvent(this.messageId, this.messageUniqueId);
-
-  final int? messageId;
-  final String messageUniqueId;
-}
