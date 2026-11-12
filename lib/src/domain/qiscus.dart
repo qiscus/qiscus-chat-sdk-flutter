@@ -216,6 +216,18 @@ abstract class IQiscusSDK {
   /// realtime connection reports itself as connected. Defaults to 30s.
   void setSyncIntervalWhenConnected(double period);
 
+  /// Whether the SDK catches up automatically when the app returns to the
+  /// foreground.
+  bool get isAutoSyncOnResumeEnabled;
+
+  /// Enable or disable the automatic catch-up (sync + realtime reconnect)
+  /// when the app returns to the foreground. Enabled by default.
+  void enableAutoSyncOnResume({required bool enable});
+
+  /// Catch up after the app returns to the foreground: sync messages and
+  /// events now and reconnect realtime if needed. Debounced.
+  void handleAppResumed();
+
   Future<void> setup(String appId);
 
   Future<void> setupWithCustomServer(

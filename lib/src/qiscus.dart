@@ -10,6 +10,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
 import 'app_config/app_config.dart';
+import 'app_lifecycle.dart';
 import 'core.dart';
 import 'domain/commons.dart';
 import 'domain/message/message-model.dart';
@@ -144,6 +145,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   }
 
   Future<void> clearUser() async {
+    _appResume.detach();
     _storage.clear();
     _mqtt.disconnect();
   }
@@ -595,6 +597,127 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
     _storage.syncIntervalWhenConnected = period.ceil().milliseconds;
   }
 
+  // --- Resume dari background
+  //
+  // Tanpa ini, setelah aplikasi kembali dari background SDK hanya menunggu
+  // interval sync berikutnya (bisa 30 detik saat MQTT "terlihat" connected),
+  // padahal socket MQTT-nya sering sudah setengah mati. Aplikasi tanpa FCM
+  // jadi tidak menerima pesan sampai interval itu lewat atau bahkan tidak
+  // sama sekali bila koneksi awal gagal.
+  bool _autoSyncOnResume = true;
+  late final AppResumeSync _appResume = AppResumeSync(
+    onResumed: _syncOnResume,
+  );
+
+  /// Whether the SDK catches up automatically when the app returns to the
+  /// foreground. See [enableAutoSyncOnResume].
+  bool get isAutoSyncOnResumeEnabled => _autoSyncOnResume;
+
+  /// Enable or disable the automatic catch-up when the app returns to the
+  /// foreground. Enabled by default.
+  ///
+  /// While enabled and a user is logged in, the SDK observes the Flutter app
+  /// lifecycle and calls [handleAppResumed] on `AppLifecycleState.resumed`.
+  /// The observer is only registered when the Flutter binding already exists
+  /// (`runApp()` or `WidgetsFlutterBinding.ensureInitialized()` was called
+  /// before login); the SDK never initializes the binding itself. It is
+  /// removed on [clearUser].
+  ///
+  /// Disable it if your app drives this from its own lifecycle handling, and
+  /// call [handleAppResumed] from there instead.
+  void enableAutoSyncOnResume({required bool enable}) {
+    _autoSyncOnResume = enable;
+    if (enable) {
+      _attachAppResume();
+    } else {
+      _appResume.detach();
+    }
+  }
+
+  /// Catch up after the app returns to the foreground.
+  ///
+  /// Runs [synchronize] and [synchronizeEvent] right away from the current
+  /// cursors instead of waiting for the next sync interval (each only when
+  /// enabled in the app config), and reconnects the realtime connection when
+  /// it is not connected, unless realtime is disabled or was closed with
+  /// [closeRealtimeConnection].
+  ///
+  /// Called automatically on resume unless disabled with
+  /// [enableAutoSyncOnResume]. Does nothing while no user is logged in, and
+  /// calls within 2 seconds of the previous run are ignored.
+  void handleAppResumed() {
+    _appResume.trigger();
+  }
+
+  void _attachAppResume() {
+    if (_autoSyncOnResume && _storage.isLogin) _appResume.attach();
+  }
+
+  bool _syncOnResume() {
+    if (!_storage.isLogin) return false;
+
+    // `synchronize()`/`synchronizeEvent()` bersifat fire-and-forget, dan
+    // request yang gagal (mis. masih offline tepat setelah resume) lolos
+    // sebagai uncaught async error. Jalankan di zone sendiri supaya
+    // kegagalannya masuk ke `onRealtimeError()` alih-alih ke handler error
+    // global aplikasi.
+    runZonedGuarded(() {
+      if (_storage.isSyncEnabled) {
+        var lastMessageId =
+            _storage.currentUser?.lastMessageId ?? _storage.lastMessageId;
+        synchronize(lastMessageId: lastMessageId.toString());
+      }
+      if (_storage.isSyncEventEnabled) {
+        var lastEventId =
+            _storage.currentUser?.lastEventId ?? _storage.lastEventId;
+        synchronizeEvent(lastEventId: lastEventId.toString());
+      }
+    }, (error, stackTrace) {
+      realtimeErrors$.add(
+        QError('Synchronization on resume failed: $error', stackTrace),
+      );
+    });
+
+    try {
+      _reconnectRealtimeOnResume();
+    } catch (error, stackTrace) {
+      realtimeErrors$.add(
+        QError('Realtime reconnect on resume failed: $error', stackTrace),
+      );
+    }
+    return true;
+  }
+
+  void _reconnectRealtimeOnResume() {
+    if (!_storage.isRealtimeEnabled || _storage.isRealtimeManuallyClosed) {
+      return;
+    }
+    if (_mqttIsConnected) return;
+
+    // `connectionHandler` ditandai @protected oleh mqtt_client, tapi hanya
+    // dari sana bisa dibedakan "belum pernah connect" dari "auto reconnect
+    // sedang berjalan". Memanggil `connect()` saat auto reconnect berjalan
+    // membuat dua koneksi dengan client id yang sama yang saling menendang.
+    // ignore: invalid_use_of_protected_member
+    var handler = _mqtt.connectionHandler;
+    // ignore: invalid_use_of_protected_member
+    if (handler == null || !handler.initialConnectionComplete) {
+      // Belum pernah connect, connect awal gagal (`faulted`), atau sudah
+      // disconnect. mqtt_client hanya auto reconnect setelah koneksi pertama
+      // sukses, jadi tanpa ini kondisi ini tidak pernah pulih sendiri.
+      if (_mqtt.connectionStatus?.state == MqttConnectionState.connecting) {
+        return; // connect awal masih berjalan, punya timeout sendiri
+      }
+      _connectMqtt().ignore();
+    } else if (!handler.autoReconnectInProgress) {
+      if (_mqtt.autoReconnect) {
+        _mqtt.doAutoReconnect();
+      } else {
+        _connectMqtt().ignore();
+      }
+    }
+  }
+
   Future<void> setup(String appId) {
     return setupWithCustomServer(appId);
   }
@@ -660,6 +783,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
           return data.first;
         })
         .tap((_) => _connectMqtt())
+        .tap((_) => _attachAppResume())
         .runOrThrow();
   }
 
@@ -672,6 +796,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
           return data.first;
         })
         .tap((_) => _connectMqtt())
+        .tap((_) => _attachAppResume())
         .runOrThrow();
   }
 
