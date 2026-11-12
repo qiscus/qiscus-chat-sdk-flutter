@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:qiscus_chat_sdk/src/impls/mqtt-impls.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 /// Waktu tunggu yang cukup untuk timer attach 300ms di `mqttUpdate2`.
 const _afterAttach = Duration(milliseconds: 500);

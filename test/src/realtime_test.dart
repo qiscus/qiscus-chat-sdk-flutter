@@ -7,7 +7,7 @@ import 'package:qiscus_chat_sdk/src/core.dart';
 import 'package:qiscus_chat_sdk/src/domain/domains.dart';
 import 'package:qiscus_chat_sdk/src/impls/message/message-from-json-impl.dart';
 import 'package:qiscus_chat_sdk/src/realtime.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'dio_mock.dart';
 

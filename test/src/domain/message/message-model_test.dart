@@ -1,6 +1,6 @@
 import 'package:qiscus_chat_sdk/src/domain/message/message-model.dart';
 import 'package:qiscus_chat_sdk/src/domain/user/user-model.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('QMessage', () {

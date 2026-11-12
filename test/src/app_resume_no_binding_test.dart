@@ -3,7 +3,7 @@
 import 'package:dio/dio.dart';
 import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
 import 'package:qiscus_chat_sdk/src/app_lifecycle.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'support/mqtt_broker.dart';
 

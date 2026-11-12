@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'support/mqtt_broker.dart';
 

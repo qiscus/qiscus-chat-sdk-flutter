@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 // `synchronize()`/`synchronizeEvent()` publik (dipanggil aplikasi, dan oleh
 // SDK sendiri saat resume). Dulu `synchronizeEvent()` membuang hasilnya: event

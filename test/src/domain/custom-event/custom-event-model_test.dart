@@ -1,5 +1,5 @@
 import 'package:qiscus_chat_sdk/src/domain/custom-event/custom-event-model.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('QCustomEvent', () {

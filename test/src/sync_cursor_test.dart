@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 // Bug cursor sync Klikdokter (2.2.7): `lastMessageId` adalah SATU cursor
 // global yang hanya boleh maju, dipakai `sync?last_received_comment_id=`.

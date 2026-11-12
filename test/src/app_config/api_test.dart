@@ -1,7 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:qiscus_chat_sdk/src/app_config/app_config.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('api request', () async {

@@ -3,7 +3,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:mockito/mockito.dart';
 import 'package:qiscus_chat_sdk/src/app_config/app_config.dart';
 import 'package:qiscus_chat_sdk/src/core.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../dio_mock.dart';
 
 void main() {

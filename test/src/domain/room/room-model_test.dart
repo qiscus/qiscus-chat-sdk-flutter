@@ -1,5 +1,5 @@
 import 'package:qiscus_chat_sdk/src/domain/room/room-model.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('QChatRoom', () {

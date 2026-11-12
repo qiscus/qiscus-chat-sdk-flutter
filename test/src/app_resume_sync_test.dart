@@ -1,10 +1,9 @@
 // Menguji sinkronisasi saat aplikasi kembali ke foreground (resume).
 //
-// Memakai `WidgetsFlutterBinding` asli, bukan `flutter_test`: `flutter_test`
-// mem-pin versi `matcher`/`test_api` yang bentrok dengan dev dependency
-// `test` milik paket ini. Binding di-inisialisasi oleh TEST, bukan oleh SDK.
+// Memakai `WidgetsFlutterBinding` asli, bukan `TestWidgetsFlutterBinding`:
+// binding test mengganti `HttpClient` global dan tidak dibutuhkan di sini.
+// Binding di-inisialisasi oleh TEST, bukan oleh SDK.
 // ignore_for_file: invalid_use_of_protected_member
-import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -14,7 +13,7 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
 import 'package:qiscus_chat_sdk/src/app_lifecycle.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'support/mqtt_broker.dart';
 

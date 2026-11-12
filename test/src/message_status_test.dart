@@ -13,7 +13,7 @@ import 'package:qiscus_chat_sdk/src/impls/message/message-from-json-impl.dart';
 import 'package:qiscus_chat_sdk/src/impls/message/message-receipt-impl.dart';
 import 'package:qiscus_chat_sdk/src/impls/message/on-message-deleted-impl.dart';
 import 'package:qiscus_chat_sdk/src/impls/sync.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'support/mqtt_broker.dart';
 
