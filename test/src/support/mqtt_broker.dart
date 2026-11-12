@@ -12,9 +12,9 @@ class TestMqttBroker {
   late final StreamSubscription<Socket> _connections;
   int connections = 0;
 
-  static Future<TestMqttBroker> start() async {
+  static Future<TestMqttBroker> start({int port = 0}) async {
     final broker = TestMqttBroker._(
-        await ServerSocket.bind(InternetAddress.loopbackIPv4, 0));
+        await ServerSocket.bind(InternetAddress.loopbackIPv4, port));
     broker._connections = broker.server.listen((socket) {
       broker.connections++;
       final peer = _Peer(socket);
