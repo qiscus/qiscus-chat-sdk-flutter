@@ -17,6 +17,20 @@
 - sync messages/events and reconnect realtime when the app returns to the
   foreground; add `handleAppResumed()` and
   `enableAutoSyncOnResume(enable:)` (on by default)
+- delivered/read receipts now cascade: a receipt for message X in a room also
+  raises every earlier own message in that room. One event is emitted per
+  message whose status changed (oldest first); receipts that change nothing
+  no longer fire
+- `synchronizeEvent()` now emits its events on `onMessageDelivered()`,
+  `onMessageRead()`, `onMessageDeleted()` and `onChatRoomCleared()` and moves
+  the event cursor (forward only); without arguments it uses the current
+  cursor
+- `synchronize()`/`synchronizeEvent()` failures are reported only on
+  `onRealtimeError()` instead of escaping as uncaught async errors
+- fix `cancel()` on `onMessageDelivered()`/`onMessageRead()`/
+  `onMessageDeleted()` subscriptions never completing; background sync
+  polling now stops when the last listener cancels, and the status streams
+  share one event-sync loop instead of competing over the event cursor
 
 # 2.2.7
 
