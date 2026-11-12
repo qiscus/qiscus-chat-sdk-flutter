@@ -44,6 +44,17 @@ mixin QRealtimeService {
   final StreamController<QError> realtimeErrors$ =
       StreamController<QError>.broadcast();
 
+  /// Event hasil `synchronizeEvent()` publik (dipanggil aplikasi, atau oleh
+  /// SDK saat resume).
+  ///
+  /// Dulu hasilnya dibuang begitu saja. Kini diteruskan ke stream
+  /// read/delivered/deleted/room cleared yang sama dengan hasil loop sync
+  /// periodik. Broadcast karena dipakai empat stream; tiap stream berlangganan
+  /// satu kali, jadi tiap event sampai sekali per stream.
+  @protected
+  final StreamController<QRealtimeEvent> syncEventSubs$ =
+      StreamController<QRealtimeEvent>.broadcast();
+
   /// Id pesan yang dikirim aplikasi dari perangkat ini lewat `sendMessage()`.
   ///
   /// Dulu `sendMessage()` menggeser cursor sync ke id pesan yang baru dikirim,
@@ -139,10 +150,8 @@ mixin QRealtimeService {
       var lastEventId = storage.currentUser?.lastEventId ?? storage.lastEventId;
       var data = await synchronizeEventImpl(lastEventId).run(dio).runOrThrow();
 
-      if (data.second.isNotEmpty || data.first != 0) {
-        storage.currentUser?.lastEventId = data.first;
-        storage.lastEventId = data.first;
-      }
+      // Hanya maju: respons kosong (0) atau id lama tidak memundurkan cursor.
+      storage.setLastEventId(data.first);
       return data.second.toList();
     } catch (error, stackTrace) {
       realtimeErrors$.add(
@@ -193,6 +202,7 @@ mixin QRealtimeService {
   Stream<QMessage> getMessageReadStream() {
     return StreamGroup.mergeBroadcast([
       _synchronizeEvent().transform(syncMessageReadTransformerImpl),
+      syncEventSubs$.stream.transform(syncMessageReadTransformerImpl),
       _mqttUpdates.transform(mqttMessageReadTransformerImpl),
     ]).transform(_applyReceipts());
   }
@@ -200,6 +210,7 @@ mixin QRealtimeService {
   Stream<QMessage> getMessageDeliveredStream() {
     return StreamGroup.mergeBroadcast([
       _synchronizeEvent().transform(syncMessageDeliveredTransformerImpl),
+      syncEventSubs$.stream.transform(syncMessageDeliveredTransformerImpl),
       _mqttUpdates.transform(mqttMessageDeliveredTransformerImpl),
     ]).transform(_applyReceipts());
   }
@@ -228,6 +239,7 @@ mixin QRealtimeService {
   Stream<QMessage> getMessageDeletedStream() {
     return StreamGroup.mergeBroadcast([
       _synchronizeEvent().transform(syncMessageDeletedTransformerImpl),
+      syncEventSubs$.stream.transform(syncMessageDeletedTransformerImpl),
       _mqttUpdates.transform(mqttMessageDeletedTransformerImpl)
     ])
         .map((state) => state.run(storage.messages))
@@ -255,6 +267,7 @@ mixin QRealtimeService {
   Stream<int> getRoomClearedStream() {
     return StreamGroup.mergeBroadcast([
       _synchronizeEvent().transform(syncRoomClearedTransformerImpl),
+      syncEventSubs$.stream.transform(syncRoomClearedTransformerImpl),
       _mqttUpdates.transform(mqttRoomClearedTransformerImpl),
     ]);
   }

@@ -103,6 +103,18 @@ extension StorageX on Storage {
     currentUser?.lastMessageId = messageId;
   }
 
+  /// Menggeser cursor event sync (`sync_event`), dan hanya ke depan.
+  ///
+  /// Respons kosong mengembalikan id 0, dan `synchronizeEvent()` bisa dipanggil
+  /// dengan id lama; keduanya tidak boleh memundurkan cursor.
+  void setLastEventId(int eventId) {
+    var current = currentUser?.lastEventId ?? lastEventId;
+    if (eventId <= current) return;
+
+    lastEventId = eventId;
+    currentUser?.lastEventId = eventId;
+  }
+
   bool get isLogin => currentUser != null && token != null;
 }
 

@@ -656,11 +656,10 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   bool _syncOnResume() {
     if (!_storage.isLogin) return false;
 
-    // `synchronize()`/`synchronizeEvent()` bersifat fire-and-forget, dan
-    // request yang gagal (mis. masih offline tepat setelah resume) lolos
-    // sebagai uncaught async error. Jalankan di zone sendiri supaya
-    // kegagalannya masuk ke `onRealtimeError()` alih-alih ke handler error
-    // global aplikasi.
+    // `synchronize()`/`synchronizeEvent()` bersifat fire-and-forget dan kini
+    // melaporkan kegagalannya sendiri ke `onRealtimeError()` (`_runSync`).
+    // Zone ini tetap dipasang sebagai pengaman: error tak terduga tidak boleh
+    // sampai ke handler error global aplikasi.
     runZonedGuarded(() {
       if (_storage.isSyncEnabled) {
         var lastMessageId =
@@ -945,24 +944,44 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
     var cursor = lastMessageId ??
         (_storage.currentUser?.lastMessageId ?? _storage.lastMessageId)
             .toString();
-    var result = await synchronizeImpl(cursor).run(_dio).map((r) {
+    await _runSync(() async {
+      var r = await synchronizeImpl(cursor).run(_dio).runOrThrow();
       // `setLastMessageId` hanya maju dan ikut memperbarui
       // `currentUser.lastMessageId`, yang dibaca lebih dulu oleh loop sync.
       // Respons kosong (0) atau id lama tidak memundurkan cursor.
       _storage.setLastMessageId(r.first);
       r.second.sortedByTimestamp().forEach(_messageReceivedSubs$.sink.add);
-      return r;
-    }).run();
-
-    result.match(realtimeErrors$.add, (_) {});
+    });
   }
 
   void synchronizeEvent({String? lastEventId}) async {
-    var result = await synchronizeEventImpl(int.tryParse(lastEventId ?? ''))
-        .run(_dio)
-        .run();
+    // Tanpa argumen, pakai cursor yang sama dengan loop sync event.
+    var cursor = int.tryParse(lastEventId ?? '') ??
+        (_storage.currentUser?.lastEventId ?? _storage.lastEventId);
+    await _runSync(() async {
+      var r = await synchronizeEventImpl(cursor).run(_dio).runOrThrow();
+      // Dulu hasilnya dibuang: event tidak pernah sampai ke stream SDK dan
+      // cursor tidak maju. Cursor hanya maju, sama seperti loop sync event.
+      _storage.setLastEventId(r.first);
+      r.second.forEach(syncEventSubs$.add);
+    });
+  }
 
-    result.match(realtimeErrors$.add, (_) {});
+  /// Jalankan sync publik tanpa pernah melempar error.
+  ///
+  /// `synchronize()`/`synchronizeEvent()` bertipe `void ... async`, jadi error
+  /// yang lolos menjadi uncaught async error di zone aplikasi. `tryCatch`
+  /// (lib/src/core.dart) melempar ulang semua error selain `DioException`,
+  /// termasuk `QError` dari `sendApiRequest` - artinya setiap request yang
+  /// gagal. Semua kegagalan kini hanya dilaporkan lewat `onRealtimeError()`.
+  Future<void> _runSync(Future<void> Function() body) async {
+    try {
+      await body();
+    } catch (error, stackTrace) {
+      realtimeErrors$.add(
+        error is QError ? error : QError(error.toString(), stackTrace),
+      );
+    }
   }
 
   Future<QUser> unblockUser({required String userId}) {
