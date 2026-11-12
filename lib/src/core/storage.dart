@@ -8,6 +8,9 @@ const defaultAccInterval = 1000;
 const defaultSyncInterval = 5000;
 const defaultSyncIntervalWhenConnected = 30000;
 
+/// Batas jumlah pesan di [Storage.messages]; pesan terlama dibuang lebih dulu.
+const maxStoredMessages = 2000;
+
 class Storage {
   String? appId;
   String? version;
@@ -34,8 +37,18 @@ class Storage {
   bool isSyncEventEnabled;
   bool isRealtimeManuallyClosed;
   Json? configExtras;
-  Set<QMessage> messages;
   Set<QChatRoom> rooms;
+
+  /// Pesan yang dikenal SDK, dipakai untuk mencocokkan event status
+  /// (delivered/read/deleted/updated) ke pesannya.
+  ///
+  /// Setter-nya menormalkan isi: satu entri per pesan (id ATAU uniqueId sama
+  /// = pesan yang sama, instance terbaru menang), status tidak pernah turun,
+  /// dan dibatasi [maxStoredMessages] entri terbaru. `QMessage` tidak punya
+  /// `==`/`hashCode`, jadi `Set` biasa tidak bisa membuang duplikat ini.
+  Set<QMessage> get messages => _messages;
+  set messages(Set<QMessage> value) => _messages = _normalizeMessages(value);
+  Set<QMessage> _messages;
 
   Storage({
     this.appId,
@@ -61,10 +74,10 @@ class Storage {
     this.isSyncEnabled = true,
     this.isSyncEventEnabled = false,
     this.logLevel = QLogLevel.debug,
-    this.messages = const {},
+    Set<QMessage> messages = const {},
     this.rooms = const {},
     this.configExtras = const {},
-  });
+  }) : _messages = _normalizeMessages(messages);
 
   String? get userId => currentUser?.id;
 }
@@ -91,4 +104,42 @@ extension StorageX on Storage {
   }
 
   bool get isLogin => currentUser != null && token != null;
+}
+
+/// Urutan status yang hanya boleh naik. `sending`/`failed` di luar urutan ini
+/// dan tidak pernah ikut digabung.
+const _statusRank = [
+  QMessageStatus.sent,
+  QMessageStatus.delivered,
+  QMessageStatus.read,
+];
+
+/// Lihat [Storage.messages]. Urutan dipertahankan (terlama dulu); duplikat
+/// diganti instance yang datang belakangan, di posisi instance tersebut.
+Set<QMessage> _normalizeMessages(Iterable<QMessage> messages) {
+  var byId = <int, QMessage>{};
+  var byUniqueId = <String, QMessage>{};
+  var kept = <QMessage>[];
+
+  // Telusuri dari yang terbaru supaya instance terbaru yang disimpan.
+  for (var message in messages.toList().reversed) {
+    var newer = byId[message.id] ??
+        (message.uniqueId.isEmpty ? null : byUniqueId[message.uniqueId]);
+
+    if (newer != null) {
+      var newerRank = _statusRank.indexOf(newer.status);
+      var olderRank = _statusRank.indexOf(message.status);
+      if (newerRank >= 0 && olderRank > newerRank) {
+        newer.status = message.status;
+      }
+      continue;
+    }
+
+    if (kept.length >= maxStoredMessages) break;
+    kept.add(message);
+    byId[message.id] = message;
+    if (message.uniqueId.isNotEmpty) byUniqueId[message.uniqueId] = message;
+  }
+
+  return kept.reversed.toSet();
 }

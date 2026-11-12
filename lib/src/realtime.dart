@@ -183,11 +183,23 @@ mixin QRealtimeService {
         .tap((it) =>
             markAsDelivered(roomId: it.chatRoomId, messageId: it.id).ignore())
         .asyncMap((it) => triggerHook(QInterceptor.messageBeforeReceived, it))
+        // Daftarkan ke store supaya event deleted/updated/status berikutnya
+        // untuk pesan ini bisa dicocokkan.
+        .tap((m) => storage.messages = {...storage.messages, m})
         .tap((m) => storage.setLastMessageId(m.id));
   }
 
   bool _isNotSentHere(QMessage message) =>
       !_sentMessageIds.contains(message.id);
+
+  /// Status delivered/read hanya bermakna untuk pesan milik user sendiri.
+  ///
+  /// Store kini juga berisi pesan yang dimuat dan diterima, termasuk milik
+  /// user lain. Receipt atas pesan mereka (mis. dari `markAsDelivered`
+  /// otomatis) tidak diteruskan, sama seperti sebelum store diisi pesan
+  /// selain hasil `sendMessage`.
+  bool _isOwnMessage(QMessage message) =>
+      message.sender.id == storage.currentUser?.id;
 
   Stream<QMessage> getMessageReadStream() {
     return StreamGroup.mergeBroadcast([
@@ -197,7 +209,8 @@ mixin QRealtimeService {
         .map((it) => it.run(storage.messages))
         .tap((it) => storage.messages = it.second.toSet())
         .map((it) => it.first)
-        .transform(nonNullTransformer());
+        .transform(nonNullTransformer())
+        .where(_isOwnMessage);
   }
 
   Stream<QMessage> getMessageDeliveredStream() {
@@ -208,7 +221,8 @@ mixin QRealtimeService {
         .map((it) => it.run(storage.messages))
         .tap((it) => storage.messages = it.second.toSet())
         .map((it) => it.first)
-        .transform(nonNullTransformer());
+        .transform(nonNullTransformer())
+        .where(_isOwnMessage);
   }
 
   Stream<QMessage> getMessageDeletedStream() {

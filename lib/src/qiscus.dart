@@ -258,6 +258,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
     var t2 = getRoomWithMessagesImpl(roomId).map((v) {
       return v.map((v) => QChatRoomWithMessages(v.first, v.second.toList()));
     }).run(_dio);
+    t2 = t2.tap((data) => _storeMessages(data.messages));
 
     // Jangan geser cursor sync di sini: cursor itu global untuk semua room.
     // Membuka room B yang berisi pesan lebih baru dulu membuat sync melewatkan
@@ -275,6 +276,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
     int? limit,
   }) async {
     var t2 = getNextMessagesImpl(roomId, messageId, limit: limit).run(_dio);
+    t2 = t2.map((it) => it.toList()).tap(_storeMessages);
 
     return t2.map((it) => it.toList()).runOrThrow();
   }
@@ -301,6 +303,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
     int? limit,
   }) async {
     var t2 = getPreviousMessagesImpl(roomId, messageId, limit: limit).run(_dio);
+    t2 = t2.map((it) => it.toList()).tap(_storeMessages);
 
     return t2.map((it) => it.toList()).runOrThrow();
   }
@@ -1233,6 +1236,15 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
       syncIntervalWhenConnected: syncIntervalWhenConnected,
     );
     return sdk;
+  }
+
+  /// Daftarkan pesan hasil loader ke [Storage.messages] supaya event
+  /// delivered/read/deleted untuk pesan itu tidak dibuang. Iterable dari
+  /// loader bersifat lazy (`sync*`), jadi pemanggil wajib meneruskan list yang
+  /// sama dengan yang dikembalikan ke aplikasi; dengan begitu event memperbarui
+  /// instance milik aplikasi.
+  void _storeMessages(Iterable<QMessage> messages) {
+    _storage.messages = {..._storage.messages, ...messages};
   }
 }
 

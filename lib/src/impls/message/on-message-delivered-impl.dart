@@ -31,7 +31,11 @@ StreamTransformer<QMessageDeliveredEvent, State<Iterable<QMessage>, QMessage?>>
               item.id == data.messageId)
           .head
           .map((it) {
-        it.status = QMessageStatus.delivered;
+        // Jangan turunkan status: receipt delivered bisa datang SETELAH read
+        // (mis. lewat sync event atau urutan MQTT yang tertukar).
+        if (it.status != QMessageStatus.read) {
+          it.status = QMessageStatus.delivered;
+        }
         return it;
       }).toNullable();
       return Tuple2(message, messages);
