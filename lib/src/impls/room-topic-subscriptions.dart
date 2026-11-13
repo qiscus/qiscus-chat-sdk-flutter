@@ -67,6 +67,20 @@ class RoomTopicSubscriptions {
     _apply(roomId, room);
   }
 
+  /// `true` bila [topic] adalah wildcard room aktif yang belum diganti
+  /// fallback, yaitu kegagalan yang ditangani [onSubscribeFail].
+  bool isPendingWildcard(String topic) {
+    for (var entry in _rooms.entries) {
+      for (var kind in RoomTopicKind.values) {
+        if (!entry.value.fallback.contains(kind) &&
+            _wildcard(entry.key, kind) == topic) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   /// Dipanggil dari `MqttClient.onSubscribeFail`. `true` bila [topic] adalah
   /// wildcard room yang kemudian diganti topic per peserta.
   Future<bool> onSubscribeFail(String topic) async {

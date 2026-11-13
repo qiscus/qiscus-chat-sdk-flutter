@@ -23,6 +23,10 @@ class TestMqttBroker {
   late final StreamSubscription<Socket> _connections;
   int connections = 0;
 
+  /// Grant SUBACK paksa untuk semua filter (0x80 = gagal, -1 = SUBACK
+  /// kosong); `null` = berikan QoS yang diminta.
+  int? subscriptionGrant;
+
   static Future<TestMqttBroker> start({
     int port = 0,
     bool Function(String filter)? rejectSubscribe,
@@ -139,14 +143,15 @@ class _Peer {
             index += 2;
             final topic = utf8.decode(payload.sublist(index, index + length));
             index += length;
-            final qos = payload[index++];
+            final requested = payload[index++];
             if (broker.rejectSubscribe?.call(topic) ?? false) {
               broker.rejected.add(topic);
               grants.add(0x80);
-            } else {
-              topics.add(topic);
-              grants.add(qos);
+              continue;
             }
+            final grant = broker.subscriptionGrant ?? requested;
+            if (grant != 0x80 && grant != -1) topics.add(topic);
+            if (grant != -1) grants.add(grant);
           }
           send(0x90, [payload[0], payload[1], ...grants]);
           break;

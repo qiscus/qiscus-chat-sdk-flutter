@@ -304,6 +304,28 @@ void main() {
     expect(fixture.broker.subscribed('r/1/1/new@example.com/d'), isTrue);
   });
 
+  test('wildcard rejections handled by the fallback are not realtime errors; '
+      'a rejected fallback topic is', () async {
+    final fixture = await _start(
+        reject: (f) => _reject(f) || f == 'r/1/1/$_agent/t');
+    final errors = <Object>[];
+    fixture.subscriptions
+        .add(fixture.sdk.realtimeErrors$.stream.listen(errors.add));
+    final data = await fixture.sdk.getChatRoomWithMessages(roomId: 1);
+
+    fixture.sdk.subscribeChatRoom(data.room);
+    await waitFor(() =>
+        fixture.broker.subscribed('r/1/1/$_agent/r') &&
+        fixture.broker.subscribed('r/1/1/$_agent/d') &&
+        errors.isNotEmpty);
+    await _settle();
+
+    expect(errors, hasLength(1));
+    // Topic per peserta memuat email: tetap disamarkan di pesan error.
+    expect('${errors.single}', contains('[redacted]'));
+    expect('${errors.single}', isNot(contains(_agent)));
+  });
+
   test('participant ids that are not valid in a topic are skipped', () async {
     final fixture = await _start(reject: _reject);
     fixture.roomParticipants = [_me, _agent, 'bad+id@example.com'];

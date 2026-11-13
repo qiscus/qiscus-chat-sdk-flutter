@@ -142,16 +142,73 @@ Reader<MqttClient, IO<Stream<QMqttMessage>>> mqttForTopic(
   });
 }
 
+// Only numeric room filters are safe to include in diagnostics. Other topics
+// can contain an auth token or user identifier.
+String mqttDiagnosticTopic(String topic) =>
+    RegExp(r'^r/\d+/(\d+|\+)/\+/(r|d|t)$').hasMatch(topic) ||
+            RegExp(r'^r/\d+/\d+/e$').hasMatch(topic)
+        ? topic
+        : '[redacted]';
+
+final _mqttSubscribeInProgress = Expando<bool>();
+
+bool mqttSubscribeInProgress(MqttClient mqtt) =>
+    _mqttSubscribeInProgress[mqtt] ?? false;
+
+final _mqttSubscribeErrors = Expando<void Function(QError)>();
+
+void observeMqttSubscribeErrors(
+    MqttClient mqtt, void Function(QError) onError) {
+  _mqttSubscribeErrors[mqtt] = onError;
+  final previousOnSubscribeFail = mqtt.onSubscribeFail;
+  mqtt.onSubscribeFail = (topic) {
+    // mqtt_client also invokes this synchronously on local failure; the wrapper
+    // reports that failure once, with the local stage rather than SUBACK.
+    if (!mqttSubscribeInProgress(mqtt)) {
+      onError(QError(
+          'MQTT asynchronous subscription failed for ${mqttDiagnosticTopic(topic)}; '
+          'broker SUBACK rejected/empty or automatic re-subscribe failed '
+          '(raw return code unavailable).'));
+    }
+    previousOnSubscribeFail?.call(topic);
+  };
+}
+
 Reader<MqttClient, IOEither<QError, Unit>> mqttSubscribeTopic(
   String topic,
 ) {
   return Reader((mqtt) {
     return IOEither.tryCatch(() {
+      // mqtt_client 9.8.1 falls through to onSubscribed on a failed SUBACK
+      // unless this callback is non-null, even without an SDK/debug observer.
+      mqtt.onSubscribeFail ??= (_) {};
+      _mqttSubscribeInProgress[mqtt] = true;
       try {
-        mqtt.subscribe(topic, MqttQos.atLeastOnce);
-      } on ConnectionException catch (_) {}
-      return unit;
-    }, (e, st) => QError(e.toString(), st));
+        Subscription? subscription;
+        try {
+          subscription = mqtt.subscribe(topic, MqttQos.atLeastOnce);
+        } catch (_) {
+          // Unlike a null return, a thrown local error has no dependency callback.
+          mqtt.onSubscribeFail?.call(topic);
+          rethrow;
+        }
+        if (subscription == null) {
+          throw QError('MQTT local subscription failed for '
+              '${mqttDiagnosticTopic(topic)}: request was not queued.');
+        }
+        // A queued request is not a broker confirmation. SUBACK is asynchronous.
+        return unit;
+      } finally {
+        _mqttSubscribeInProgress[mqtt] = false;
+      }
+    }, (e, st) {
+      final error = QError(
+          'MQTT local subscription failed for ${mqttDiagnosticTopic(topic)}; '
+          'request was not queued (${e.runtimeType}).',
+          st);
+      _mqttSubscribeErrors[mqtt]?.call(error);
+      return error;
+    });
   });
 }
 

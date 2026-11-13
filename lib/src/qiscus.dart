@@ -60,8 +60,29 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   Tuple2<MqttClient, Storage> get _deps => Tuple2(_mqtt, _storage);
   late final Logger _logger = Logger(_storage);
   late final Dio _dio = getDio.run(Tuple2(_storage, _logger));
-  late final MqttClient _mqtt = getMqttClient(_storage);
+  late final MqttClient _mqtt = _createMqtt();
   late final MqttConnectionTracker _mqttTracker = MqttConnectionTracker(_mqtt);
+
+  MqttClient _createMqtt() {
+    final mqtt = getMqttClient(_storage);
+    observeMqttSubscribeErrors(mqtt, realtimeErrors$.add);
+    // Dipasang setelah pelapor error supaya penolakan wildcard room yang
+    // ditangani fallback per peserta tidak dilaporkan ke `onRealtimeError()`
+    // sebagai error setiap kali room dibuka. `Debug` (bila aktif) tetap
+    // melihat semua kegagalan karena memasang callback-nya belakangan.
+    final reportFailure = mqtt.onSubscribeFail;
+    mqtt.onSubscribeFail = (topic) {
+      // Kegagalan lokal (request tidak terkirim, mis. terputus) bukan bukti
+      // broker menolak wildcard; jangan pindah ke fallback karenanya.
+      if (!mqttSubscribeInProgress(mqtt) &&
+          _roomTopicSubs.isPendingWildcard(topic)) {
+        _roomTopicSubs.onSubscribeFail(topic).ignore();
+        return;
+      }
+      reportFailure?.call(topic);
+    };
+    return mqtt;
+  }
 
   Dio get dio => _dio;
   MqttClient get mqtt => _mqtt;
@@ -884,7 +905,6 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   void subscribeChatRoom(QChatRoom room) async {
     var participants = room.participants.map((it) => it.id).toSet();
     await _doOnConnected(() {
-      _observeSubscribeFail();
       _roomTopicSubs.add(room.id, room.uniqueId, participants);
     });
   }
@@ -901,22 +921,6 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
     currentUserId: () => _storage.currentUser?.id,
     fetchParticipants: _fetchParticipantIds,
   );
-
-  var _subscribeFailObserved = false;
-
-  /// Pasang `onSubscribeFail` sekali, tanpa menimpa callback yang sudah ada.
-  ///
-  /// Wajib non-null: tanpa callback ini mqtt_client memperlakukan SUBACK gagal
-  /// (0x80) sebagai sukses dan memanggil `onSubscribed`.
-  void _observeSubscribeFail() {
-    if (_subscribeFailObserved) return;
-    _subscribeFailObserved = true;
-    var previous = _mqtt.onSubscribeFail;
-    _mqtt.onSubscribeFail = (topic) {
-      _roomTopicSubs.onSubscribeFail(topic).ignore();
-      previous?.call(topic);
-    };
-  }
 
   Future<Set<String>> _fetchParticipantIds(String roomUniqueId) async {
     if (roomUniqueId.isEmpty) return {};
