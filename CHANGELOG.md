@@ -31,6 +31,20 @@
   `onMessageDeleted()` subscriptions never completing; background sync
   polling now stops when the last listener cancels, and the status streams
   share one event-sync loop instead of competing over the event cursor
+- fix delivered/read receipts and typing never arriving on brokers that reject
+  wildcard room subscriptions (the production broker does):
+  `subscribeChatRoom()` still subscribes the wildcard filters first, and when
+  the broker rejects one (SUBACK failure) it falls back, for that topic kind
+  only, to one `r/<room>/<room>/<userId>/r|d|t` topic per other participant,
+  fetching the participants when the room has none.
+  `addParticipants()`/`removeParticipants()` keep those topics in sync;
+  participants added by others are picked up when the app calls
+  `subscribeChatRoom()` again
+- report local subscribe failures and broker SUBACK rejections through
+  `onRealtimeError()` and `Debug.onMqttSubscribeFailed`, with non-room topics
+  redacted; wildcard rejections handled by the fallback are not reported to
+  `onRealtimeError()`. Disconnected or null subscribe results are no longer
+  treated as success
 
 # 2.2.7
 
