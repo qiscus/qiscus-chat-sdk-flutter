@@ -23,6 +23,7 @@ import 'impls/message/send-message-impl.dart';
 import 'impls/message/update-message-impl.dart';
 import 'impls/message/update-message-status-impl.dart';
 import 'impls/mqtt-impls.dart';
+import 'impls/room-topic-subscriptions.dart';
 import 'impls/room/add-participants.dart';
 import 'impls/room/chat-user-impl.dart';
 import 'impls/room/clear-messages-impl.dart';
@@ -119,7 +120,11 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   }) async {
     var t2 = addParticipantsImpl(roomId, userIds).run(_dio);
 
-    return t2.map((it) => it.toList()).runOrThrow();
+    return t2
+        .map((it) => it.toList())
+        .tap((it) =>
+            _updateRoomParticipants(roomId, added: it.map((p) => p.id)))
+        .runOrThrow();
   }
 
   Future<QUser> blockUser({required String userId}) async {
@@ -147,6 +152,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
 
   Future<void> clearUser() async {
     _appResume.detach();
+    _roomTopicSubs.clear();
     _storage.clear();
     _mqtt.disconnect();
   }
@@ -525,6 +531,7 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
     return removeParticipantImpl(roomId: roomId, userIds: userIds)
         .run(_dio)
         .map((it) => it.toList())
+        .tap((it) => _updateRoomParticipants(roomId, removed: it))
         .runOrThrow();
   }
 
@@ -875,30 +882,73 @@ class QiscusSDK with QRealtimeService implements IQiscusSDK {
   }
 
   void subscribeChatRoom(QChatRoom room) async {
+    var participants = room.participants.map((it) => it.id).toSet();
     await _doOnConnected(() {
-      var roomId = room.id.toString();
-      var subs1 =
-          mqttSubscribeTopic(TopicBuilder.messageRead(roomId)).run(_mqtt);
-      var subs2 =
-          mqttSubscribeTopic(TopicBuilder.messageDelivered(roomId)).run(_mqtt);
-      var subs3 =
-          mqttSubscribeTopic(TopicBuilder.typing(roomId, '+')).run(_mqtt);
-
-      subs1.runOrThrow();
-      subs2.runOrThrow();
-      subs3.runOrThrow();
+      _observeSubscribeFail();
+      _roomTopicSubs.add(room.id, room.uniqueId, participants);
     });
   }
 
   void unsubscribeChatRoom(QChatRoom room) {
-    _doOnConnected(() {
-      var roomId = room.id.toString();
-      mqttUnsubscribeTopic(TopicBuilder.messageRead(roomId))
-          .call(mqttUnsubscribeTopic(TopicBuilder.messageDelivered(roomId))
-              .call(mqttUnsubscribeTopic(TopicBuilder.typing(roomId, '+'))))
-          .run(_mqtt)
-          .run();
-    }).ignore();
+    _doOnConnected(() => _roomTopicSubs.remove(room.id)).ignore();
+  }
+
+  /// Subscription topic receipt/typing per room; wildcard dulu, topic per
+  /// peserta bila broker menolak wildcard (lihat [RoomTopicSubscriptions]).
+  late final _roomTopicSubs = RoomTopicSubscriptions(
+    subscribe: (topic) => mqttSubscribeTopic(topic).run(_mqtt).run(),
+    unsubscribe: (topic) => mqttUnsubscribeTopic(topic).run(_mqtt).run(),
+    currentUserId: () => _storage.currentUser?.id,
+    fetchParticipants: _fetchParticipantIds,
+  );
+
+  var _subscribeFailObserved = false;
+
+  /// Pasang `onSubscribeFail` sekali, tanpa menimpa callback yang sudah ada.
+  ///
+  /// Wajib non-null: tanpa callback ini mqtt_client memperlakukan SUBACK gagal
+  /// (0x80) sebagai sukses dan memanggil `onSubscribed`.
+  void _observeSubscribeFail() {
+    if (_subscribeFailObserved) return;
+    _subscribeFailObserved = true;
+    var previous = _mqtt.onSubscribeFail;
+    _mqtt.onSubscribeFail = (topic) {
+      _roomTopicSubs.onSubscribeFail(topic).ignore();
+      previous?.call(topic);
+    };
+  }
+
+  Future<Set<String>> _fetchParticipantIds(String roomUniqueId) async {
+    if (roomUniqueId.isEmpty) return {};
+    // `tryCatch` melempar ulang QError dari `sendApiRequest`, jadi kegagalan
+    // bisa datang sebagai exception, bukan hanya Left.
+    try {
+      var result = await getParticipantsImpl(
+        roomUniqueId,
+        limit: RoomTopicSubscriptions.maxParticipantTopics,
+      ).run(_dio).run();
+      return result.match<Set<String>>(
+        (_) => <String>{},
+        (it) => it.map((p) => p.id).toSet(),
+      );
+    } catch (_) {
+      return {};
+    }
+  }
+
+  /// Perbarui topic room yang sedang di-subscribe setelah peserta berubah
+  /// lewat SDK ini. Perubahan dari pihak lain baru terlihat setelah aplikasi
+  /// memanggil [subscribeChatRoom] lagi dengan room terbaru.
+  void _updateRoomParticipants(
+    int roomId, {
+    Iterable<String> added = const [],
+    Iterable<String> removed = const [],
+  }) {
+    _doOnConnected(() => _roomTopicSubs.updateParticipants(
+          roomId,
+          added: added,
+          removed: removed,
+        )).ignore();
   }
 
   Stream<Json> subscribeCustomEvent({

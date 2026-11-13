@@ -45,6 +45,10 @@ abstract class TopicBuilder {
   static String messageDelivered(String roomId) => 'r/$roomId/+/+/d';
   static String notification(String token) => '$token/n';
   static String messageRead(String roomId) => 'r/$roomId/+/+/r';
+  static String messageDeliveredBy(String roomId, String userId) =>
+      'r/$roomId/$roomId/$userId/d';
+  static String messageReadBy(String roomId, String userId) =>
+      'r/$roomId/$roomId/$userId/r';
   static String messageNew(String token) => '$token/c';
   static String messageUpdated(String token) => '$token/update';
   static String channelMessageNew(String appId, String channelId) =>

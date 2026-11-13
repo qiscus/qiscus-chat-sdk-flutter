@@ -5,19 +5,34 @@ import 'dart:io';
 /// Minimal loopback broker: real mqtt_client connect, subscribe, reconnect and
 /// disconnect processing, without a remote service or replacing its callbacks.
 class TestMqttBroker {
-  TestMqttBroker._(this.server);
+  TestMqttBroker._(this.server, this.rejectSubscribe);
 
   final ServerSocket server;
+
+  /// Filter yang dijawab SUBACK 0x80 (gagal); `null` = terima semua.
+  final bool Function(String filter)? rejectSubscribe;
+
+  /// Seperti broker produksi (`mochi-mqtt.qiscus.com`): tolak filter topic
+  /// room `r/...` yang memakai wildcard.
+  static bool rejectRoomWildcards(String filter) =>
+      filter.startsWith('r/') && filter.contains('+');
+
+  /// Filter yang ditolak, untuk asersi.
+  final rejected = <String>[];
   final peers = <_Peer>[];
   late final StreamSubscription<Socket> _connections;
   int connections = 0;
 
-  static Future<TestMqttBroker> start({int port = 0}) async {
+  static Future<TestMqttBroker> start({
+    int port = 0,
+    bool Function(String filter)? rejectSubscribe,
+  }) async {
     final broker = TestMqttBroker._(
-        await ServerSocket.bind(InternetAddress.loopbackIPv4, port));
+        await ServerSocket.bind(InternetAddress.loopbackIPv4, port),
+        rejectSubscribe);
     broker._connections = broker.server.listen((socket) {
       broker.connections++;
-      final peer = _Peer(socket);
+      final peer = _Peer(socket, broker);
       broker.peers.add(peer);
       peer.subscription = socket.listen(peer.receive, onDone: () {
         broker.peers.remove(peer);
@@ -77,9 +92,10 @@ class TestMqttBroker {
 }
 
 class _Peer {
-  _Peer(this.socket);
+  _Peer(this.socket, this.broker);
 
   final Socket socket;
+  final TestMqttBroker broker;
   final topics = <String>{};
   final buffer = <int>[];
   late final StreamSubscription<List<int>> subscription;
@@ -121,11 +137,28 @@ class _Peer {
           while (index < payload.length) {
             final length = (payload[index] << 8) | payload[index + 1];
             index += 2;
-            topics.add(utf8.decode(payload.sublist(index, index + length)));
+            final topic = utf8.decode(payload.sublist(index, index + length));
             index += length;
-            grants.add(payload[index++]);
+            final qos = payload[index++];
+            if (broker.rejectSubscribe?.call(topic) ?? false) {
+              broker.rejected.add(topic);
+              grants.add(0x80);
+            } else {
+              topics.add(topic);
+              grants.add(qos);
+            }
           }
           send(0x90, [payload[0], payload[1], ...grants]);
+          break;
+        case 10: // UNSUBSCRIBE
+          var index = 2;
+          while (index < payload.length) {
+            final length = (payload[index] << 8) | payload[index + 1];
+            index += 2;
+            topics.remove(utf8.decode(payload.sublist(index, index + length)));
+            index += length;
+          }
+          send(0xb0, [payload[0], payload[1]]);
           break;
         case 12: // PINGREQ
           send(0xd0, []);
