@@ -11,3 +11,4 @@ analyzer:
     - 'example/**'
     - 'lib/**/*.g.dart'
     - 'lib/**/*.freezed.dart'
+    - build/**
