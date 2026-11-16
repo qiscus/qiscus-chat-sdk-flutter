@@ -1,4 +1,4 @@
-# Unreleased
+# 2.3.0
 
 - fix messages missed by realtime never being fetched by sync: the global
   sync cursor was also advanced by `getChatRoomWithMessages`,
