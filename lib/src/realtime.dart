@@ -183,8 +183,15 @@ mixin QRealtimeService {
         .asyncMap((it) => triggerHook(QInterceptor.messageBeforeReceived, it))
         // Daftarkan ke store supaya event deleted/updated/status berikutnya
         // untuk pesan ini bisa dicocokkan.
-        .tap((m) => storage.messages = {...storage.messages, m})
-        .tap((m) => storage.setLastMessageId(m.id));
+        .tap((m) => storage.messages = {...storage.messages, m});
+    // Sengaja TIDAK memajukan cursor `lastMessageId` di sini. Cursor itu
+    // global dan hanya-maju, dan sync hanya menarik id > cursor. Pesan yang
+    // datang lewat MQTT (atau `messageReceivedSubs$`) tidak membuktikan
+    // pesan ber-id lebih kecil sudah diterima: id 820 yang terlewat tidak
+    // akan pernah diambil bila 825 dari MQTT sudah menggeser cursor ke 825.
+    // Cursor hanya maju dari respons sync REST (`_synchronizeOnce`,
+    // `synchronize()`). Pesan yang ditarik ulang sync tapi sudah diterima
+    // lewat MQTT dibuang oleh `seen` di atas.
   }
 
   bool _isNotSentHere(QMessage message) =>

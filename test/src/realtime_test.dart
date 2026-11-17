@@ -286,10 +286,11 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
       expect(received, [5, 7, 6, 8, 10, 9]);
-      expect(storage.lastMessageId, 10);
+      // Pesan realtime tidak memajukan cursor sync.
+      expect(storage.lastMessageId, 0);
     });
 
-    test('cursor never moves backwards when a message arrives late', () async {
+    test('realtime messages never move the sync cursor', () async {
       var subs$ = StreamController<QMessage>.broadcast();
       var storage = _fastStorage();
       var host = RealtimeHost(DeadMqttClient(), storage, MockDio());
@@ -302,7 +303,64 @@ void main() {
       }
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
-      expect(storage.lastMessageId, 9);
+      expect(storage.lastMessageId, 0);
+    });
+
+    // Regresi 2.3.0: id 820 terlewat di MQTT, 825 masuk lewat MQTT dan dulu
+    // menggeser cursor ke 825 sehingga 820 tidak pernah ditarik sync.
+    test('a message missed by realtime is still delivered by sync once',
+        () async {
+      var dio = MockDio();
+      var storage = _loggedInStorage()..setLastMessageId(819);
+      _stubSync(dio, _syncBatch([], lastId: 819));
+      var subs$ = StreamController<QMessage>.broadcast();
+      var host = RealtimeHost(DeadMqttClient(), storage, dio);
+      var received = <int>[];
+      var subs = _messageStream(host, subs: subs$).listen(
+        (m) => received.add(m.id),
+      );
+      addTearDown(subs.cancel);
+      addTearDown(subs$.close);
+
+      // 825 tiba lewat jalur realtime, 820 terlewat.
+      subs$.add(messageFromJson(_commentJson(825)));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(received, [825]);
+      expect(storage.lastMessageId, 819);
+
+      // Server mengirim 825 dan 820 (menurun); 825 sudah diterima.
+      _stubSync(
+        dio,
+        _syncBatch([_commentJson(825), _commentJson(820)], lastId: 825),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 900));
+
+      expect(received, [825, 820]);
+      expect(storage.lastMessageId, 825);
+    });
+
+    test('sync cursor stays at the newest id after the gap is filled',
+        () async {
+      var dio = MockDio();
+      var storage = _loggedInStorage()..setLastMessageId(819);
+      var host = RealtimeHost(DeadMqttClient(), storage, dio);
+      _stubSync(
+        dio,
+        _syncBatch([_commentJson(825), _commentJson(820)], lastId: 825),
+      );
+      var received = <int>[];
+      var subs = _messageStream(host).listen((m) => received.add(m.id));
+      addTearDown(subs.cancel);
+
+      await Future<void>.delayed(const Duration(milliseconds: 900));
+      expect(received, [820, 825]);
+      expect(storage.lastMessageId, 825);
+
+      // Respons lama/lebih kecil tidak memundurkan cursor.
+      _stubSync(dio, _syncBatch([_commentJson(820)], lastId: 820));
+      await Future<void>.delayed(const Duration(milliseconds: 900));
+      expect(received, [820, 825]);
+      expect(storage.lastMessageId, 825);
     });
 
     test('Storage.setLastMessageId only moves forward', () {
