@@ -1,3 +1,14 @@
+# 2.3.1
+
+- fix messages missed by realtime (MQTT) still never being fetched by sync
+  when a later message arrived via MQTT: the sync cursor is global and
+  forward-only, and every received message (including MQTT ones) advanced
+  it, so a skipped id (e.g. 820) was never fetched once 825 arrived. The
+  cursor now only moves from REST sync results; realtime messages no longer
+  touch it. Messages re-fetched by sync that were already received via
+  realtime are still deduplicated by id, so `onMessageReceived` does not
+  fire twice
+
 # 2.3.0
 
 - fix messages missed by realtime never being fetched by sync: the global
